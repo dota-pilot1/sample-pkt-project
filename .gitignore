@@ -1,0 +1,53 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Local agent/worktree state
+.claude/
+.claire/
+.codex/
+
+# Environment files
+.env
+.env.*
+!.env.example
+*.env
+**/.env
+**/.env.*
+!**/.env.example
+**/src/main/resources/application-local.yaml
+
+# Node / Frontend / Vite / Next.js
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+out/
+**/out/
+build/
+**/build/
+dist/
+**/dist/
+.vite/
+**/.vite/
+coverage/
+**/coverage/
+*.tsbuildinfo
+**/*.tsbuildinfo
+.npm/
+
+# Java / Gradle / Spring Boot
+.gradle/
+**/.gradle/
+**/bin/
+!**/gradle/wrapper/gradle-wrapper.jar
+
+# Rust / Tauri
+**/src-tauri/target/
+target/
+**/target/

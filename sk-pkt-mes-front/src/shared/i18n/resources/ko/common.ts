@@ -1,0 +1,15 @@
+export const common = {
+  brand: "SK PKT MES",
+  tagline: "SK하이닉스 PKT Package Test MES 프로젝트입니다.",
+  description: "제품·LOT·Tester·테스트 결과·수율 이력을 관리합니다.",
+  loading: "처리 중...",
+  confirm: "확인",
+  cancel: "취소",
+  save: "저장",
+  delete: "삭제",
+  edit: "편집",
+  close: "닫기",
+  search: "검색",
+  language: "언어",
+  theme: "테마",
+};
