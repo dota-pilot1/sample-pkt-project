@@ -3,7 +3,7 @@ import { DndContext, DragOverlay, PointerSensor, closestCenter, useSensor, useSe
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, ExternalLink, FileText, GitBranch, Loader2, Plus, RefreshCw } from "lucide-react";
+import { Braces, ChevronRight, ExternalLink, FileText, GitBranch, Loader2, Plus, RefreshCw } from "lucide-react";
 import PageHeader from "../../shared/ui/PageHeader";
 import PageHeaderSearch from "../../shared/ui/PageHeaderSearch";
 import { useColumnResize } from "../../shared/lib/useColumnResize";
@@ -13,10 +13,13 @@ import { playbookTreeKey, usePlaybookTree } from "../../features/hospital-playbo
 import DocumentDrawer from "./DocumentDrawer";
 import DocumentPage from "./DocumentPage";
 import DocumentPane from "./DocumentPane";
+import DocumentContextApiDialog from "./DocumentContextApiDialog";
 import ListColumn from "./ListColumn";
+import LlmApiGuideDialog from "./LlmApiGuideDialog";
 
 const CATEGORY_WIDTH_KEY = "pkt-study-category-width";
 const TOPIC_WIDTH_KEY = "pkt-study-topic-width";
+const COLLAPSED_COLUMN_WIDTH = 112;
 const EMPTY_CATEGORIES: PlaybookCategory[] = [];
 const EMPTY_TOPICS: PlaybookCategory["topics"] = [];
 const EMPTY_DOCUMENTS: PlaybookDocumentSummary[] = [];
@@ -32,6 +35,7 @@ function SortableTreeDocumentRow({
   onToggle,
   onAddChild,
   onOpenPage,
+  onOpenContextApi,
 }: {
   document: PlaybookDocumentSummary;
   depth: number;
@@ -43,6 +47,7 @@ function SortableTreeDocumentRow({
   onToggle: () => void;
   onAddChild: () => void;
   onOpenPage: () => void;
+  onOpenContextApi: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: document.id,
@@ -68,6 +73,7 @@ function SortableTreeDocumentRow({
       </button>
       {hasChildren && <button type="button" onClick={onToggle} className="ui-icon-button size-7" title={expanded ? "하위 문서 접기" : "하위 문서 펼치기"}><ChevronRight className={(expanded ? "rotate-90 " : "") + "size-4 transition-transform"} /></button>}
       {depth < 1 && <button type="button" onClick={onAddChild} className="ui-icon-button size-7 text-brand-primary" title="하위 문서 추가"><GitBranch className="size-3.5" /></button>}
+      {depth === 0 && <button type="button" onClick={onOpenContextApi} className="ui-icon-button size-7 text-brand-primary" title="문서 본문·하위 문서 API"><Braces className="size-3.5" /></button>}
       <button type="button" onClick={onOpenPage} className="ui-icon-button size-7" title="전체 페이지로 보기"><ExternalLink className="size-3.5" /></button>
     </div>
   );
@@ -111,10 +117,14 @@ function HospitalPlaybookModule({ domain, title }: { domain: PlaybookDomain; tit
   const [isRefreshingTree, setIsRefreshingTree] = useState(false);
   const [submittedSearch, setSubmittedSearch] = useState("");
   const [pendingTopicSelection, setPendingTopicSelection] = useState<number | null>(null);
+  const [llmApiGuideOpen, setLlmApiGuideOpen] = useState(false);
+  const [contextApiDocument, setContextApiDocument] = useState<PlaybookDocumentSummary | null>(null);
   const expandedTopicId = useRef<number | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
   const [categoryWidth, setCategoryWidth] = useState(() => storedWidth(CATEGORY_WIDTH_KEY, 280));
   const [topicWidth, setTopicWidth] = useState(() => storedWidth(TOPIC_WIDTH_KEY, 300));
+  const [categoryCollapsed, setCategoryCollapsed] = useState(false);
+  const [topicCollapsed, setTopicCollapsed] = useState(false);
 
   const categories: PlaybookCategory[] = tree.data ?? EMPTY_CATEGORIES;
   const category = useMemo(() => categories.find((item) => item.id === categoryId) ?? null, [categories, categoryId]);
@@ -308,7 +318,21 @@ function HospitalPlaybookModule({ domain, title }: { domain: PlaybookDomain; tit
       {/* 노트 트리만 다시 불러온다. 셸의 전역 새로고침은 본문을 리마운트해 선택 상태까지 초기화하므로 여기서는 감춘다. */}
       <PageHeader
         hideRefresh
-        center={<PageHeaderSearch value={submittedSearch} onSearch={submitSearch} onClear={() => setSubmittedSearch("")} />}
+        center={
+          <div className="flex min-w-0 w-full items-center gap-1.5">
+            <div className="min-w-0 flex-1">
+              <PageHeaderSearch value={submittedSearch} onSearch={submitSearch} onClear={() => setSubmittedSearch("")} />
+            </div>
+            <button
+              type="button"
+              onClick={() => setLlmApiGuideOpen(true)}
+              className="ui-icon-button h-9 shrink-0 gap-1.5 px-2.5 text-[11px] font-black text-brand-primary"
+              title="LLM용 플레이북 API 보기"
+            >
+              <Braces className="size-3.5" /> API for LLM
+            </button>
+          </div>
+        }
       >
         <FileText className="size-4 text-brand-primary" />
         <span className="text-[14px] font-bold tracking-tight text-text-primary">{title}</span>
@@ -316,34 +340,42 @@ function HospitalPlaybookModule({ domain, title }: { domain: PlaybookDomain; tit
       </PageHeader>
       <div className="min-h-0 flex-1 overflow-auto bg-surface-muted p-4">
         {tree.isPending ? <div className="grid h-full place-items-center text-text-muted"><Loader2 className="size-6 animate-spin" /></div> : tree.isError ? <div className="grid h-full place-items-center text-sm font-semibold text-text-muted">노트를 불러오지 못했습니다.</div> : (
-          <main className="flex h-full min-h-[640px] min-w-[960px] gap-0">
-            <div className="min-h-0 shrink-0" style={{ width: categoryWidth }}><ListColumn title="1차 노트 영역" items={categories.map((item) => ({ id: item.id, title: item.title, count: item.topics.length }))} selectedId={categoryId} onSelect={setCategoryId} onCreate={(title) => createCategory.mutate(title)} onRename={(id, title) => renameCategory.mutate({ id, title })} onDelete={(id) => deleteCategory.mutate(id)} onReorder={(ids) => reorderCategories.mutate(ids)} emptyLabel="아직 영역이 없습니다." createPlaceholder="영역 이름" /></div>
-            <ColumnResizeHandle onMouseDown={resizeCategory} />
-            <div className="min-h-0 shrink-0" style={{ width: topicWidth }}><ListColumn title="2차 노트 주제" items={(category?.topics ?? EMPTY_TOPICS).map((item) => ({ id: item.id, title: item.title, count: item.documents.length, badge: <FileText className="size-4 shrink-0 text-brand-primary" /> }))} selectedId={topicId} onSelect={setTopicId} onCreate={(title) => category && createTopic.mutate({ categoryId: category.id, title })} onRename={(id, title) => renameTopic.mutate({ id, title })} onDelete={(id) => deleteTopic.mutate(id)} onReorder={(ids) => category && reorderTopics.mutate({ categoryId: category.id, ids })} emptyLabel={category ? "아직 주제가 없습니다." : "먼저 영역을 선택하세요."} createPlaceholder="주제 이름" disabled={!category} /></div>
-            <ColumnResizeHandle onMouseDown={resizeTopic} />
+          <main className="flex h-full min-h-[640px] min-w-[960px] gap-1">
+            <div className="h-full min-h-0 shrink-0 transition-[width] duration-200" style={{ width: categoryCollapsed ? COLLAPSED_COLUMN_WIDTH : categoryWidth }}><ListColumn title="1차 메뉴" items={categories.map((item) => ({ id: item.id, title: item.title, count: item.topics.length }))} selectedId={categoryId} onSelect={setCategoryId} onCreate={(title) => createCategory.mutate(title)} onRename={(id, title) => renameCategory.mutate({ id, title })} onDelete={(id) => deleteCategory.mutate(id)} onReorder={(ids) => reorderCategories.mutate(ids)} emptyLabel="아직 영역이 없습니다." createPlaceholder="영역 이름" collapsed={categoryCollapsed} onToggle={() => setCategoryCollapsed((value) => !value)} /></div>
+            {!categoryCollapsed && <ColumnResizeHandle onMouseDown={resizeCategory} />}
+            <div className="h-full min-h-0 shrink-0 transition-[width] duration-200" style={{ width: topicCollapsed ? COLLAPSED_COLUMN_WIDTH : topicWidth }}><ListColumn title="2차 메뉴" items={(category?.topics ?? EMPTY_TOPICS).map((item) => ({ id: item.id, title: item.title, count: item.documents.length, badge: <FileText className="size-4 shrink-0 text-brand-primary" /> }))} selectedId={topicId} onSelect={setTopicId} onCreate={(title) => category && createTopic.mutate({ categoryId: category.id, title })} onRename={(id, title) => renameTopic.mutate({ id, title })} onDelete={(id) => deleteTopic.mutate(id)} onReorder={(ids) => category && reorderTopics.mutate({ categoryId: category.id, ids })} emptyLabel={category ? "아직 주제가 없습니다." : "먼저 영역을 선택하세요."} createPlaceholder="주제 이름" disabled={!category} collapsed={topicCollapsed} onToggle={() => setTopicCollapsed((value) => !value)} /></div>
+            {!topicCollapsed && <ColumnResizeHandle onMouseDown={resizeTopic} />}
             <section className="flex min-h-0 min-w-[420px] flex-1 flex-col rounded-lg border border-surface-border bg-surface-raised shadow-sm">
-              <header className="flex shrink-0 items-center justify-between gap-3 border-b border-surface-border-soft px-4 py-3">
+              <header className="flex h-12 min-h-12 shrink-0 items-center justify-between gap-3 border-b border-surface-border-soft px-4 py-0">
                 <div className="min-w-0">
                   <p className="truncate text-[11px] font-black text-brand-primary">
                     {category?.title ?? "영역 없음"} &gt; {topic?.title ?? "주제 없음"}
                   </p>
-                  <h1 className="mt-0.5 truncate text-lg font-black text-text-primary">
-                    {topic?.title ?? "주제를 선택하세요"}
-                    {topic && (
-                      <span className="ml-2 text-sm font-semibold text-text-muted">
-                        ({documents.length})
-                      </span>
-                    )}
-                  </h1>
+                  {topic && <h1 className="mt-0.5 truncate text-lg font-black text-text-primary">
+                    {topic.title}
+                    <span className="ml-2 text-sm font-semibold text-text-muted">({documents.length})</span>
+                  </h1>}
                 </div>
-                <button
-                  type="button"
-                  disabled={!topic || createDocument.isPending}
-                  onClick={() => createNewDocument()}
-                  className="ui-icon-button-brand h-9 shrink-0 gap-1.5 px-3 text-[13px] font-black disabled:opacity-40"
-                >
-                  <Plus className="size-4" /> 문서 추가
-                </button>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={!topic}
+                    onClick={() => setLlmApiGuideOpen(true)}
+                    className="ui-icon-button h-9 w-9 shrink-0 font-mono text-sm font-black disabled:opacity-40"
+                    title="이 2차 메뉴의 문서 작성·수정 API"
+                    aria-label="이 2차 메뉴의 문서 작성·수정 API"
+                  >
+                    {"{}"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!topic || createDocument.isPending}
+                    onClick={() => createNewDocument()}
+                    className="ui-icon-button-brand h-9 shrink-0 gap-1.5 px-3 text-[13px] font-black disabled:opacity-40"
+                  >
+                    <Plus className="size-4" /> 문서 추가
+                  </button>
+                </div>
               </header>
               {editingDocumentId ? (
                 <div className="min-h-0 flex-1 overflow-y-auto p-3">
@@ -401,6 +433,7 @@ function HospitalPlaybookModule({ domain, title }: { domain: PlaybookDomain; tit
                               })}
                               onAddChild={() => createNewDocument(document.id)}
                               onOpenPage={() => setPageDocumentId(document.id)}
+                              onOpenContextApi={() => setContextApiDocument(document)}
                             />
                           ) : null)}
                         </div>
@@ -427,6 +460,8 @@ function HospitalPlaybookModule({ domain, title }: { domain: PlaybookDomain; tit
       </div>
       {drawerDocument.isPending && drawerDocumentId !== null && <div className="fixed inset-0 z-50 grid place-items-center bg-black/20"><Loader2 className="size-7 animate-spin text-brand-primary" /></div>}
       {detail && <DocumentDrawer document={detail} previous={previous ? { ...detail, id: previous.id, title: previous.title } : undefined} next={next ? { ...detail, id: next.id, title: next.title } : undefined} onNavigate={(target) => setDrawerDocumentId(target.id)} onChanged={invalidate} onOpenPage={() => { setDrawerDocumentId(null); setPageDocumentId(detail.id); }} onDelete={() => deleteDocument.mutate(detail.id)} onClose={() => setDrawerDocumentId(null)} deleting={deleteDocument.isPending} deleteError={deleteDocument.isError ? (deleteDocument.error as Error).message : undefined} />}
+      {llmApiGuideOpen && <LlmApiGuideDialog domain={domain} parentDocumentId={drawerDocumentId} onClose={() => setLlmApiGuideOpen(false)} />}
+      {contextApiDocument && <DocumentContextApiDialog documentId={contextApiDocument.id} documentTitle={contextApiDocument.title} onClose={() => setContextApiDocument(null)} />}
     </div>
   );
 }

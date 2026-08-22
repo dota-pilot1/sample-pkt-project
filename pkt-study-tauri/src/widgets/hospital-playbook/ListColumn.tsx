@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { GripVertical, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, GripVertical, Plus, Trash2 } from "lucide-react";
 
 export type ListColumnItem = {
   id: number;
@@ -24,6 +24,8 @@ function ListColumn({
   emptyLabel,
   createPlaceholder,
   disabled = false,
+  collapsed = false,
+  onToggle,
 }: {
   title: string;
   items: ListColumnItem[];
@@ -36,6 +38,8 @@ function ListColumn({
   emptyLabel: string;
   createPlaceholder: string;
   disabled?: boolean;
+  collapsed?: boolean;
+  onToggle: () => void;
 }) {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
@@ -62,12 +66,42 @@ function ListColumn({
   };
 
   return (
-    <section className="flex min-h-0 min-w-0 flex-col rounded-lg border border-surface-border bg-surface-raised shadow-sm">
-      <div className="flex min-h-12 shrink-0 items-center gap-2 border-b border-surface-border-soft px-3">
-        <h2 className="flex-1 truncate text-sm font-black text-text-primary">{title}</h2>
-        <span className="grid min-w-6 place-items-center rounded-md bg-surface-muted px-1.5 py-0.5 text-[11px] font-black text-text-muted">
+    <section className="flex h-full min-h-0 min-w-0 flex-col rounded-lg border border-surface-border bg-surface-raised shadow-sm">
+      <div className={`flex h-12 min-h-12 shrink-0 items-center gap-2 border-b border-surface-border-soft bg-surface-muted/30 ${collapsed ? "justify-center px-2" : "px-3"}`}>
+        {collapsed ? (
+          <>
+            <span className="whitespace-nowrap text-xs font-black text-text-primary">{title}</span>
+            <span className="grid min-w-5 place-items-center rounded-full border border-brand-border/40 bg-brand-glass px-1.5 py-0.5 text-[10px] font-black tabular-nums text-brand-primary" title={`${items.length}개`}>
+              {items.length}
+            </span>
+            <button
+              type="button"
+              onClick={onToggle}
+              aria-expanded={false}
+              aria-label={`${title} 펼치기`}
+              title={`${title} 펼치기`}
+              className="ui-icon-button size-7 text-brand-primary"
+            >
+              <ChevronRight className="size-4" />
+            </button>
+          </>
+        ) : (
+          <>
+        <h2 className="min-w-0 truncate text-sm font-black text-text-primary">{title}</h2>
+        <span className="grid min-w-5 place-items-center rounded-full border border-brand-border/40 bg-brand-glass px-1.5 py-0.5 text-[10px] font-black tabular-nums text-brand-primary" title={`${items.length}개`}>
           {items.length}
         </span>
+        <span className="flex-1" />
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={true}
+          aria-label={`${title} 접기`}
+          title={`${title} 접기`}
+          className="ui-icon-button size-7 shrink-0 text-text-muted"
+        >
+          <ChevronLeft className="size-4" />
+        </button>
         <button
           type="button"
           onClick={() => setAdding((v) => !v)}
@@ -77,9 +111,11 @@ function ListColumn({
         >
           <Plus className="size-4" />
         </button>
+          </>
+        )}
       </div>
 
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2.5">
+      {!collapsed && <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2.5">
         {adding && (
           <input
             autoFocus
@@ -174,7 +210,7 @@ function ListColumn({
             </div>
           );
         })}
-      </div>
+      </div>}
     </section>
   );
 }

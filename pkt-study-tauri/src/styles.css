@@ -143,6 +143,59 @@ body {
   .lexical-editor-frame .lexical-editor-content { min-height: 0; }
   .lexical-editor-input { caret-color: var(--primary); }
   .lexical-editor-input:focus { box-shadow: none; }
+  /* 블로그형 인용 블록: 기본 왼쪽 세로선 대신 파스텔 배경과 인용 부호로 구분한다. */
+  .lexical-editor-input blockquote {
+    position: relative;
+    margin: 0.75rem 0 1rem;
+    padding: 0.875rem 1.25rem;
+    border: 1px solid #dbeafe;
+    border-left: 1px solid #dbeafe;
+    border-radius: 0.75rem;
+    background: #eff6ff;
+    color: #475569;
+    font-style: normal;
+  }
+  /* 인용문 안 마지막 문단의 기본 하단 마진이 카드 여백과 겹치지 않게 한다. */
+  .lexical-editor-input blockquote > p:last-child,
+  .lexical-editor-input blockquote > ul:last-child,
+  .lexical-editor-input blockquote > ol:last-child {
+    margin-bottom: 0 !important;
+  }
+  .lexical-editor-input blockquote::before {
+    content: none;
+  }
+  /* 섹션 제목은 배경 없는 제목으로 두고, 본문·목록·코드 블록과 시각적 역할을 분리한다. */
+  .lexical-editor-input h2 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  /* 문단은 카드가 아니라 본문으로 유지한다. 목록/문단을 섹션 제목과 혼동하지 않게 한다. */
+  .lexical-editor-input p {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+  }
+  .lexical-editor-input ol,
+  .lexical-editor-input ul {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+  }
+  .lexical-editor-input li {
+    margin-bottom: 0.15rem;
+  }
+  /* 의도적인 빈 paragraph는 한 줄보다 작게 두어 섹션 간 호흡만 남긴다. */
+  .lexical-editor-input p:empty,
+  .lexical-editor-input p:has(> br:only-child) {
+    min-height: 0.75rem;
+    margin-bottom: 0 !important;
+  }
+  ::highlight(pkt-document-search) { background-color: #fef08a; color: inherit; }
+  ::highlight(pkt-document-search-active) { background-color: #fdba74; color: inherit; text-decoration: underline; text-decoration-thickness: 2px; text-decoration-color: #0b78d0; }
   .lexical-toolbar { background: color-mix(in srgb, var(--muted) 72%, var(--card)); }
   .lexical-mermaid-preview { @apply my-3 overflow-auto rounded-md border border-surface-border-soft bg-surface-muted p-4 text-sm text-text-primary; }
   .lexical-mermaid-preview-flat { margin: 0; border: 0; background: transparent; padding: 0; }

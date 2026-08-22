@@ -42,6 +42,8 @@ function StaffConsole() {
         <HospitalPlaybookModule domain="SECURITY" title="보안 노트" />
       ) : active === "devops-playbook" ? (
         <HospitalPlaybookModule domain="DEVOPS" title="DevOps 노트" />
+      ) : active === "pkt-front-lev1" ? (
+        <HospitalPlaybookModule domain="PKT_FRONT_LEV1" title="PKT Front Lev1" />
       ) : active === "settings" ? (
         <SettingsPage />
       ) : (

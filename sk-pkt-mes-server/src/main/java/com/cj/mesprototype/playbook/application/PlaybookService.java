@@ -25,6 +25,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.Objects;
 
 /** 튼튼척 노트 영역/주제/문서 관리. */
 @Service
@@ -54,6 +55,19 @@ public class PlaybookService {
 
     public DocumentResponse document(Long documentId) {
         return DocumentResponse.from(findDocument(documentId));
+    }
+
+    /** 1차 문서의 위치와 본문, 하위 문서 본문을 LLM이 한 번에 읽을 수 있는 컨텍스트. */
+    public DocumentContextResponse documentContext(Long documentId) {
+        return DocumentContextResponse.from(findDocument(documentId));
+    }
+
+    public CategoryResponse category(Long categoryId) {
+        return CategoryResponse.from(findCategory(categoryId));
+    }
+
+    public TopicResponse topic(Long topicId) {
+        return TopicResponse.from(findTopic(topicId));
     }
 
     public List<SearchResult> search(String keyword, String scope, String spaceCode) {
@@ -101,7 +115,13 @@ public class PlaybookService {
     @Transactional
     public AiEditTokenResponse issueAiEditToken(Long documentId, Long requesterId, boolean admin) {
         PlaybookDocument document = findDocument(documentId);
-        ensureAuthorOrAdmin(document, requesterId, admin);
+        // LLM 공개 API로 생성된 문서는 createdBy가 없을 수 있다.
+        // 로그인한 노트 사용자가 이런 문서의 AI 편집 연결을 발급받을 수 있도록
+        // 이 토큰 발급 경로에서만 작성자 없는 문서를 허용한다.
+        if (!admin && document.getCreatedBy() != null
+                && (requesterId == null || !requesterId.equals(document.getCreatedBy()))) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
         String token = UUID.randomUUID().toString().replace("-", "")
                 + UUID.randomUUID().toString().replace("-", "");
         OffsetDateTime expiresAt = OffsetDateTime.now().plusMinutes(10);
@@ -184,6 +204,19 @@ public class PlaybookService {
     @Transactional
     public CategoryResponse createCategory(String title) {
         return createCategory("BACKEND", title);
+    }
+
+    /** LLM이 1차 영역과 여러 2차 주제를 한 번에 만들 때 사용한다. */
+    @Transactional
+    public StructureResponse createStructure(String spaceCode, String categoryTitle, List<String> topicTitles) {
+        CategoryResponse category = createCategory(spaceCode, categoryTitle);
+        List<TopicResponse> topics = topicTitles.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(title -> !title.isBlank())
+                .map(title -> createTopic(category.id(), title))
+                .toList();
+        return new StructureResponse(category, topics);
     }
 
     public List<SpaceResponse> spaces() {
@@ -306,6 +339,38 @@ public class PlaybookService {
         return DocumentResponse.from(document);
     }
 
+    /** LLM 본문 수정 전용 진입점. 버전이 전달되면 낙관적 충돌을 검사한다. */
+    @Transactional
+    public DocumentResponse updateDocumentContent(Long id, String title, String content, Integer expectedVersion) {
+        return updateDocumentContent(id, title, content, expectedVersion, null);
+    }
+
+    /**
+     * LLM 본문 수정 전용 진입점. parentId가 생략되면 기존 부모를 유지한다.
+     * 따라서 본문 저장 때문에 하위 문서가 최상위 문서로 승격되지 않는다.
+     */
+    @Transactional
+    public DocumentResponse updateDocumentContent(Long id, String title, String content,
+                                                   Integer expectedVersion, Long parentId) {
+        PlaybookDocument current = findDocument(id);
+        if (expectedVersion != null && current.getVersion() != expectedVersion) {
+            throw new BusinessException(ErrorCode.PLAYBOOK_DOCUMENT_VERSION_CONFLICT);
+        }
+        Long effectiveParentId = parentId != null
+                ? parentId
+                : current.getParent() == null ? null : current.getParent().getId();
+        return updateDocument(id, title == null ? current.getTitle() : title,
+                content, null, effectiveParentId);
+    }
+
+    /** 본문을 포함한 하위 문서를 한 번에 만든다. */
+    @Transactional
+    public DocumentResponse createDocumentWithContent(Long topicId, String title, String content,
+                                                       Long parentId, Long actorId) {
+        DocumentResponse created = createDocument(topicId, title, parentId, actorId);
+        return updateDocument(created.id(), title, content, null, parentId);
+    }
+
     /** 기존 호출자와의 호환을 유지하는 문서 수정 오버로드. */
     @Transactional
     public DocumentResponse updateDocument(Long id, String title, String content, Boolean useForChatbot) {
@@ -418,6 +483,8 @@ public class PlaybookService {
         }
     }
 
+    public record StructureResponse(CategoryResponse category, List<TopicResponse> topics) {}
+
     public record SpaceResponse(Long id, String code, String name) {
         static SpaceResponse from(PlaybookSpace space) {
             return new SpaceResponse(space.getId(), space.getCode(), space.getName());
@@ -451,6 +518,58 @@ public class PlaybookService {
                     d.getParent() == null ? null : d.getParent().getId(), d.getTitle(), d.getContent(),
                     d.getStatus(), d.isUseForChatbot(), d.getOrderIdx(), d.getVersion(), d.getCreatedBy(),
                     d.getApprovedBy(), d.getApprovedAt(), d.getUpdatedAt());
+        }
+    }
+
+    public record DocumentContextResponse(
+            String spaceCode,
+            String spaceName,
+            Long categoryId,
+            String categoryTitle,
+            Long topicId,
+            String topicTitle,
+            DocumentContextNode document) {
+        static DocumentContextResponse from(PlaybookDocument root) {
+            PlaybookTopic topic = root.getTopic();
+            PlaybookCategory category = topic.getCategory();
+            PlaybookSpace space = category.getSpace();
+            return new DocumentContextResponse(
+                    space.getCode(),
+                    space.getName(),
+                    category.getId(),
+                    category.getTitle(),
+                    topic.getId(),
+                    topic.getTitle(),
+                    DocumentContextNode.from(root, topic));
+        }
+    }
+
+    public record DocumentContextNode(
+            Long id,
+            Long parentId,
+            String title,
+            String content,
+            PlaybookDocumentStatus status,
+            boolean useForChatbot,
+            int orderIdx,
+            int version,
+            OffsetDateTime updatedAt,
+            List<DocumentContextNode> children) {
+        static DocumentContextNode from(PlaybookDocument document, PlaybookTopic topic) {
+            return new DocumentContextNode(
+                    document.getId(),
+                    document.getParent() == null ? null : document.getParent().getId(),
+                    document.getTitle(),
+                    document.getContent(),
+                    document.getStatus(),
+                    document.isUseForChatbot(),
+                    document.getOrderIdx(),
+                    document.getVersion(),
+                    document.getUpdatedAt(),
+                    topic.getDocuments().stream()
+                            .filter(child -> child.getParent() != null && child.getParent().getId().equals(document.getId()))
+                            .map(child -> from(child, topic))
+                            .toList());
         }
     }
 

@@ -12,9 +12,11 @@ import { useToast } from "../../shared/ui/toast";
 function DocumentPane({
   documentId,
   onChanged,
+  onCancel,
 }: {
   documentId: number;
   onChanged: () => void;
+  onCancel?: () => void;
 }) {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
@@ -87,6 +89,7 @@ function DocumentPane({
     setContent(doc.content);
     setEditorRevision((revision) => revision + 1);
     setSaveMessage("변경 내용을 취소했습니다.");
+    onCancel?.();
   };
 
   return (
@@ -127,7 +130,7 @@ function DocumentPane({
           <button
             type="button"
             onClick={cancel}
-            disabled={!dirty || busy}
+            disabled={busy}
             className="ui-icon-button h-9 gap-1.5 px-4 text-[13px] font-black disabled:opacity-40"
           >
             <RotateCcw className="size-4" />

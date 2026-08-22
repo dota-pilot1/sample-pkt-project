@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState, type RefObject } from 'react'
 import { LexicalComposer } from '@lexical/react/LexicalComposer'
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
 import { ContentEditable } from '@lexical/react/LexicalContentEditable'
@@ -27,6 +27,7 @@ import {
   $getSelection,
   $isElementNode,
   $isRangeSelection,
+  $isTextNode,
   COMMAND_PRIORITY_HIGH,
   KEY_BACKSPACE_COMMAND,
   PASTE_COMMAND,
@@ -58,6 +59,108 @@ type LexicalEditorProps = {
   readOnly?: boolean
   toolbarVariant?: 'full' | 'simple'
   promoteStructure?: boolean
+  searchQuery?: string
+  searchMatchIndex?: number
+  searchContainerRef?: RefObject<HTMLElement | null>
+  onSearchMatchesChange?: (count: number) => void
+}
+
+const SEARCH_HIGHLIGHT_NAME = 'pkt-document-search'
+const ACTIVE_SEARCH_HIGHLIGHT_NAME = 'pkt-document-search-active'
+
+function LexicalSearchPlugin({
+  query,
+  activeIndex,
+  containerRef,
+  onMatchesChange,
+}: {
+  query: string
+  activeIndex: number
+  containerRef?: RefObject<HTMLElement | null>
+  onMatchesChange?: (count: number) => void
+}) {
+  const [editor] = useLexicalComposerContext()
+  const [revision, setRevision] = useState(0)
+
+  useEffect(() => {
+    const cssHighlights = (CSS as typeof CSS & {
+      highlights?: { set: (name: string, highlight: unknown) => void; delete: (name: string) => void }
+    }).highlights
+    const HighlightCtor = (window as typeof window & {
+      Highlight?: new (...ranges: Range[]) => unknown
+    }).Highlight
+
+    if (!cssHighlights || !HighlightCtor) {
+      onMatchesChange?.(0)
+      return
+    }
+
+    const normalizedQuery = query.trim().toLowerCase()
+    if (!normalizedQuery) {
+      cssHighlights.delete(SEARCH_HIGHLIGHT_NAME)
+      cssHighlights.delete(ACTIVE_SEARCH_HIGHLIGHT_NAME)
+      onMatchesChange?.(0)
+      return
+    }
+
+    const ranges: Range[] = []
+    editor.getEditorState().read(() => {
+      const visit = (node: LexicalNode) => {
+        if ($isTextNode(node)) {
+          const element = editor.getElementByKey(node.getKey())
+          if (!element) return
+          const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+          let textNode: Node | null
+          while ((textNode = walker.nextNode())) {
+            const text = textNode.textContent ?? ''
+            const lowerText = text.toLowerCase()
+            let cursor = 0
+            while (cursor < text.length) {
+              const start = lowerText.indexOf(normalizedQuery, cursor)
+              if (start < 0) break
+              const range = document.createRange()
+              range.setStart(textNode, start)
+              range.setEnd(textNode, start + normalizedQuery.length)
+              ranges.push(range)
+              cursor = start + normalizedQuery.length
+            }
+          }
+          return
+        }
+        if ($isElementNode(node)) node.getChildren().forEach(visit)
+      }
+      visit($getRoot())
+    })
+
+    const safeIndex = ranges.length ? Math.min(Math.max(activeIndex, 0), ranges.length - 1) : 0
+    cssHighlights.set(SEARCH_HIGHLIGHT_NAME, new HighlightCtor(...ranges))
+    if (ranges[safeIndex]) cssHighlights.set(ACTIVE_SEARCH_HIGHLIGHT_NAME, new HighlightCtor(ranges[safeIndex]))
+    else cssHighlights.delete(ACTIVE_SEARCH_HIGHLIGHT_NAME)
+    onMatchesChange?.(ranges.length)
+
+    const activeRange = ranges[safeIndex]
+    if (activeRange && containerRef?.current) {
+      window.requestAnimationFrame(() => {
+        const container = containerRef.current
+        if (!container) return
+        const containerRect = container.getBoundingClientRect()
+        const rangeRect = activeRange.getBoundingClientRect()
+        container.scrollTop += rangeRect.top - containerRect.top - (container.clientHeight - rangeRect.height) / 2
+      })
+    }
+
+    return () => {
+      cssHighlights.delete(SEARCH_HIGHLIGHT_NAME)
+      cssHighlights.delete(ACTIVE_SEARCH_HIGHLIGHT_NAME)
+      ranges.forEach((range) => range.detach())
+    }
+  }, [activeIndex, containerRef, editor, onMatchesChange, query, revision])
+
+  useEffect(() => editor.registerUpdateListener(() => {
+    if (query.trim()) setRevision((value) => value + 1)
+  }), [editor, query])
+
+  return null
 }
 
 // Number prefixes such as `1. ` remain plain text while typing.
@@ -481,6 +584,10 @@ export function LexicalEditor({
   readOnly = false,
   toolbarVariant = 'full',
   promoteStructure = true,
+  searchQuery = '',
+  searchMatchIndex = 0,
+  searchContainerRef,
+  onSearchMatchesChange,
 }: LexicalEditorProps) {
   const handleChange = useCallback(
     (editorState: EditorState) => {
@@ -574,6 +681,14 @@ export function LexicalEditor({
         {readOnly ? null : <TableActionMenuPlugin />}
         <OnChangePlugin onChange={handleChange} />
         <EditablePlugin readOnly={readOnly} />
+        {readOnly && searchQuery ? (
+          <LexicalSearchPlugin
+            query={searchQuery}
+            activeIndex={searchMatchIndex}
+            containerRef={searchContainerRef}
+            onMatchesChange={onSearchMatchesChange}
+          />
+        ) : null}
       </div>
     </LexicalComposer>
   )

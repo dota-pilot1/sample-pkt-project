@@ -1,6 +1,11 @@
 server:
   port: 4201
 
+app:
+  playbook:
+    # 로컬 학습 노트용 API는 기본 공개한다. 운영 환경에서는 반드시 false로 덮어쓴다.
+    llm-api-public: ${PLAYBOOK_LLM_API_PUBLIC:true}
+
 spring:
   application:
     name: sk-pkt-mes-server

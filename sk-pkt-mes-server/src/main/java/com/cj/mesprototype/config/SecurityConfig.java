@@ -27,6 +27,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
@@ -63,7 +64,8 @@ public class SecurityConfig {
             HttpSecurity http,
             JwtAuthenticationFilter jwtFilter,
             RestAuthenticationEntryPoint entryPoint,
-            AccessDeniedHandler accessDeniedHandler) throws Exception {
+            AccessDeniedHandler accessDeniedHandler,
+            @Value("${app.playbook.llm-api-public:false}") boolean llmApiPublic) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -83,6 +85,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/menus").permitAll()
                         // AI 편집 API는 JWT가 아닌 문서별 1회용 Bearer 토큰을 컨트롤러에서 검증한다.
                         .requestMatchers("/api/public/hospital-playbook/**").permitAll()
+                        // 로컬 학습용으로만 켤 수 있는 LLM 작성 API.
+                        .requestMatchers("/api/llm/hospital-playbook/**").access((authentication, context) ->
+                                new org.springframework.security.authorization.AuthorizationDecision(
+                                        llmApiPublic || authentication.get().getPrincipal()
+                                                instanceof com.cj.mesprototype.auth.security.UserPrincipal))
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",

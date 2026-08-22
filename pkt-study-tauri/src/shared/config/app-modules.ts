@@ -1,6 +1,6 @@
-import { BookOpenText, LayoutDashboard, type LucideIcon } from "lucide-react";
+import { BookOpenText, GraduationCap, LayoutDashboard, type LucideIcon } from "lucide-react";
 
-export type StaffViewId = "home" | "backend-playbook" | "frontend-playbook" | "react-playbook" | "uiux-playbook" | "db-playbook" | "ax-playbook" | "tdd-playbook" | "rag-playbook" | "security-playbook" | "devops-playbook" | "settings" | "profile";
+export type StaffViewId = "home" | "backend-playbook" | "frontend-playbook" | "react-playbook" | "uiux-playbook" | "db-playbook" | "ax-playbook" | "tdd-playbook" | "rag-playbook" | "security-playbook" | "devops-playbook" | "pkt-front-lev1" | "settings" | "profile";
 
 export type StaffModuleDefinition = {
   id: StaffViewId;
@@ -22,6 +22,7 @@ export const STAFF_MODULES: StaffModuleDefinition[] = [
   { id: "rag-playbook", label: "RAG 노트", icon: BookOpenText, ready: true },
   { id: "security-playbook", label: "보안 노트", icon: BookOpenText, ready: true },
   { id: "devops-playbook", label: "DevOps 노트", icon: BookOpenText, ready: true },
+  { id: "pkt-front-lev1", label: "PKT Front Lev1", icon: GraduationCap, ready: true },
 ];
 
 export const APP_PROFILE = {

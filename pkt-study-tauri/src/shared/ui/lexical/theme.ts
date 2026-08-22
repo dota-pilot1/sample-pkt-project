@@ -2,13 +2,13 @@ import type { EditorThemeClasses } from 'lexical'
 
 export const editorTheme: EditorThemeClasses = {
   // Keep normal paragraphs readable without relying on empty paragraphs for spacing.
-  paragraph: 'mb-5 leading-7 text-text-primary',
+  paragraph: 'mb-3 leading-7 text-text-primary',
   heading: {
     h1: 'mt-6 mb-3 border-b border-surface-border-soft pb-2 text-2xl font-bold text-text-primary',
-    h2: 'mt-6 mb-2 text-xl font-bold text-text-primary',
+    h2: 'mt-5 mb-2 text-xl font-bold text-text-primary',
     h3: 'mt-5 mb-2 text-lg font-semibold text-text-primary',
   },
-  quote: 'border-l-4 border-brand-border pl-4 italic text-text-secondary my-2',
+  quote: 'text-text-secondary my-2',
   text: {
     bold: 'font-bold text-text-primary',
     italic: 'italic',

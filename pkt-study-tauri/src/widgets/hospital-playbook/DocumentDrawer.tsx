@@ -1,5 +1,5 @@
-import { Check, ChevronLeft, ChevronRight, Clipboard, ExternalLink, KeyRound, Link2, Pencil, Trash2, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clipboard, ExternalLink, Link2, Pencil, Search, Trash2, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { writeText as writeClipboardText } from "@tauri-apps/plugin-clipboard-manager";
 import type { PlaybookDocument } from "../../features/hospital-playbook/api";
 import { playbookApi } from "../../features/hospital-playbook/api";
@@ -9,6 +9,7 @@ import { LexicalEditor } from "../../shared/ui/lexical/lexical-editor";
 import { useToast } from "../../shared/ui/toast";
 import DocumentComments from "./DocumentComments";
 import DocumentPane from "./DocumentPane";
+import AiEditConnectionDialog from "./AiEditConnectionDialog";
 
 const DRAWER_SIZE_KEY = "pkt-study-document-drawer-size";
 const DRAWER_SIZES = [
@@ -78,10 +79,22 @@ function DocumentDrawer({
   const [isIssuingAiToken, setIsIssuingAiToken] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const [aiContentCopied, setAiContentCopied] = useState(false);
+  const [aiEditConnection, setAiEditConnection] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchMatchIndex, setSearchMatchIndex] = useState(0);
+  const [searchMatchCount, setSearchMatchCount] = useState(0);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setIsClosing(false);
     setIsEditing(false);
+    setSearchOpen(false);
+    setSearchQuery("");
+    setSearchMatchIndex(0);
+    setSearchMatchCount(0);
+    setAiEditConnection(null);
   }, [document.id]);
 
   const handleClose = () => {
@@ -89,6 +102,28 @@ function DocumentDrawer({
     setTimeout(() => {
       onClose();
     }, 200);
+  };
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setSearchQuery("");
+    setSearchMatchIndex(0);
+    setSearchMatchCount(0);
+  };
+
+  const openSearch = () => {
+    if (isEditing || !document.content.trim()) return;
+    setSearchOpen(true);
+    window.requestAnimationFrame(() => searchInputRef.current?.focus());
+  };
+
+  const selectSearchMatch = (index: number) => {
+    if (!searchMatchCount) return;
+    setSearchMatchIndex((index + searchMatchCount) % searchMatchCount);
+  };
+
+  const moveSearchMatch = (direction: 1 | -1) => {
+    selectSearchMatch(searchMatchIndex + direction);
   };
 
   const copyShareLink = async () => {
@@ -127,10 +162,16 @@ function DocumentDrawer({
         `TOKEN: ${issued.token}`,
         "",
         'PATCH body: {"title":"수정 제목","content":"수정 본문","expectedVersion":<CURRENT_VERSION>}',
+        "",
+        "CONTENT FORMAT:",
+        "content는 Markdown·HTML이 아닌 Lexical EditorState를 JSON.stringify한 문자열입니다.",
+        "GET으로 기존 문서 전체를 조회한 뒤 root 구조와 노드를 유지하면서 title·content 전체를 PATCH합니다.",
+        "일반 본문은 paragraph, 제목은 heading, 목록은 list/listitem, 강조 묶음은 quote 노드를 사용합니다.",
+        "코드 블록은 type: code, language: code-highlight.text, child type: code-highlight 구조를 사용합니다.",
+        "content에 일반 텍스트·Markdown·HTML을 직접 넣지 말고, 수정 전 최신 version을 expectedVersion에 사용합니다.",
         "이 토큰은 해당 문서에 한 번 저장한 뒤 폐기됩니다.",
       ].join("\n");
-      await copyToClipboard(connection);
-      showToast("AI 편집 연결 정보를 복사했습니다.");
+      setAiEditConnection(connection);
     } catch (error) {
       showToast(error instanceof ApiError ? `AI 편집 토큰 발급 실패: ${error.message}` : "AI 편집 정보를 클립보드에 복사하지 못했습니다.", "error");
     } finally {
@@ -158,11 +199,27 @@ function DocumentDrawer({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") handleClose();
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.key.toLowerCase() === "f" &&
+        !isEditing &&
+        document.content.trim()
+      ) {
+        event.preventDefault();
+        openSearch();
+        return;
+      }
+      if (event.key === "Escape") {
+        if (searchOpen) {
+          closeSearch();
+          return;
+        }
+        handleClose();
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
+  }, [document.content, isEditing, searchOpen, onClose]);
 
   return (
     <div
@@ -181,11 +238,27 @@ function DocumentDrawer({
         }`}
         style={{ width: `${drawerSize}vw`, maxWidth: "none" }}
       >
-        {/* 패널 사이드 일체형 손잡이 탭 */}
+        {/* 패널 사이드 일체형 도구 레일 */}
         <div
-          className="absolute left-0 top-32 z-10 flex -translate-x-full flex-col items-center rounded-l-xl border border-r-0 border-surface-border bg-surface-raised p-1 shadow-[-4px_0_14px_rgba(0,0,0,0.07)]"
-          aria-label="드로워 크기 조절"
+          className="absolute left-0 top-28 z-20 flex -translate-x-full flex-col items-center rounded-l-xl border border-r-0 border-surface-border bg-surface-raised p-1 shadow-[-4px_0_14px_rgba(0,0,0,0.07)]"
+          aria-label="상세 패널 도구"
         >
+          <button
+            type="button"
+            className={`grid size-7.5 place-items-center rounded-lg text-xs font-black transition-all ${
+              searchOpen
+                ? "border border-emerald-500 bg-white text-emerald-600 shadow-xs scale-105"
+                : "border border-transparent text-text-muted hover:bg-surface-muted hover:text-text-primary"
+            }`}
+            onClick={searchOpen ? closeSearch : openSearch}
+            disabled={isEditing || !document.content.trim()}
+            title="본문 검색 (⌘/Ctrl+F)"
+            aria-label="본문 검색"
+            aria-pressed={searchOpen}
+          >
+            <Search className="size-3.5" />
+          </button>
+          <div className="my-1 h-px w-5 bg-surface-border-soft" />
           {DRAWER_SIZES.map((size) => {
             const selected = drawerSize === size.value;
             return (
@@ -216,7 +289,15 @@ function DocumentDrawer({
             <p className="text-[11px] font-black text-brand-primary">개발 노트 · {isEditing ? "수정" : "상세 보기"}</p>
             {!isEditing && <h2 className="mt-0.5 truncate text-lg font-black text-text-primary">{document.title}</h2>}
           </div>
-          <button type="button" className={`ui-icon-button size-8 ${isEditing ? "bg-brand-primary text-white" : ""}`} onClick={() => setIsEditing(true)} title="수정">
+          <button
+            type="button"
+            className={`ui-icon-button size-8 ${isEditing ? "bg-brand-primary text-white" : ""}`}
+            onClick={() => {
+              closeSearch();
+              setIsEditing(true);
+            }}
+            title="수정"
+          >
             <Pencil className="size-4" />
           </button>
           {onOpenPage && <button type="button" className="ui-icon-button size-8" onClick={onOpenPage} title="전체 페이지로 보기">
@@ -229,7 +310,7 @@ function DocumentDrawer({
             {aiContentCopied ? <Check className="size-4" /> : <Clipboard className="size-4" />}
           </button>
           <button type="button" className="ui-icon-button size-8 text-brand-primary" onClick={() => void copyAiEditConnection()} disabled={isIssuingAiToken} title="AI 편집 연결 정보 복사">
-            <KeyRound className="size-4" />
+            <span className="font-mono text-xs font-black leading-none">{"{}"}</span>
           </button>
           <button type="button" className="ui-icon-button size-8 text-destructive" onClick={() => setDeleteConfirmOpen(true)} title="삭제">
             <Trash2 className="size-4" />
@@ -239,12 +320,54 @@ function DocumentDrawer({
           </button>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-5">
+        {searchOpen && !isEditing && (
+          <div className="flex shrink-0 items-center gap-2 border-b border-surface-border-soft bg-surface-muted px-5 py-2">
+            <Search className="size-3.5 shrink-0 text-text-muted" aria-hidden="true" />
+            <input
+              ref={searchInputRef}
+              value={searchQuery}
+              onChange={(event) => {
+                setSearchQuery(event.target.value);
+                setSearchMatchIndex(0);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  closeSearch();
+                  return;
+                }
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  moveSearchMatch(event.shiftKey ? -1 : 1);
+                }
+              }}
+              placeholder="본문에서 검색"
+              aria-label="본문에서 검색"
+              className="h-8 min-w-0 flex-1 bg-transparent text-xs font-semibold text-text-primary outline-none placeholder:text-text-muted"
+            />
+            <span className="shrink-0 text-[11px] font-bold text-text-muted">{searchMatchCount ? `${searchMatchIndex + 1}/${searchMatchCount}` : "0/0"}</span>
+            <button type="button" onClick={() => moveSearchMatch(-1)} disabled={!searchMatchCount} className="ui-icon-button size-7 disabled:opacity-35" title="이전 검색 결과" aria-label="이전 검색 결과"><ChevronUp className="size-3.5" /></button>
+            <button type="button" onClick={() => moveSearchMatch(1)} disabled={!searchMatchCount} className="ui-icon-button size-7 disabled:opacity-35" title="다음 검색 결과" aria-label="다음 검색 결과"><ChevronDown className="size-3.5" /></button>
+            <button type="button" onClick={closeSearch} className="ui-icon-button size-7" title="검색 닫기" aria-label="검색 닫기"><X className="size-3.5" /></button>
+          </div>
+        )}
+
+        <div ref={contentRef} className="min-h-0 flex-1 overflow-y-auto p-5">
           {isEditing ? (
-            <DocumentPane documentId={document.id} onChanged={onChanged} />
+            <DocumentPane documentId={document.id} onChanged={onChanged} onCancel={() => setIsEditing(false)} />
           ) : document.content.trim() ? (
             <div className="overflow-hidden rounded-lg border border-surface-border-soft bg-white">
-              <LexicalEditor key={document.id} initialState={document.content} onChange={() => undefined} readOnly minHeight="240px" />
+              <LexicalEditor
+                key={document.id}
+                initialState={document.content}
+                onChange={() => undefined}
+                readOnly
+                minHeight="240px"
+                searchQuery={searchOpen ? searchQuery : ""}
+                searchMatchIndex={searchMatchIndex}
+                searchContainerRef={contentRef}
+                onSearchMatchesChange={setSearchMatchCount}
+              />
             </div>
           ) : (
             <div className="grid min-h-56 place-items-center rounded-lg border border-dashed border-surface-border bg-surface-muted px-6 text-center">
@@ -279,7 +402,7 @@ function DocumentDrawer({
           </button>
         </footer>
 
-        {deleteConfirmOpen && (
+      {deleteConfirmOpen && (
           <div className="absolute inset-0 z-10 grid place-items-center bg-black/30 p-5">
             <div className="w-full max-w-sm rounded-lg border border-surface-border bg-surface-raised p-5 shadow-xl">
               <h3 className="text-base font-black text-text-primary">문서를 삭제할까요?</h3>
@@ -297,6 +420,7 @@ function DocumentDrawer({
           </div>
         )}
       </aside>
+      {aiEditConnection && <AiEditConnectionDialog connection={aiEditConnection} onClose={() => setAiEditConnection(null)} />}
     </div>
   );
 }
