@@ -1,7 +1,9 @@
+// lexical-editor의 nodes 배열에 노드를 추가하면 여기에도 타입을 넣어야 한다.
+// 여기 빠진 타입은 Lexical이 파싱하기 전에 normalizedNode가 버린다.
 const REGISTERED_NODE_TYPES = new Set([
   'root', 'paragraph', 'text', 'linebreak', 'heading', 'quote', 'list', 'listitem',
   'code', 'code-highlight', 'link', 'autolink', 'horizontalrule', 'table', 'tablerow',
-  'tablecell', 'image', 'youtube', 'mermaid', 'html-preview',
+  'tablecell', 'image', 'youtube', 'mermaid', 'html-preview', 'component-preview',
 ])
 
 function nodeText(node: Record<string, unknown>): string {

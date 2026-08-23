@@ -1,11 +1,13 @@
 import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clipboard, ExternalLink, Link2, Pencil, Search, Trash2, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { writeText as writeClipboardText } from "@tauri-apps/plugin-clipboard-manager";
 import type { PlaybookDocument } from "../../features/hospital-playbook/api";
 import { playbookApi } from "../../features/hospital-playbook/api";
 import { lexicalToMarkdown } from "../../features/hospital-playbook/lexicalToMarkdown";
 import { ApiError, getApiBase } from "../../shared/api/client";
 import { LexicalEditor } from "../../shared/ui/lexical/lexical-editor";
+import { collectPreviewBlocks } from "../../features/hospital-playbook/previewBlocks";
+import PreviewGallery from "./PreviewGallery";
 import { useToast } from "../../shared/ui/toast";
 import DocumentComments from "./DocumentComments";
 import DocumentPane from "./DocumentPane";
@@ -72,6 +74,12 @@ function DocumentDrawer({
 }) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [viewTab, setViewTab] = useState<"preview" | "note">("note");
+  const previewBlocks = useMemo(() => collectPreviewBlocks(document.content), [document.content]);
+  // 미리보기가 있는 문서는 출력 결과부터 연다. 문서를 바꿔 열 때만 정한다.
+  useEffect(() => {
+    setViewTab(collectPreviewBlocks(document.content).length > 0 ? "preview" : "note");
+  }, [document.id]);
   const [isClosing, setIsClosing] = useState(false);
   const [drawerSize, setDrawerSize] = useState(storedDrawerSize);
   const { showToast } = useToast();
@@ -364,9 +372,17 @@ function DocumentDrawer({
           </div>
         )}
 
+        {!isEditing && previewBlocks.length > 0 && (
+          <div className="flex shrink-0 gap-1 border-b border-surface-border-soft px-5" role="tablist" aria-label="본문 보기 방식">
+            <button type="button" role="tab" aria-selected={viewTab === "preview"} onClick={() => setViewTab("preview")} className={"border-b-2 px-3 pb-2 pt-2 text-[12px] font-black " + (viewTab === "preview" ? "border-brand-primary text-brand-primary" : "border-transparent text-text-muted")}>출력 결과 ({previewBlocks.length})</button>
+            <button type="button" role="tab" aria-selected={viewTab === "note"} onClick={() => setViewTab("note")} className={"border-b-2 px-3 pb-2 pt-2 text-[12px] font-black " + (viewTab === "note" ? "border-brand-primary text-brand-primary" : "border-transparent text-text-muted")}>노트 정리</button>
+          </div>
+        )}
         <div ref={contentRef} className="min-h-0 flex-1 overflow-y-auto p-5">
           {isEditing ? (
             <DocumentPane documentId={document.id} onChanged={onChanged} onCancel={() => setIsEditing(false)} />
+          ) : previewBlocks.length > 0 && viewTab === "preview" ? (
+            <PreviewGallery blocks={previewBlocks} />
           ) : document.content.trim() ? (
             <div className="overflow-hidden rounded-lg border border-surface-border-soft bg-white">
               <LexicalEditor
