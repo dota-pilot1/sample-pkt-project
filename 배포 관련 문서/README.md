@@ -11,6 +11,16 @@
 5. `05-Secrets-및-보안.md` - Secret과 민감정보 원칙
 6. `06-장애-대응-체크리스트.md` - 검증, 장애, 롤백
 
+## 상태 보고를 재현하는 문서
+
+프론트·백엔드 버전 어긋남, LOT 정렬 지원 여부, EC2 키 경로 확인, 로컬 플레이북 API 접근 방법은 `03-API-서버-운영.md`의 다음 절을 따른다.
+
+- `프론트·백엔드 버전 어긋남 확인`
+- `EC2 키 경로를 확인하는 방법`
+- `로컬 플레이북 API 확인 방법`
+
+운영 프론트 빌드 재현과 `.env.production` 확인은 `02-웹-배포.md`의 `검증 및 빌드` 절을 따른다.
+
 ## 현재 운영 주소
 
 - 웹: <https://hibot-docu.com>
@@ -20,3 +30,22 @@
 - 앱 Release: <https://github.com/dota-pilot1/pkt-study-tauri/releases>
 
 > 보안: 비밀번호, 개인키, p12 원문, Apple 계정 비밀번호는 이 폴더에 기록하지 않습니다.
+
+## 현재 자동 배포 흐름
+
+```text
+main push
+  └─ Deploy backend
+       ├─ JAR 빌드·EC2 백업·교체·systemd 재시작
+       ├─ 운영 OpenAPI에서 LOT 정렬 파라미터 검증
+       └─ 성공 시 Deploy frontend
+            ├─ 프론트 lint·build
+            ├─ S3 동기화
+            ├─ CloudFront invalidation
+            └─ 웹 응답 확인
+
+vX.Y.Z tag push
+  └─ PKT Study Tauri Release
+```
+
+백엔드와 프론트 워크플로는 `main` push에 자동 실행된다. 프론트는 백엔드 워크플로가 성공한 경우에만 이어서 실행되며, 두 워크플로 모두 GitHub Actions 화면에서 수동 실행할 수도 있다. Tauri 앱은 일반 커밋이 아니라 `v*` 태그 push로 릴리즈한다.

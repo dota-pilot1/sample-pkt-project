@@ -188,7 +188,7 @@ ssh -i /명시적인/키경로.pem -o IdentitiesOnly=yes \
 
 ### GitHub Actions 배포
 
-`.github/workflows/backend-deploy.yml`은 `workflow_dispatch`로만 실행되는 백엔드 배포 워크플로다. GitHub 저장소의 **Actions → Deploy backend → Run workflow**에서 배포할 ref를 선택한다. 기본값은 `main`이다.
+`.github/workflows/backend-deploy.yml`은 `main` push 시 자동 실행되며, GitHub 저장소의 **Actions → Deploy backend → Run workflow**에서 수동 실행할 수도 있다. 자동 실행에서는 push된 커밋을 배포하고, 수동 실행에서는 선택한 ref를 배포한다.
 
 `production` Environment에 다음 값을 등록해야 한다.
 
