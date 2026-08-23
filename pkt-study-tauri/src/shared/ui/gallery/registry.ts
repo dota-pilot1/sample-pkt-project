@@ -4,6 +4,7 @@ import { Button } from "./button";
 import { Input } from "./input";
 import { ModalDemo } from "./modal-demo";
 import { Select } from "./select";
+import { SidebarDemo } from "./sidebar-demo";
 import { TableDemo } from "./table-demo";
 import { Toggle } from "./toggle";
 
@@ -135,6 +136,18 @@ export const GALLERY_ENTRIES: GalleryEntry[] = [
       { name: "description", type: "text" },
     ],
     sourceFiles: ["modal.tsx", "modal.css", "modal-demo.tsx"],
+  },
+  {
+    id: "sidebar",
+    label: "Sidebar",
+    Component: SidebarDemo,
+    defaultProps: { collapsed: false, dense: false, label: "주 메뉴" },
+    controls: [
+      { name: "collapsed", type: "boolean" },
+      { name: "dense", type: "boolean" },
+      { name: "label", type: "text" },
+    ],
+    sourceFiles: ["sidebar.tsx", "sidebar.css", "sidebar-demo.tsx"],
   },
 ];
 
