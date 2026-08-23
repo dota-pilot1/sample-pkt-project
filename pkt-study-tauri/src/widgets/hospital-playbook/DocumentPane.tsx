@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, MonitorPlay, NotebookPen, RotateCcw, Save } from "lucide-react";
 import { playbookApi } from "../../features/hospital-playbook/api";
-import { collectHtmlPreviewBlocks } from "../../features/hospital-playbook/htmlPreviewBlocks";
-import { HtmlPreview } from "../../shared/ui/lexical/html-preview";
+import { collectPreviewBlocks } from "../../features/hospital-playbook/previewBlocks";
+import PreviewGallery from "./PreviewGallery";
 import { LexicalEditor } from "../../shared/ui/lexical/lexical-editor";
 import { useToast } from "../../shared/ui/toast";
 
@@ -44,7 +44,7 @@ function DocumentPane({
   // 편집 중이던 노트 탭에서 출력 결과로 튕긴다.
   useEffect(() => {
     if (!document.data) return;
-    setTab(collectHtmlPreviewBlocks(document.data.content).length > 0 ? "preview" : "note");
+    setTab(collectPreviewBlocks(document.data.content).length > 0 ? "preview" : "note");
   }, [document.data?.id]);
 
   const afterWrite = (saved: Awaited<ReturnType<typeof playbookApi.updateDocument>>) => {
@@ -69,7 +69,7 @@ function DocumentPane({
   });
   // 저장 전에도 출력 결과가 갱신되도록 편집 중인 본문에서 직접 뽑는다.
   // 훅이라 조기 반환보다 위에 있어야 한다.
-  const previewBlocks = useMemo(() => collectHtmlPreviewBlocks(content), [content]);
+  const previewBlocks = useMemo(() => collectPreviewBlocks(content), [content]);
 
   if (document.isPending) {
     return (
@@ -147,15 +147,8 @@ function DocumentPane({
       )}
 
       {previewBlocks.length > 0 && tab === "preview" && (
-        <div className="mt-2 flex flex-col gap-3">
-          {previewBlocks.map((block, index) => (
-            <div key={index} className="overflow-hidden rounded-lg border border-surface-border-soft bg-surface-raised">
-              <div className="border-b border-surface-border-soft px-3 py-2 text-[12px] font-black text-text-primary">
-                {block.label || `미리보기 ${index + 1}`}
-              </div>
-              <HtmlPreview block={block} />
-            </div>
-          ))}
+        <div className="mt-2">
+          <PreviewGallery blocks={previewBlocks} />
         </div>
       )}
 

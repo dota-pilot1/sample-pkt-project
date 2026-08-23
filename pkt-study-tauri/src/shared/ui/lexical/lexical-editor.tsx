@@ -42,6 +42,7 @@ import { ImageNode } from './nodes/image-node'
 import { YoutubeNode } from './nodes/youtube-node'
 import { MermaidNode, $createMermaidNode } from './nodes/mermaid-node'
 import { HtmlPreviewNode } from './nodes/html-preview-node'
+import { ComponentPreviewNode } from './nodes/component-preview-node'
 import { DragDropImagePlugin, ImagePlugin } from './plugins/image-plugin'
 import { YoutubePlugin } from './plugins/youtube-plugin'
 import { TableActionMenuPlugin } from './plugins/table-action-plugin'
@@ -724,6 +725,7 @@ export function LexicalEditor({
         YoutubeNode,
         MermaidNode,
         HtmlPreviewNode,
+        ComponentPreviewNode,
       ],
       onError: (error: Error) => {
         console.error('Lexical error:', error)
