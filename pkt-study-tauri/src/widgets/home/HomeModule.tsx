@@ -1,16 +1,17 @@
 import { useState } from "react";
-import { ArrowRight, BookOpenText, Code2, Database, GraduationCap, LayoutDashboard, Server, Settings2, Workflow } from "lucide-react";
+import { ArrowRight, BookOpenText, Boxes, Database, GraduationCap, LayoutDashboard, LayoutGrid, MousePointerClick, Navigation, SquarePen, Workflow } from "lucide-react";
 import PageHeader from "../../shared/ui/PageHeader";
 import type { StaffViewId } from "../../shared/config/app-modules";
 
 const noteSpaces: Array<{ id: StaffViewId; title: string; description: string; icon: typeof BookOpenText }> = [
-  { id: "backend-playbook", title: "백엔드 노트", description: "Spring Boot, Java, API, DDD와 서버 구현 기록", icon: Server },
-  { id: "spring-boot-playbook", title: "Spring Boot 노트", description: "공통 에러 처리, 예외 응답, Validation과 Spring 서버 패턴 기록", icon: Server },
-  { id: "frontend-playbook", title: "프론트 노트", description: "Next.js, React, FSD와 화면 구현 기록", icon: Workflow },
-  { id: "react-playbook", title: "모던 리액트 스킬", description: "Hooks, 상태 관리, 렌더링 최적화와 모던 React 패턴", icon: Code2 },
-  { id: "uiux-playbook", title: "리액트 컴퍼넌트 설계", description: "공통 컴포넌트와 화면 조립·사용법 설계 기록", icon: Settings2 },
   { id: "db-playbook", title: "DB 테이블 설계", description: "PostgreSQL, ERD, JPA와 데이터 모델 기록", icon: Database },
+  { id: "frontend-playbook", title: "프론트 노트", description: "Next.js, React, FSD와 화면 구현 기록", icon: Workflow },
   { id: "pkt-front-lev1", title: "PKT Front Lev1", description: "PKT React 실습 30개와 구현 과정을 기록", icon: GraduationCap },
+  { id: "uiux-playbook", title: "공통 컴포넌트", description: "Button, Input, Table 등 화면을 이루는 부품 샘플", icon: Boxes },
+  { id: "ui-nav", title: "메뉴 & 네비게이션", description: "Sidebar, Header, Tabs, Breadcrumb, Pagination 구성", icon: Navigation },
+  { id: "ui-form", title: "폼 & 유효성 검사", description: "Form 조합, React Hook Form, Zod, 필드 에러 표시", icon: SquarePen },
+  { id: "ui-layout", title: "레이아웃 & 페이지 구성", description: "Grid/Flex, Dashboard, List/Detail, 반응형 배치", icon: LayoutGrid },
+  { id: "ui-state", title: "인터랙션 & 상태 표현", description: "Hover, Dropdown, Loading, Skeleton, Empty, Toast", icon: MousePointerClick },
 ];
 
 const learningGoals = [

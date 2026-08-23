@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Factory, LogOut, Settings, User } from "lucide-react";
-import { APP_PROFILE, STAFF_MODULES, type StaffViewId } from "../../shared/config/app-modules";
+import { APP_PROFILE, STAFF_MODULES, STAFF_RAIL_GROUPS, type StaffRailGroup, type StaffViewId } from "../../shared/config/app-modules";
 import { useAuthStore } from "../../features/auth/auth-store";
 import { ContentRefreshProvider } from "../../shared/lib/content-refresh";
 import { RailToggleProvider } from "../../shared/lib/rail-toggle";
@@ -14,6 +14,18 @@ const RAIL_COLLAPSED_KEY = "mes.study.railCollapsed.v1";
  * MES 개발 학습 노트 셸.
  * 좌측 레일 = 노트 영역 + 하단 계정, 각 영역은 서버의 playbook space와 연결된다.
  */
+/**
+ * 레일 구역 배경. 활성 항목이 흰 틴트를 쓰므로, 밴드는 그보다 어둡고 채도 높은
+ * 자기 색을 가져야 "선택"과 "묶음"이 겹쳐 보이지 않는다.
+ */
+const RAIL_GROUP_BAND: Record<StaffRailGroup, string | undefined> = {
+  core: undefined,
+  // 레일 자체가 파랑이라 파란 계열 밴드는 묻힌다. 파랑과 겹치지 않는 세 색으로 벌린다.
+  backend: "#b45309",
+  frontend: "#059669",
+  design: "#7c3aed",
+};
+
 function StaffAppShell({
   active,
   onSelect,
@@ -103,32 +115,50 @@ function StaffAppShell({
           <span className="sr-only">{APP_PROFILE.hospitalName}</span>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col items-center gap-1.5 overflow-y-auto py-2">
-          {STAFF_MODULES.map((module) => {
-            const isActive = module.id === active;
+        <div className="flex min-h-0 flex-1 flex-col items-center gap-3 overflow-y-auto py-2">
+          {STAFF_RAIL_GROUPS.map((group) => {
+            const modules = STAFF_MODULES.filter((module) => module.group === group.id);
+            if (modules.length === 0) return null;
+
             return (
-              <button
-                key={module.id}
-                onClick={() => onSelect(module.id)}
-                title={module.ready ? module.label : `${module.label} (준비 중)`}
-                className={
-                  "group relative flex min-h-[48px] w-[66px] flex-col items-center justify-center gap-1 px-1 py-1.5 transition-all duration-300 ease-in-out " +
-                  (isActive ? "rounded-[14px]" : "rounded-[22px] hover:rounded-[14px]") +
-                  (module.ready ? "" : " opacity-55")
-                }
-                style={{ backgroundColor: isActive ? railTint(25) : undefined }}
+              <div
+                key={group.id}
+                className="flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-[18px] pb-2 pt-1.5"
+                style={{ backgroundColor: RAIL_GROUP_BAND[group.id] }}
               >
-                <span
-                  className={
-                    "absolute -left-1.5 top-1/2 w-1 -translate-y-1/2 rounded-r-full bg-text-on-brand transition-all duration-300 ease-in-out " +
-                    (isActive ? "h-6" : "h-0 group-hover:h-3")
-                  }
-                />
-                <module.icon className="size-[19px] shrink-0" strokeWidth={2} />
-                <span className="w-full overflow-hidden text-center text-[9.5px] font-semibold leading-[1.15] [word-break:keep-all]">
-                  {module.label}
-                </span>
-              </button>
+                {group.label && (
+                  <span className="pb-0.5 text-[8.5px] font-black uppercase tracking-[0.14em] text-text-on-brand/65">
+                    {group.label}
+                  </span>
+                )}
+                {modules.map((module) => {
+                  const isActive = module.id === active;
+                  return (
+                    <button
+                      key={module.id}
+                      onClick={() => onSelect(module.id)}
+                      title={module.ready ? module.label : `${module.label} (준비 중)`}
+                      className={
+                        "group relative flex min-h-[46px] w-[64px] flex-col items-center justify-center gap-1 px-1 py-1.5 transition-all duration-300 ease-in-out " +
+                        (isActive ? "rounded-[13px]" : "rounded-[20px] hover:rounded-[13px]") +
+                        (module.ready ? "" : " opacity-55")
+                      }
+                      style={{ backgroundColor: isActive ? railTint(38) : undefined }}
+                    >
+                      <span
+                        className={
+                          "absolute -left-1 top-1/2 w-1 -translate-y-1/2 rounded-r-full bg-text-on-brand transition-all duration-300 ease-in-out " +
+                          (isActive ? "h-6" : "h-0 group-hover:h-3")
+                        }
+                      />
+                      <module.icon className="size-[19px] shrink-0" strokeWidth={2} />
+                      <span className="w-full overflow-hidden text-center text-[9.5px] font-semibold leading-[1.15] [word-break:keep-all]">
+                        {module.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             );
           })}
         </div>

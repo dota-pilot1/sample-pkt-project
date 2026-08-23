@@ -22,16 +22,18 @@ function StaffConsole() {
     <StaffAppShell active={active} onSelect={setActive}>
       {active === "home" ? (
         <HomeModule onSelect={setActive} />
-      ) : active === "backend-playbook" ? (
-        <HospitalPlaybookModule domain="BACKEND" title="백엔드 노트" />
-      ) : active === "spring-boot-playbook" ? (
-        <HospitalPlaybookModule domain="SPRING_BOOT" title="Spring Boot 노트" />
       ) : active === "frontend-playbook" ? (
         <HospitalPlaybookModule domain="FRONTEND" title="프론트 노트" />
-      ) : active === "react-playbook" ? (
-        <HospitalPlaybookModule domain="REACT" title="모던 리액트 스킬" />
       ) : active === "uiux-playbook" ? (
-        <HospitalPlaybookModule domain="UIUX" title="리액트 컴퍼넌트 설계" />
+        <HospitalPlaybookModule domain="UIUX" title="공통 컴포넌트" />
+      ) : active === "ui-nav" ? (
+        <HospitalPlaybookModule domain="UI_NAV" title="메뉴 & 네비게이션" />
+      ) : active === "ui-form" ? (
+        <HospitalPlaybookModule domain="UI_FORM" title="폼 & 유효성 검사" />
+      ) : active === "ui-layout" ? (
+        <HospitalPlaybookModule domain="UI_LAYOUT" title="레이아웃 & 페이지 구성" />
+      ) : active === "ui-state" ? (
+        <HospitalPlaybookModule domain="UI_STATE" title="인터랙션 & 상태 표현" />
       ) : active === "db-playbook" ? (
         <HospitalPlaybookModule domain="DB" title="DB 테이블 설계" />
       ) : active === "pkt-front-lev1" ? (
