@@ -208,8 +208,8 @@ export default function DocumentPage({
       </PageHeader>
       <div className="min-h-0 flex-1 overflow-y-auto bg-surface-muted p-3">
         <main className="mx-auto grid w-full max-w-[1800px] gap-3 lg:grid-cols-[420px_minmax(0,1fr)]">
-          <button type="button" onClick={onClose} className="flex w-fit items-center gap-1 text-[11px] font-black text-brand-primary hover:underline lg:col-span-2">
-            <ArrowLeft className="size-3.5" /> 목록으로
+          <button type="button" onClick={onClose} className="ui-icon-button h-9 w-fit gap-1.5 border-brand-border px-3 text-xs font-black text-brand-primary hover:bg-brand-glass lg:col-span-2">
+            <ArrowLeft className="size-4" /> 목록으로
           </button>
           <aside className="h-fit rounded-lg border border-surface-border bg-surface-raised p-2 shadow-sm lg:sticky lg:top-0 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
             <div className="flex items-center justify-between border-b border-surface-border-soft px-2 py-2">

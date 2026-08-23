@@ -12,9 +12,10 @@ const createState = (children: unknown[]) => JSON.stringify({
 const sampleStep = (number: number, title: string, description: string, file: string, code: string, language: string) => [
   heading(`Step ${number}. ${title}`),
   quoteBlock([paragraph(description)]),
-  heading("파일:"),
+  paragraph("파일:"),
   codeBlock(file, "text"),
-  heading("코드:"),
+  emptyParagraph(),
+  paragraph("코드:"),
   codeBlock(code, language),
   emptyParagraph(),
   emptyParagraph(),
@@ -43,29 +44,43 @@ export const TODO_PLAN_SAMPLE_LEXICAL_STATE = createState([
 
 /** TODO 하위 문서: 하나의 TODO 안에서 Step 1~N을 관리하는 샘플입니다. */
 export const STEP1_SAMPLE_LEXICAL_STATE = createState([
-  heading("TODO 2. LOT 페이지네이션 조회 API 구현", "h1"),
-  quoteBlock([paragraph("Spring Data Page를 사용해 Repository부터 Service와 Controller까지 연결하고, 정렬·페이지 크기·오류 정책을 서버에서 일관되게 적용합니다.")]),
+  heading("TODO 1. 서버 응답과 화면 모델 분리", "h1"),
+  quoteBlock([paragraph("TypeScript에서 서버 응답 계약과 화면 모델을 분리하고, 변환 경계가 보이도록 주요 타입에 역할 주석을 작성합니다.")]),
   emptyParagraph(),
   emptyParagraph(),
-  ...sampleStep(1, "Repository 생성", "JpaRepository의 Page 조회 기능을 사용하고 LOT 코드 중복 확인 메서드를 제공한다.", "sk-pkt-mes-server/src/main/java/com/cj/mesprototype/lot/infrastructure/LotRepository.java", `public interface LotRepository extends JpaRepository<Lot, Long> {
-    boolean existsByLotCode(String lotCode);
-}`, "java"),
-  ...sampleStep(2, "Service 페이지 조회 구현", "Pageable을 검증하고 Repository Page를 목록 DTO와 페이지 메타데이터로 변환한다.", "sk-pkt-mes-server/src/main/java/com/cj/mesprototype/lot/application/LotService.java", `Page<LotSummaryResponse> page = lotRepository.findAll(pageable)
-        .map(LotSummaryResponse::from);
-return LotPageResponse.from(page);`, "java"),
-  ...sampleStep(3, "Controller 조회 경로 연결", "GET /api/lots에서 page와 size를 받고 updatedAt DESC·id ASC 정렬을 적용한다.", "sk-pkt-mes-server/src/main/java/com/cj/mesprototype/lot/presentation/LotController.java", `@GetMapping
-public LotPageResponse getLots(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size) {
-    return lotService.getLots(PageRequest.of(page, size,
-            Sort.by(Sort.Direction.DESC, "updatedAt")
-                    .and(Sort.by(Sort.Direction.ASC, "id"))));
-}`, "java"),
-  ...sampleStep(4, "페이지 조건 검증", "page가 음수이거나 size가 1 미만·100 초과이면 LOT_001을 반환한다.", "sk-pkt-mes-server/src/main/java/com/cj/mesprototype/common/exception/ErrorCode.java", `LOT_INVALID_PAGINATION(
-        HttpStatus.BAD_REQUEST,
-        "LOT_001",
-        "LOT 페이지 조회 조건이 올바르지 않습니다."
-)`, "java"),
+  ...sampleStep(1, "화면 모델 타입 정의", "화면 컴포넌트가 사용하는 상태 라벨과 페이지 응답 구조를 주요 타입 주석과 함께 정의한다.", "prac-pkt-react/src/features/lot/model/lot.types.ts", `/** LOT 상태를 화면에 표시할 때 사용하는 한글 라벨이다. */
+export type LotStatus = "대기" | "진행 중" | "완료" | "이상";
+
+/** LOT 테이블과 선택 상세 패널에서 사용하는 화면 모델이다. */
+export type Lot = {
+  id: string;
+  product: string;
+  status: LotStatus;
+  process: string;
+  updatedAt: string;
+};
+
+/** LOT 목록과 페이지네이션 UI가 공유하는 화면용 페이지 모델이다. */
+export type LotPage = {
+  content: Lot[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+};`, "typescript"),
+  ...sampleStep(2, "서버 응답 타입 정의", "API 파일에서는 서버의 영문 상태 코드와 원본 필드 구조를 화면 모델과 구분한다.", "prac-pkt-react/src/features/lot/api/lot.api.ts", `/** 서버가 반환하는 LOT 상태 코드다. 화면 라벨과 다르므로 mapLot에서 변환한다. */
+type LotApiStatus = "WAITING" | "IN_PROGRESS" | "COMPLETED" | "HOLD";
+
+/** 서버 LOT 목록 한 건의 원본 응답 계약이다. */
+type LotApiItem = {
+  id: number;
+  lotCode: string;
+  productCode: string;
+  productName: string;
+  status: LotApiStatus;
+  process: string;
+  updatedAt: string;
+};`, "typescript"),
 ]);
 
 /** 기존 호출부 호환용 기본 샘플입니다. */

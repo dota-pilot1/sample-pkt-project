@@ -124,9 +124,12 @@ content는 Markdown이나 HTML이 아니라 Lexical EditorState를 JSON.stringif
 - list에는 children, direction, format, indent, listType, start, tag, type, version을 포함하고 listitem에는 children, checked, direction, format, indent, type, value, version을 포함합니다.
 - 목록 항목 사이에는 빈 paragraph를 넣지 않습니다.
 - 각 섹션은 h2 제목 다음에 본문 paragraph 또는 list 전체를 하나의 type: "quote" 노드 안에 넣어 파스텔 배경으로 표시합니다.
-- 파일 경로나 실제 코드는 섹션 quote 밖에 독립된 type: "code" 블록으로 배치합니다. 코드 블록에는 배경색을 중첩하지 않습니다.
+- 파일 경로와 실제 코드는 섹션 quote 밖에 각각 독립된 type: "code" 블록으로 배치합니다. 파일 경로를 실제 코드 블록의 주석이나 첫 줄에 넣지 않습니다. 코드 블록에는 배경색을 중첩하지 않습니다.
+- 코드 블록은 몇 줄만 떼어낸 부분 코드가 아니라 독자가 흐름을 이해할 수 있는 함수·훅·컴포넌트·설정 단위의 실제 코드를 담습니다. 설명용 \`...\`는 사용하지 않습니다.
 - 구현 계획 문서는 h1 제목 → quote 목표 → h2 제목 → quote 본문 → 필요 시 code 블록 순서로 작성합니다. 목록 항목 사이에는 빈 paragraph를 넣지 않습니다.
 - 섹션 사이에는 children: []인 빈 paragraph 2개를 둡니다.
+- 하위 문서 Step에서는 파일 경로 code 뒤에 빈 paragraph 1개, 실제 코드 code 뒤에 빈 paragraph 1개를 둡니다. 다음 Step 전에는 빈 paragraph 2개를 둡니다.
+- 주의사항과 검증은 모든 Step에 넣지 않습니다. 비자명한 설계 판단이나 실제 실행한 테스트·조회·화면 확인 결과가 있을 때만 추가합니다.
 - 아직 구현하지 않은 계획 단계에서는 확정되지 않은 API 경로·응답 예시를 추가하지 않고, 구현 완료 후 실제 조회 API만 이 안내에 반영합니다.
 - 파일 경로는 type: "code" 블록의 language를 "text"로 저장하고, 실제 코드는 파일에 맞는 "java", "typescript", "tsx", "bash", "json" 등의 language를 사용합니다. "code-highlight.text"는 children의 type과 저장 호환 표기이며 실제 코드 언어로 사용하지 않습니다.
 - code 블록은 children 안에 type: "code-highlight" 노드를 두고, 코드 전체를 그 노드의 text에 넣습니다. 코드 안의 줄바꿈은 text 값에 그대로 유지합니다.
@@ -141,7 +144,7 @@ content는 Markdown이나 HTML이 아니라 Lexical EditorState를 JSON.stringif
 
 ## 11. 하위 문서 샘플
 
-하위 문서는 h1 TODO 제목 → quote 목표 → h2 Step → quote 설명 → 파일 경로 code → 실제 코드 code 순서입니다.
+하위 문서는 h1 TODO 제목 → quote 목표 → h2 Step → quote 설명 → 일반 paragraph '파일:' → 파일 경로 code → 일반 paragraph '코드:' → 이해 가능한 실제 코드 단위 code 순서입니다.
 각 Step 사이에는 빈 paragraph 2개를 두고, TODO 하나의 모든 Step을 한 문서 안에 작성합니다.
 오른쪽 '하위 문서 Step 1~N 샘플' 탭이 이 구조를 보여줍니다.
 
@@ -164,7 +167,7 @@ content는 Markdown이나 HTML이 아니라 Lexical EditorState를 JSON.stringif
         <>
           <p className="font-black text-text-primary">2차 주제 사용 순서</p>
           <p>주제 조회 → 기존 본문 문서 확인 → 없으면 본문 계획 문서 생성 → 본문 저장 → TODO별 하위 문서 생성 → 각 하위 문서 안에 Step 기록 → 하위 문서 순서 정렬 → 다시 조회</p>
-          <p className="mt-1">본문 문서는 TODO 계획, 하위 문서는 TODO 하나의 Step 1~N을 담습니다. <code className="rounded bg-surface-muted px-1 py-0.5 font-mono">content</code>는 Lexical EditorState를 JSON.stringify한 문자열이며, 섹션 설명은 quote, 파일 경로와 실제 코드는 독립 code 블록으로 저장합니다.</p>
+          <p className="mt-1">본문 문서는 TODO 계획, 하위 문서는 TODO 하나의 Step 1~N을 담습니다. <code className="rounded bg-surface-muted px-1 py-0.5 font-mono">content</code>는 Lexical EditorState를 JSON.stringify한 문자열이며, 섹션 설명은 quote, 파일 경로와 실제 코드는 독립 code 블록으로 저장합니다. 코드는 이해 가능한 함수·훅·컴포넌트·설정 단위로 기록하고 설명용 생략 부호는 사용하지 않습니다.</p>
           <p className="mt-1">하위 문서는 <code className="rounded bg-surface-muted px-1 py-0.5 font-mono">parentId</code>에 부모 Document ID를 넣어 생성합니다. 409가 나오면 최신 문서를 다시 조회한 뒤 <code className="rounded bg-surface-muted px-1 py-0.5 font-mono">expectedVersion</code>을 갱신합니다.</p>
         </>
       }
