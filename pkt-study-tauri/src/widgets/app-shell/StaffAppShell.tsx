@@ -100,7 +100,7 @@ function StaffAppShell({
         aria-hidden={railCollapsed}
         className={
           "relative z-50 flex shrink-0 flex-col items-center text-text-on-brand transition-[width] duration-200 ease-in-out " +
-          (railCollapsed ? "w-0 overflow-hidden pointer-events-none" : "w-[80px] overflow-visible")
+          (railCollapsed ? "w-0 overflow-hidden pointer-events-none" : "w-[92px] overflow-visible")
         }
         style={{
           backgroundImage:
@@ -123,7 +123,7 @@ function StaffAppShell({
             return (
               <div
                 key={group.id}
-                className="flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-[18px] pb-2 pt-1.5"
+                className="flex w-[84px] shrink-0 flex-col items-center gap-1 rounded-[18px] pb-2 pt-1.5"
                 style={{ backgroundColor: RAIL_GROUP_BAND[group.id] }}
               >
                 {group.label && (
@@ -139,18 +139,12 @@ function StaffAppShell({
                       onClick={() => onSelect(module.id)}
                       title={module.ready ? module.label : `${module.label} (준비 중)`}
                       className={
-                        "group relative flex min-h-[46px] w-[64px] flex-col items-center justify-center gap-1 px-1 py-1.5 transition-all duration-300 ease-in-out " +
-                        (isActive ? "rounded-[13px]" : "rounded-[20px] hover:rounded-[13px]") +
+                        "flex min-h-[46px] w-[76px] flex-col items-center justify-center gap-1 px-1 py-1.5 transition-all duration-300 ease-in-out " +
+                        (isActive ? "rounded-[13px]" : "rounded-[20px] hover:rounded-[13px] hover:bg-white/10") +
                         (module.ready ? "" : " opacity-55")
                       }
                       style={{ backgroundColor: isActive ? railTint(38) : undefined }}
                     >
-                      <span
-                        className={
-                          "absolute -left-1 top-1/2 w-1 -translate-y-1/2 rounded-r-full bg-text-on-brand transition-all duration-300 ease-in-out " +
-                          (isActive ? "h-6" : "h-0 group-hover:h-3")
-                        }
-                      />
                       <module.icon className="size-[19px] shrink-0" strokeWidth={2} />
                       <span className="w-full overflow-hidden text-center text-[9.5px] font-semibold leading-[1.15] [word-break:keep-all]">
                         {module.label}
@@ -206,7 +200,7 @@ function StaffAppShell({
           </button>
 
           {accountOpen && (
-            <div className="absolute bottom-[52px] left-[74px] z-50 w-[200px] rounded-lg border border-surface-border bg-surface-raised p-1.5 text-text-primary shadow-xl">
+            <div className="absolute bottom-[52px] left-[86px] z-50 w-[200px] rounded-lg border border-surface-border bg-surface-raised p-1.5 text-text-primary shadow-xl">
               <div className="border-b border-surface-border-soft px-2.5 py-2">
                 <p className="truncate text-[13px] font-black">{displayName}</p>
                 <p className="truncate text-[11px] font-semibold text-text-secondary">{roleName}</p>
