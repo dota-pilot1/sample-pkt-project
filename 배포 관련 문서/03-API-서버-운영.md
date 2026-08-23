@@ -5,6 +5,17 @@
 - 대상: `sk-pkt-mes-server`
 - 운영: Spring Boot JAR + systemd + Docker PostgreSQL
 - 운영 환경변수는 EC2에서만 관리하며 저장소에 커밋하지 않습니다.
+- 이 머신에 EC2 SSH 개인키가 없으면 원격 백엔드 배포를 수행할 수 없습니다.
+- SSH 키 파일 경로, 권한, 보안그룹의 22번 포트 허용 여부를 먼저 확인합니다.
+
+## 백엔드 배포 전 SSH 확인
+
+```bash
+find /Users/terecal/.ssh -maxdepth 1 -type f -print
+ssh -i /명시적인/키경로.pem -o IdentitiesOnly=yes ubuntu@54.180.215.129 'hostname && systemctl is-active sample-pkt-mes.service'
+```
+
+키가 없거나 접속이 실패하면 JAR 업로드·systemd 재시작을 시도하지 않습니다. 사용자가 EC2 키를 안전한 경로로 제공하고, 키 권한을 `chmod 600`으로 설정한 뒤 진행합니다.
 
 ## 로컬 빌드
 
