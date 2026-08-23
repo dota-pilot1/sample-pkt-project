@@ -150,11 +150,21 @@ function DocumentDrawer({
       const issued = await playbookApi.issueAiEditToken(document.id);
       const apiBase = getApiBase();
       const endpoint = `${apiBase}/api/public/hospital-playbook/ai-edit/documents/${issued.documentId}`;
+      const documentRole = document.parentId === null ? "2차 주제 본문 문서(전체 TODO 계획)" : "TODO 하위 문서(이 TODO의 Step 1~N)";
       const connection = [
-        "MES SINGLE DOCUMENT LLM EDIT API",
+        "PKT 2차 주제 개별 문서 편집 API FOR LLM",
         `documentId: ${issued.documentId}`,
+        `documentTitle: ${document.title}`,
+        `documentRole: ${documentRole}`,
+        `parentId: ${document.parentId ?? "null"}`,
         `expectedVersion: ${issued.expectedVersion}`,
         `expiresAt: ${issued.expiresAt}`,
+        "",
+        "이 토큰은 현재 documentId 하나만 조회·수정합니다.",
+        "다른 문서 생성·삭제·정렬은 2차 주제 전체 노트 관리 API를 사용합니다.",
+        document.parentId === null
+          ? "현재 문서는 본문 문서입니다. 전체 목표와 TODO 1~N 계획만 작성하고 Step 상세는 하위 문서로 분리합니다."
+          : "현재 문서는 TODO 하위 문서입니다. 이 문서 안에서 해당 TODO의 Step 1~N을 순서대로 작성합니다.",
         "",
         `GET ${endpoint}`,
         `PATCH ${endpoint}`,
@@ -166,8 +176,10 @@ function DocumentDrawer({
         "CONTENT FORMAT:",
         "content는 Markdown·HTML이 아닌 Lexical EditorState를 JSON.stringify한 문자열입니다.",
         "GET으로 기존 문서 전체를 조회한 뒤 root 구조와 노드를 유지하면서 title·content 전체를 PATCH합니다.",
-        "일반 본문은 paragraph, 제목은 heading, 목록은 list/listitem, 강조 묶음은 quote 노드를 사용합니다.",
-        "코드 블록은 type: code, language: code-highlight.text, child type: code-highlight 구조를 사용합니다.",
+        "일반 본문은 paragraph, 제목은 heading, 목록은 list/listitem, 설명 묶음은 quote 노드를 사용합니다.",
+        "각 섹션은 heading → quote 설명 → 필요 시 파일 경로 code(language: text) → 실제 코드 code(language: java·typescript·tsx·bash·json) 순서로 작성합니다.",
+        "code 노드 children에는 type: code-highlight를 두고 실제 원문을 child text에 넣습니다.",
+        "섹션 사이에는 children: []인 빈 paragraph 2개를 두고 목록 항목 사이에는 빈 paragraph를 넣지 않습니다.",
         "content에 일반 텍스트·Markdown·HTML을 직접 넣지 말고, 수정 전 최신 version을 expectedVersion에 사용합니다.",
         "이 토큰은 해당 문서에 한 번 저장한 뒤 폐기됩니다.",
       ].join("\n");
@@ -420,7 +432,7 @@ function DocumentDrawer({
           </div>
         )}
       </aside>
-      {aiEditConnection && <AiEditConnectionDialog connection={aiEditConnection} onClose={() => setAiEditConnection(null)} />}
+      {aiEditConnection && <AiEditConnectionDialog connection={aiEditConnection} documentTitle={document.title} isChildDocument={document.parentId !== null} onClose={() => setAiEditConnection(null)} />}
     </div>
   );
 }

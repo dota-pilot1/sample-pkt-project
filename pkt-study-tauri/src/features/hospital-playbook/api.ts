@@ -2,7 +2,7 @@ import { request } from "../../shared/api/client";
 
 export type DocumentStatus = "DRAFT" | "APPROVED" | "ARCHIVED";
 export type PlaybookSearchScope = "all" | "category" | "topic" | "document";
-export type PlaybookDomain = "BACKEND" | "FRONTEND" | "REACT" | "UIUX" | "DB" | "AX" | "TDD" | "RAG" | "SECURITY" | "DEVOPS" | "PKT_FRONT_LEV1";
+export type PlaybookDomain = "BACKEND" | "SPRING_BOOT" | "FRONTEND" | "REACT" | "UIUX" | "DB" | "AX" | "TDD" | "RAG" | "SECURITY" | "DEVOPS" | "PKT_FRONT_LEV1";
 export type PlaybookSpace = { id: number; code: string; name: string };
 
 export type PlaybookDocumentSummary = {

@@ -24,6 +24,8 @@ function StaffConsole() {
         <HomeModule onSelect={setActive} />
       ) : active === "backend-playbook" ? (
         <HospitalPlaybookModule domain="BACKEND" title="백엔드 노트" />
+      ) : active === "spring-boot-playbook" ? (
+        <HospitalPlaybookModule domain="SPRING_BOOT" title="Spring Boot 노트" />
       ) : active === "frontend-playbook" ? (
         <HospitalPlaybookModule domain="FRONTEND" title="프론트 노트" />
       ) : active === "react-playbook" ? (
@@ -32,16 +34,6 @@ function StaffConsole() {
         <HospitalPlaybookModule domain="UIUX" title="리액트 컴퍼넌트 설계" />
       ) : active === "db-playbook" ? (
         <HospitalPlaybookModule domain="DB" title="DB 테이블 설계" />
-      ) : active === "ax-playbook" ? (
-        <HospitalPlaybookModule domain="AX" title="AI·자동화 노트" />
-      ) : active === "tdd-playbook" ? (
-        <HospitalPlaybookModule domain="TDD" title="TDD 노트" />
-      ) : active === "rag-playbook" ? (
-        <HospitalPlaybookModule domain="RAG" title="RAG 노트" />
-      ) : active === "security-playbook" ? (
-        <HospitalPlaybookModule domain="SECURITY" title="보안 노트" />
-      ) : active === "devops-playbook" ? (
-        <HospitalPlaybookModule domain="DEVOPS" title="DevOps 노트" />
       ) : active === "pkt-front-lev1" ? (
         <HospitalPlaybookModule domain="PKT_FRONT_LEV1" title="PKT Front Lev1" />
       ) : active === "settings" ? (

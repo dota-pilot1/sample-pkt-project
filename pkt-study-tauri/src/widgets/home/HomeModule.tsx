@@ -1,19 +1,15 @@
 import { useState } from "react";
-import { ArrowRight, BookOpenText, Code2, Database, FolderKanban, GraduationCap, LayoutDashboard, Lightbulb, Network, Server, Settings2, ShieldCheck, Workflow } from "lucide-react";
+import { ArrowRight, BookOpenText, Code2, Database, GraduationCap, LayoutDashboard, Server, Settings2, Workflow } from "lucide-react";
 import PageHeader from "../../shared/ui/PageHeader";
 import type { StaffViewId } from "../../shared/config/app-modules";
 
 const noteSpaces: Array<{ id: StaffViewId; title: string; description: string; icon: typeof BookOpenText }> = [
   { id: "backend-playbook", title: "백엔드 노트", description: "Spring Boot, Java, API, DDD와 서버 구현 기록", icon: Server },
+  { id: "spring-boot-playbook", title: "Spring Boot 노트", description: "공통 에러 처리, 예외 응답, Validation과 Spring 서버 패턴 기록", icon: Server },
   { id: "frontend-playbook", title: "프론트 노트", description: "Next.js, React, FSD와 화면 구현 기록", icon: Workflow },
   { id: "react-playbook", title: "모던 리액트 스킬", description: "Hooks, 상태 관리, 렌더링 최적화와 모던 React 패턴", icon: Code2 },
   { id: "uiux-playbook", title: "리액트 컴퍼넌트 설계", description: "공통 컴포넌트와 화면 조립·사용법 설계 기록", icon: Settings2 },
   { id: "db-playbook", title: "DB 테이블 설계", description: "PostgreSQL, ERD, JPA와 데이터 모델 기록", icon: Database },
-  { id: "tdd-playbook", title: "TDD 노트", description: "테스트 시나리오와 검증 결과 기록", icon: FolderKanban },
-  { id: "devops-playbook", title: "DevOps 노트", description: "로컬 실행, 배포와 운영 체크리스트", icon: Network },
-  { id: "ax-playbook", title: "AI·자동화 노트", description: "AI 도구와 반복 작업 자동화 실험 기록", icon: Lightbulb },
-  { id: "rag-playbook", title: "RAG 노트", description: "문서 검색, 임베딩과 지식 연결 기록", icon: BookOpenText },
-  { id: "security-playbook", title: "보안 노트", description: "인증, 권한과 안전한 서비스 운영 기록", icon: ShieldCheck },
   { id: "pkt-front-lev1", title: "PKT Front Lev1", description: "PKT React 실습 30개와 구현 과정을 기록", icon: GraduationCap },
 ];
 

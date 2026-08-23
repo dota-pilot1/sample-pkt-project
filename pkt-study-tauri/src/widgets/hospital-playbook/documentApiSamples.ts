@@ -4,97 +4,68 @@ const heading = (text: string, tag: "h1" | "h2" = "h2") => ({ children: [textNod
 const emptyParagraph = () => ({ children: [], direction: null, format: "", indent: 0, type: "paragraph", version: 1 });
 const quoteBlock = (children: unknown[]) => ({ children, direction: "ltr", format: "", indent: 0, type: "quote", version: 1 });
 const bulletList = (items: string[]) => ({ children: items.map((item, index) => ({ children: [textNode(item)], direction: "ltr", format: "", indent: 0, type: "listitem", value: index + 1, version: 1 })), direction: "ltr", format: "", indent: 0, listType: "bullet", start: 1, tag: "ul", type: "list", version: 1 });
-const codeBlock = (text: string) => ({ children: [{ text, type: "code-highlight", version: 1 }], direction: "ltr", format: "", indent: 0, language: "code-highlight.text", type: "code", version: 1 });
-
-const SAMPLE_STEP1_CODE = `// src/features/lot/model/useLots.ts
-import { useQuery } from "@tanstack/react-query";
-import { fetchLots } from "../api/lot.api";
-
-export function useLots() {
-  return useQuery({
-    queryKey: ["lots"],
-    queryFn: fetchLots,
-    staleTime: 30_000,
-  });
-}`;
+const codeBlock = (text: string, language = "typescript") => ({ children: [{ text, type: "code-highlight", version: 1 }], direction: "ltr", format: "", indent: 0, language, type: "code", version: 1 });
 
 const createState = (children: unknown[]) => JSON.stringify({
   root: { children, direction: null, format: "", indent: 0, type: "root", version: 1 },
 });
-const sampleStep = (number: number, title: string, description: string, checks: string[], code: string) => [
+const sampleStep = (number: number, title: string, description: string, file: string, code: string, language: string) => [
   heading(`Step ${number}. ${title}`),
-  quoteBlock([paragraph(description), bulletList(checks)]),
-  paragraph("Code:"),
-  codeBlock(code),
+  quoteBlock([paragraph(description)]),
+  heading("파일:"),
+  codeBlock(file, "text"),
+  heading("코드:"),
+  codeBlock(code, language),
   emptyParagraph(),
   emptyParagraph(),
 ];
 
-const todoStep = (number: number, title: string, description: string, code: string) => [
+const todoPlan = (number: number, title: string, description: string) => [
   heading(`TODO ${number}. ${title}`),
   quoteBlock([paragraph(description)]),
-  paragraph("Code:"),
-  codeBlock(code),
   emptyParagraph(),
   emptyParagraph(),
 ];
 
-/** 전체 계획 문서에서 사용하는 고정 Lexical 샘플입니다. */
+/** 2차 주제 본문 문서: 전체 목표와 TODO 계획만 담는 샘플입니다. */
 export const TODO_PLAN_SAMPLE_LEXICAL_STATE = createState([
-  heading("전체 주제 샘플", "h1"),
-  quoteBlock([paragraph("LOT 목록 조회를 TanStack Query 기준으로 검토하고 실제 LOT 조회 API까지 단계적으로 적용합니다.")]),
+  heading("LOT 조회 페이지네이션 서버 구현 전체 계획", "h1"),
+  quoteBlock([paragraph("LOT 목록 조회 API를 Spring Boot 서버에서 페이지네이션 방식으로 구현하고, 실제 HTTP 조회와 오류 조건까지 검증합니다.")]),
   emptyParagraph(),
   emptyParagraph(),
-  ...todoStep(1, "적용 현황 리뷰", "현재 QueryClientProvider, useLots, LotsPage 적용 상태를 확인하고 완료된 범위를 구분합니다.", `// prac-pkt-react/src/main.tsx
-const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 30_000 } },
-});
-
-<QueryClientProvider client={queryClient}>
-  <App />
-</QueryClientProvider>`),
-  ...todoStep(2, "사용 패턴 리뷰", "queryKey, queryFn, staleTime, 캐시와 화면 상태 처리 방식을 검토합니다.", `// prac-pkt-react/src/features/lot/model/useLots.ts
-export function useLots() {
-  return useQuery({
-    queryKey: ["lots"],
-    queryFn: fetchLots,
-    staleTime: 30_000,
-  });
-}`),
-  ...todoStep(3, "실제 LOT 조회 API 구현 및 적용", "확정된 백엔드 계약을 기준으로 응답 타입과 fetchLots를 구현해 화면에 연결합니다.", `// prac-pkt-react/src/features/lot/api/lot.api.ts
-export async function fetchLots(): Promise<Lot[]> {
-  const response = await fetch(LOT_LIST_ENDPOINT);
-  if (!response.ok) throw new Error("LOT 목록 조회 실패");
-  return response.json();
-}`),
+  heading("TODO 계획"),
+  quoteBlock([bulletList([
+    "TODO 1. LOT 도메인 모델과 응답 계약 구현",
+    "TODO 2. LOT 페이지네이션 조회 API 구현",
+    "TODO 3. LOT 샘플 데이터와 서버 검증",
+  ])]),
 ]);
 
-/** 하나의 하위 문서에서 Step 1~N을 관리하는 고정 Lexical 샘플입니다. */
+/** TODO 하위 문서: 하나의 TODO 안에서 Step 1~N을 관리하는 샘플입니다. */
 export const STEP1_SAMPLE_LEXICAL_STATE = createState([
-  heading("TODO 하위 문서 Step 1~N 샘플", "h1"),
-  quoteBlock([paragraph("하나의 하위 문서 안에서 Step 1부터 필요한 마지막 단계까지 순서대로 관리합니다. 각 Step은 설명·확인 목록·코드 블록으로 구성합니다.")]),
+  heading("TODO 2. LOT 페이지네이션 조회 API 구현", "h1"),
+  quoteBlock([paragraph("Spring Data Page를 사용해 Repository부터 Service와 Controller까지 연결하고, 정렬·페이지 크기·오류 정책을 서버에서 일관되게 적용합니다.")]),
   emptyParagraph(),
   emptyParagraph(),
-  ...sampleStep(1, "Provider 확인", "앱 진입점에서 QueryClientProvider가 설정되어 있는지 확인합니다.", ["QueryClient를 생성한다", "앱을 Provider 하위에 연결한다"], `// prac-pkt-react/src/main.tsx
-const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 30_000 } },
-});
-<QueryClientProvider client={queryClient}>
-  <App />
-</QueryClientProvider>`),
-  ...sampleStep(2, "query 계약 확인", "useLots의 queryKey와 queryFn을 확인합니다.", ["queryKey는 [lots]다", "fetchLots가 queryFn이다"], SAMPLE_STEP1_CODE),
-  ...sampleStep(3, "조회 상태 확인", "페이지의 로딩·실패·성공 상태를 확인합니다.", ["isLoading을 표시한다", "isError를 표시한다", "빈 배열을 처리한다"], `// prac-pkt-react/src/pages/LotsPage.tsx
-const { data: rows = [], isLoading, isError } = useLots();
-if (isLoading) return <LoadingMessage />;
-if (isError) return <ErrorMessage />;
-return <LotTable rows={rows} onSelect={setSelectedLot} />;`),
-  ...sampleStep(4, "선택 연계 확인", "목록 행 선택과 상세 패널 연계를 확인합니다.", ["행 클릭으로 selectedLot을 갱신한다", "상세 패널에 선택 값을 표시한다"], `// prac-pkt-react/src/features/lot/ui/LotTable.tsx
-const [selectedLot, setSelectedLot] = useState<Lot | null>(null);
-<LotTable rows={rows} onSelect={setSelectedLot} />
-<LotDetail lot={selectedLot} />`),
-  ...sampleStep(5, "최종 검증", "lint·build와 실제 화면 동작을 확인합니다.", ["npm run lint 통과", "npm run build 통과", "화면 동작 확인"], `// prac-pkt-react/package.json
-npm run lint
-npm run build`),
+  ...sampleStep(1, "Repository 생성", "JpaRepository의 Page 조회 기능을 사용하고 LOT 코드 중복 확인 메서드를 제공한다.", "sk-pkt-mes-server/src/main/java/com/cj/mesprototype/lot/infrastructure/LotRepository.java", `public interface LotRepository extends JpaRepository<Lot, Long> {
+    boolean existsByLotCode(String lotCode);
+}`, "java"),
+  ...sampleStep(2, "Service 페이지 조회 구현", "Pageable을 검증하고 Repository Page를 목록 DTO와 페이지 메타데이터로 변환한다.", "sk-pkt-mes-server/src/main/java/com/cj/mesprototype/lot/application/LotService.java", `Page<LotSummaryResponse> page = lotRepository.findAll(pageable)
+        .map(LotSummaryResponse::from);
+return LotPageResponse.from(page);`, "java"),
+  ...sampleStep(3, "Controller 조회 경로 연결", "GET /api/lots에서 page와 size를 받고 updatedAt DESC·id ASC 정렬을 적용한다.", "sk-pkt-mes-server/src/main/java/com/cj/mesprototype/lot/presentation/LotController.java", `@GetMapping
+public LotPageResponse getLots(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size) {
+    return lotService.getLots(PageRequest.of(page, size,
+            Sort.by(Sort.Direction.DESC, "updatedAt")
+                    .and(Sort.by(Sort.Direction.ASC, "id"))));
+}`, "java"),
+  ...sampleStep(4, "페이지 조건 검증", "page가 음수이거나 size가 1 미만·100 초과이면 LOT_001을 반환한다.", "sk-pkt-mes-server/src/main/java/com/cj/mesprototype/common/exception/ErrorCode.java", `LOT_INVALID_PAGINATION(
+        HttpStatus.BAD_REQUEST,
+        "LOT_001",
+        "LOT 페이지 조회 조건이 올바르지 않습니다."
+)`, "java"),
 ]);
 
 /** 기존 호출부 호환용 기본 샘플입니다. */

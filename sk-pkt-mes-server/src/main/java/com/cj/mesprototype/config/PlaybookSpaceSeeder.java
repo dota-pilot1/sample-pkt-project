@@ -22,6 +22,7 @@ public class PlaybookSpaceSeeder implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         List.of(
                 new SpaceSeed("BACKEND", "백엔드 플레이북"),
+                new SpaceSeed("SPRING_BOOT", "Spring Boot 플레이북"),
                 new SpaceSeed("FRONTEND", "프론트 플레이북"),
                 new SpaceSeed("REACT", "모던 리액트 스킬"),
                 new SpaceSeed("UIUX", "Component Recipes"),

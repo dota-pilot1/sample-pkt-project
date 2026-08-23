@@ -461,7 +461,7 @@ function HospitalPlaybookModule({ domain, title }: { domain: PlaybookDomain; tit
       </div>
       {drawerDocument.isPending && drawerDocumentId !== null && <div className="fixed inset-0 z-50 grid place-items-center bg-black/20"><Loader2 className="size-7 animate-spin text-brand-primary" /></div>}
       {detail && <DocumentDrawer document={detail} previous={previous ? { ...detail, id: previous.id, title: previous.title } : undefined} next={next ? { ...detail, id: next.id, title: next.title } : undefined} onNavigate={(target) => setDrawerDocumentId(target.id)} onChanged={invalidate} onOpenPage={() => { setDrawerDocumentId(null); setPageDocumentId(detail.id); }} onDelete={() => deleteDocument.mutate(detail.id)} onClose={() => setDrawerDocumentId(null)} deleting={deleteDocument.isPending} deleteError={deleteDocument.isError ? (deleteDocument.error as Error).message : undefined} />}
-      {llmApiGuideOpen && <LlmApiGuideDialog domain={domain} parentDocumentId={drawerDocumentId} onClose={() => setLlmApiGuideOpen(false)} />}
+      {llmApiGuideOpen && <LlmApiGuideDialog domain={domain} topicId={topicId} parentDocumentId={drawerDocumentId} onClose={() => setLlmApiGuideOpen(false)} />}
       {contextApiDocument && <DocumentContextApiDialog documentId={contextApiDocument.id} documentTitle={contextApiDocument.title} onClose={() => setContextApiDocument(null)} />}
     </div>
   );

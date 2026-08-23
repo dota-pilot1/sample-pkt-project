@@ -75,7 +75,7 @@ content 처리 규칙:
 - 설명과 목록처럼 하나의 묶음으로 보여줄 내용은 quote 노드 안에 함께 넣습니다.
 - 제목과 설명 다음에 파일 경로나 실제 코드를 보여줄 때는 quote 밖의 독립된 code 노드로 표현합니다.
 - 코드 블록의 첫 줄에는 파일 경로를 주석으로 표시하고, 그 다음 줄부터 실제 코드를 넣습니다.
-- 코드 블록은 type: "code", language: "code-highlight.text"를 사용합니다.
+- 파일 경로 코드 블록은 language: "text", 실제 코드 블록은 파일에 맞는 "java", "typescript", "tsx", "bash", "json" 등의 language를 사용합니다. children에는 type: "code-highlight"를 둡니다.
 - code 노드의 children에는 type: "code-highlight" 노드를 사용하고, 코드 안의 줄바꿈은 text 값에 그대로 유지합니다.
 - 오른쪽은 특정 문서 본문이 아닌, 위 저장 규칙을 보여주는 고정 Lexical 렌더링 샘플입니다.
 

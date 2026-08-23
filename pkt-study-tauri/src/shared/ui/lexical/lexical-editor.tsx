@@ -203,14 +203,24 @@ function CodeHighlightPlugin() {
             // This is especially important for documents loaded directly into
             // the read-only Tauri view, where no typing event kicks off a retry.
             const language = inferCodeLanguage(node.getTextContent(), node.getLanguage() ?? undefined)
-            if (node.getLanguage() !== language) {
+            const languageChanged = node.getLanguage() !== language
+            if (languageChanged) {
               node.setLanguage(language)
             }
+            // Do not replace an already highlighted block on every retry. Apart
+            // from wasting work, replacing the CodeHighlightNode children while
+            // the user is dragging across a multiline block clears the browser's
+            // native selection. Only tokenize when the language or child shape
+            // actually needs to change.
+            const hasHighlightChildren = node
+              .getChildren()
+              .some((child) => child.getType() === 'code-highlight')
+            if (hasHighlightChildren && !languageChanged) return
             const tokens = styleAwareCodeTokenizer.$tokenize(
               node,
               language,
             )
-            if (tokens.length > 0) {
+            if (tokens.length > 0 && (!hasHighlightChildren || languageChanged)) {
               node.splice(0, node.getChildrenSize(), tokens)
             }
             return
@@ -276,6 +286,17 @@ function ReadOnlyPrismFallback() {
     const render = () => {
       frame = 0
       if (!root) return
+      const selection = window.getSelection()
+      // A legacy block may still be waiting for the final Prism pass. Never
+      // replace its text nodes while the browser is extending a native drag
+      // selection; doing so detaches the range, which is most noticeable on
+      // multiline blocks.
+      if (
+        selection &&
+        !selection.isCollapsed &&
+        root.contains(selection.anchorNode) &&
+        root.contains(selection.focusNode)
+      ) return
       root.querySelectorAll<HTMLElement>('code').forEach((element) => {
         if (element.querySelector('[class*="editor-token-"]')) return
         const source = element.textContent ?? ''
