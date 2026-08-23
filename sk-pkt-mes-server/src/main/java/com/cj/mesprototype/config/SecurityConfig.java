@@ -65,10 +65,11 @@ public class SecurityConfig {
             JwtAuthenticationFilter jwtFilter,
             RestAuthenticationEntryPoint entryPoint,
             AccessDeniedHandler accessDeniedHandler,
-            @Value("${app.playbook.llm-api-public:false}") boolean llmApiPublic) throws Exception {
+            @Value("${app.playbook.llm-api-public:false}") boolean llmApiPublic,
+            @Value("${app.cors.allowed-origins:http://localhost:4200,http://localhost:4300}") String allowedOrigins) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource(allowedOrigins)))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(eh -> eh
                         .authenticationEntryPoint(entryPoint)
@@ -105,12 +106,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource(
+            @Value("${app.cors.allowed-origins:http://localhost:4200,http://localhost:4300}") String allowedOrigins) {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:4200",
-                "http://localhost:4200"
-        ));
+        config.setAllowedOrigins(List.of(allowedOrigins.split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));

@@ -44,6 +44,7 @@ public enum ErrorCode {
     WORK_ORDER_CODE_DUPLICATE(HttpStatus.CONFLICT, "WO_002", "이미 존재하는 작업지시 코드입니다."),
     WORK_ORDER_PROCESS_NOT_FOUND(HttpStatus.NOT_FOUND, "WO_003", "작업지시 공정을 찾을 수 없습니다."),
     LOT_INVALID_PAGINATION(HttpStatus.BAD_REQUEST, "LOT_001", "LOT 페이지 조회 조건이 올바르지 않습니다."),
+    LOT_INVALID_SORT(HttpStatus.BAD_REQUEST, "LOT_002", "LOT 정렬 조건이 올바르지 않습니다."),
     PRODUCTION_PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "PLAN_001", "생산계획을 찾을 수 없습니다."),
     PRODUCTION_PLAN_CODE_DUPLICATE(HttpStatus.CONFLICT, "PLAN_002", "이미 존재하는 생산계획 코드입니다."),
     PLAYBOOK_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "PLAYBOOK_001", "플레이북 영역을 찾을 수 없습니다."),
