@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Check, Clipboard, X } from "lucide-react";
 
 type ApiGuideDialogShellProps = {
@@ -32,6 +32,15 @@ export default function ApiGuideDialogShell({
 }: ApiGuideDialogShellProps) {
   const [copied, setCopied] = useState(false);
   const hasPreview = preview !== undefined;
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   const copy = async () => {
     try {

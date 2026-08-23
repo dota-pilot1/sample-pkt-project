@@ -1,8 +1,7 @@
 import { useMemo } from "react";
 import { getApiBase } from "../../shared/api/client";
-import { LexicalEditor } from "../../shared/ui/lexical/lexical-editor";
 import ApiGuideDialogShell from "./ApiGuideDialogShell";
-import { DOCUMENT_API_SAMPLE_LEXICAL_STATE } from "./documentApiSamples";
+import LexicalSamplePreview from "./LexicalSamplePreview";
 
 type DocumentContextApiDialogProps = {
   documentId: number;
@@ -14,7 +13,7 @@ export default function DocumentContextApiDialog({ documentId, documentTitle, on
   const endpoint = useMemo(() => `${getApiBase()}/api/llm/hospital-playbook/documents/${documentId}/context`, [documentId]);
   const contentEndpoint = useMemo(() => `${getApiBase()}/api/llm/hospital-playbook/documents/${documentId}/content`, [documentId]);
 
-  const guide = useMemo(() => `# PKT Playbook 본문 문서 작업 API
+  const guide = useMemo(() => `# PKT Playbook 2차 노트 관리 API
 
 문서: ${documentTitle}
 documentId: ${documentId}
@@ -90,30 +89,20 @@ content 처리 규칙:
 
   return (
     <ApiGuideDialogShell
-      title="본문 문서 작업 API for LLM"
-      description="본문 조회·저장 형식을 복사하고, 오른쪽에서 실제 Lexical 렌더링 샘플을 확인합니다."
+      title="2차 노트 관리 API"
+      description="2차 노트 조회·저장 형식을 복사하고, 오른쪽에서 공통 Lexical 렌더링 샘플 탭을 확인합니다."
       copyText={guide}
       onClose={onClose}
-      ariaLabel="본문 문서 작업 API"
-      contentAriaLabel="본문 문서 작업 API 형식"
+      ariaLabel="2차 노트 관리 API"
+      contentAriaLabel="2차 노트 관리 API 형식"
       previewAriaLabel="Lexical 저장 형식 샘플"
       previewTitle="실제 Lexical 렌더링 샘플"
-      previewDescription="Step·설명 quote·파일 경로 주석이 있는 code 블록을 고정 데이터로 보여줍니다."
-      preview={
-        <div className="p-4">
-          <LexicalEditor
-            initialState={DOCUMENT_API_SAMPLE_LEXICAL_STATE}
-            onChange={() => undefined}
-            readOnly
-            minHeight="620px"
-            scrollable
-          />
-        </div>
-      }
-      footer="왼쪽은 본문 조회·저장 API 형식, 오른쪽은 공통 Lexical 샘플입니다. 문서별 본문을 직접 조회해 렌더링하지 않으며 토큰 값도 표시하지 않습니다."
+      previewDescription="TODO 대주제와 각 하위 문서의 Step 1~N에 사용하는 quote·list·code 블록 샘플을 탭으로 보여줍니다."
+      preview={<LexicalSamplePreview />}
+      footer="왼쪽은 2차 노트 조회·저장 API 형식, 오른쪽은 전체 노트 관리 API와 공유하는 공통 Lexical 샘플 탭입니다. 문서별 본문을 직접 조회해 렌더링하지 않으며 토큰 값도 표시하지 않습니다."
     >
       <div className="border-b border-surface-border-soft bg-surface-raised px-5 py-4">
-        <h3 className="text-sm font-black text-text-primary">본문 문서 작업 API</h3>
+        <h3 className="text-sm font-black text-text-primary">2차 노트 관리 API</h3>
         <p className="mt-1 text-xs font-semibold text-text-muted">문서 본문 조회와 저장에 사용하는 작업 형식입니다.</p>
       </div>
       <pre className="whitespace-pre-wrap bg-surface-muted px-5 py-4 font-mono text-[11px] leading-5 text-text-primary">{guide}</pre>

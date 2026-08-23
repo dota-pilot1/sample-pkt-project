@@ -73,7 +73,7 @@ function SortableTreeDocumentRow({
       </button>
       {hasChildren && <button type="button" onClick={onToggle} className="ui-icon-button size-7" title={expanded ? "하위 문서 접기" : "하위 문서 펼치기"}><ChevronRight className={(expanded ? "rotate-90 " : "") + "size-4 transition-transform"} /></button>}
       {depth < 1 && <button type="button" onClick={onAddChild} className="ui-icon-button size-7 text-brand-primary" title="하위 문서 추가"><GitBranch className="size-3.5" /></button>}
-      {depth === 0 && <button type="button" onClick={onOpenContextApi} className="ui-icon-button size-7 text-brand-primary" title="문서 본문·하위 문서 API"><Braces className="size-3.5" /></button>}
+      {depth === 0 && <button type="button" onClick={onOpenContextApi} className="ui-icon-button size-7 text-brand-primary" title="2차 노트 관리 {}" aria-label="2차 노트 관리 {}"><Braces className="size-3.5" /></button>}
       <button type="button" onClick={onOpenPage} className="ui-icon-button size-7" title="전체 페이지로 보기"><ExternalLink className="size-3.5" /></button>
     </div>
   );
@@ -327,9 +327,9 @@ function HospitalPlaybookModule({ domain, title }: { domain: PlaybookDomain; tit
               type="button"
               onClick={() => setLlmApiGuideOpen(true)}
               className="ui-icon-button h-9 shrink-0 gap-1.5 px-2.5 text-[11px] font-black text-brand-primary"
-              title="LLM용 플레이북 API 보기"
+              title="전체 노트 관리 {}"
             >
-              <Braces className="size-3.5" /> API for LLM
+              <span>전체 노트 관리</span> <span className="font-mono text-xs leading-none">{"{}"}</span>
             </button>
           </div>
         }
@@ -361,11 +361,12 @@ function HospitalPlaybookModule({ domain, title }: { domain: PlaybookDomain; tit
                     type="button"
                     disabled={!topic}
                     onClick={() => setLlmApiGuideOpen(true)}
-                    className="ui-icon-button h-9 w-9 shrink-0 font-mono text-sm font-black disabled:opacity-40"
-                    title="이 2차 메뉴의 문서 작성·수정 API"
-                    aria-label="이 2차 메뉴의 문서 작성·수정 API"
+                    className="ui-icon-button h-9 shrink-0 gap-1.5 px-2.5 text-[11px] font-black disabled:opacity-40"
+                    title="2차 주제 관리 {}"
+                    aria-label="2차 주제 관리 {}"
                   >
-                    {"{}"}
+                    <span>2차 주제 관리</span>
+                    <span className="font-mono text-xs leading-none">{"{}"}</span>
                   </button>
                   <button
                     type="button"

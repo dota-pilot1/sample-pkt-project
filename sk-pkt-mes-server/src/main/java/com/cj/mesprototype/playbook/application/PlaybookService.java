@@ -22,6 +22,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -393,7 +397,36 @@ public class PlaybookService {
 
     @Transactional
     public void deleteDocument(Long id) {
-        documentRepository.delete(findDocument(id));
+        PlaybookDocument document = findDocument(id);
+        List<PlaybookDocument> allDocuments = documentRepository
+                .findAllByTopicIdOrderByOrderIdxAscIdAsc(document.getTopic().getId());
+        Map<Long, List<PlaybookDocument>> childrenByParentId = new HashMap<>();
+        for (PlaybookDocument candidate : allDocuments) {
+            if (candidate.getParent() != null) {
+                childrenByParentId
+                        .computeIfAbsent(candidate.getParent().getId(), ignored -> new ArrayList<>())
+                        .add(candidate);
+            }
+        }
+
+        List<PlaybookDocument> documentsToDelete = new ArrayList<>();
+        collectDocumentTree(document, childrenByParentId, documentsToDelete);
+
+        commentRepository.deleteAllByDocumentIds(
+                documentsToDelete.stream().map(PlaybookDocument::getId).toList());
+
+        // 부모 문서가 자식 문서를 참조하므로 자식부터 삭제한다.
+        Collections.reverse(documentsToDelete);
+        documentRepository.deleteAll(documentsToDelete);
+    }
+
+    private void collectDocumentTree(PlaybookDocument document,
+                                     Map<Long, List<PlaybookDocument>> childrenByParentId,
+                                     List<PlaybookDocument> result) {
+        result.add(document);
+        for (PlaybookDocument child : childrenByParentId.getOrDefault(document.getId(), List.of())) {
+            collectDocumentTree(child, childrenByParentId, result);
+        }
     }
 
     @Transactional

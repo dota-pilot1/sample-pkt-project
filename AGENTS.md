@@ -65,3 +65,7 @@ Pull requests should include a short summary, verification commands run, linked 
 ## Security & Configuration Tips
 
 Never commit real secrets. Backend local secrets belong in `mes-prototype-server/.env`, which is ignored. Commit only `.env.example`. `application.yaml` should reference environment variables, not raw keys.
+
+## PKT LLM Note API
+
+When adding PKT learning notes, prefer the dedicated `/api/llm/hospital-playbook` endpoints over direct database writes. Create the 1st/2nd-level structure first, then fetch IDs, save the main document body, add child documents, and verify with the read endpoints. Use the `API for LLM` button in the desktop app for the current base URL and request examples. Tokenless access is local-only and controlled by `PLAYBOOK_LLM_API_PUBLIC=true`; never enable it for production.

@@ -197,7 +197,7 @@ export default function DocumentPage({
   };
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <PageHeader hideRefresh>
         <FileText className="size-4 text-brand-primary" />
         <span className="text-[14px] font-bold tracking-tight text-text-primary">{title}</span>

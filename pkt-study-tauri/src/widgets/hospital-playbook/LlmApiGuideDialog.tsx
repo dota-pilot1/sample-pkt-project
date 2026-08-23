@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { getApiBase } from "../../shared/api/client";
 import type { PlaybookDomain } from "../../features/hospital-playbook/api";
 import ApiGuideDialogShell from "./ApiGuideDialogShell";
+import LexicalSamplePreview from "./LexicalSamplePreview";
 
 type LlmApiGuideDialogProps = {
   domain: PlaybookDomain;
@@ -12,7 +13,7 @@ type LlmApiGuideDialogProps = {
 export default function LlmApiGuideDialog({ domain, parentDocumentId = null, onClose }: LlmApiGuideDialogProps) {
   const guide = useMemo(() => {
     const base = `${getApiBase()}/api/llm/hospital-playbook`;
-    return `# PKT Playbook LLM API
+    return `# PKT Playbook 전체 노트 관리 API
 
 baseUrl: ${base}
 spaceCode: ${domain}
@@ -64,7 +65,12 @@ GET ${base}/categories/{categoryId}
 GET ${base}/topics/{topicId}
 GET ${base}/documents/{documentId}
 
-## 6. 하위 문서 순서 변경
+## 6. 문서와 하위 문서 삭제
+DELETE ${base}/documents/{documentId}
+
+문서를 삭제하면 해당 문서의 하위 문서와 댓글도 함께 삭제됩니다.
+
+## 7. 하위 문서 순서 변경
 POST ${base}/topics/{topicId}/documents/reorder
 Content-Type: application/json
 
@@ -73,7 +79,7 @@ Content-Type: application/json
   "parentId": ${parentDocumentId ?? "{parentDocumentId}"}
 }
 
-## 7. Lexical content 저장 형식
+## 8. Lexical content 저장 형식
 
 content는 Markdown이나 HTML이 아니라 Lexical EditorState를 JSON.stringify한 문자열입니다.
 
@@ -100,11 +106,16 @@ content는 Markdown이나 HTML이 아니라 Lexical EditorState를 JSON.stringif
 
   return (
     <ApiGuideDialogShell
-      title="API for LLM"
-      description="구조·본문·하위 문서 생성·정렬·조회 API를 한 번에 복사합니다."
+      title="전체 노트 관리 API"
+      description="1차 메뉴·2차 메뉴·본문·하위 문서 생성·삭제·정렬·조회 API를 한 번에 복사합니다."
       copyText={guide}
       onClose={onClose}
-      ariaLabel="API for LLM"
+      ariaLabel="전체 노트 관리 API"
+      contentAriaLabel="전체 노트 관리 API 형식"
+      previewAriaLabel="공통 Lexical 저장 형식 샘플"
+      previewTitle="공통 Lexical 렌더링 샘플"
+      previewDescription="전체 노트와 2차 노트에서 함께 사용하는 TODO 계획·Step 1 탭형 Lexical 샘플입니다."
+      preview={<LexicalSamplePreview />}
       footer={
         <>
           <p className="font-black text-text-primary">사용 순서</p>

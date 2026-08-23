@@ -14,7 +14,7 @@ import { TablePlugin } from '@lexical/react/LexicalTablePlugin'
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin'
 import { ORDERED_LIST, TRANSFORMERS } from '@lexical/markdown'
-import { $createCodeNode, CodeNode, CodeHighlightNode, registerCodeHighlighting } from '@lexical/code'
+import { $createCodeNode, CodeNode, CodeHighlightNode, PrismTokenizer, registerCodeHighlighting } from '@lexical/code'
 import { HeadingNode, QuoteNode } from '@lexical/rich-text'
 import { $isListItemNode, $isListNode, ListNode, ListItemNode } from '@lexical/list'
 import { LinkNode } from '@lexical/link'
@@ -46,7 +46,7 @@ import { DragDropImagePlugin, ImagePlugin } from './plugins/image-plugin'
 import { YoutubePlugin } from './plugins/youtube-plugin'
 import { TableActionMenuPlugin } from './plugins/table-action-plugin'
 import { uploadImageToS3 } from './utils/upload-image'
-import { styleAwareCodeTokenizer } from './utils/code-style-tokenizer'
+import { inferCodeLanguage, styleAwareCodeTokenizer } from './utils/code-style-tokenizer'
 import { normalizeLexicalJson } from './lexical-state'
 
 type LexicalEditorProps = {
@@ -197,9 +197,18 @@ function CodeHighlightPlugin() {
       editor.update(() => {
         const visit = (node: LexicalNode) => {
           if ($isCodeNode(node)) {
+            // `code-highlight.text` is the storage/API convention, not a Prism
+            // language. Lexical skips its transform when the declared language
+            // is not loaded, so normalize it before asking Prism to tokenize.
+            // This is especially important for documents loaded directly into
+            // the read-only Tauri view, where no typing event kicks off a retry.
+            const language = inferCodeLanguage(node.getTextContent(), node.getLanguage() ?? undefined)
+            if (node.getLanguage() !== language) {
+              node.setLanguage(language)
+            }
             const tokens = styleAwareCodeTokenizer.$tokenize(
               node,
-              node.getLanguage() ?? undefined,
+              language,
             )
             if (tokens.length > 0) {
               node.splice(0, node.getChildrenSize(), tokens)
@@ -226,6 +235,80 @@ function CodeHighlightPlugin() {
       }
     }
   }, [editor])
+  return null
+}
+
+type PrismRenderToken = {
+  type: string
+  alias?: string | string[]
+  content: string | PrismRenderToken | Array<string | PrismRenderToken>
+}
+
+function appendPrismRenderToken(parent: HTMLElement, value: string | PrismRenderToken | Array<string | PrismRenderToken>) {
+  if (typeof value === 'string') {
+    parent.appendChild(document.createTextNode(value))
+    return
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => appendPrismRenderToken(parent, item))
+    return
+  }
+  const span = document.createElement('span')
+  const alias = Array.isArray(value.alias) ? value.alias[0] : value.alias
+  span.className = `editor-token-${alias || value.type}`
+  appendPrismRenderToken(span, value.content)
+  parent.appendChild(span)
+}
+
+/**
+ * Lexical's state transformer is authoritative in edit mode. In read-only
+ * mode, however, some legacy CodeNode states can be painted after the Prism
+ * transform has completed. Render only the visible code DOM as a final,
+ * idempotent fallback; the serialized Lexical state is never changed.
+ */
+function ReadOnlyPrismFallback() {
+  const [editor] = useLexicalComposerContext()
+
+  useEffect(() => {
+    let root: HTMLElement | null = editor.getRootElement()
+    let frame = 0
+
+    const render = () => {
+      frame = 0
+      if (!root) return
+      root.querySelectorAll<HTMLElement>('code').forEach((element) => {
+        if (element.querySelector('[class*="editor-token-"]')) return
+        const source = element.textContent ?? ''
+        if (!source.trim()) return
+        const language = inferCodeLanguage(
+          source,
+          element.getAttribute('data-language') ?? undefined,
+        )
+        const tokens = PrismTokenizer.tokenize(source, language)
+        element.replaceChildren()
+        appendPrismRenderToken(element, tokens as string | PrismRenderToken | Array<string | PrismRenderToken>)
+      })
+    }
+
+    const schedule = () => {
+      if (frame === 0) frame = window.requestAnimationFrame(render)
+    }
+    const unregisterRoot = editor.registerRootListener((nextRoot) => {
+      root = nextRoot
+      schedule()
+    })
+    const unregisterUpdate = editor.registerUpdateListener(schedule)
+    schedule()
+    const timers = [80, 300, 800].map((delay) => window.setTimeout(schedule, delay))
+
+    return () => {
+      unregisterRoot()
+      unregisterUpdate()
+      timers.forEach((timer) => window.clearTimeout(timer))
+      if (frame !== 0) window.cancelAnimationFrame(frame)
+    }
+  }, [editor])
+
   return null
 }
 
@@ -669,6 +752,7 @@ export function LexicalEditor({
         <HorizontalRulePlugin />
         <TablePlugin hasHorizontalScroll />
         <CodeHighlightPlugin />
+        {readOnly ? <ReadOnlyPrismFallback /> : null}
         <CodeCopyButtonPlugin />
         {!readOnly ? <CodeBlockBackspacePlugin /> : null}
         {!readOnly ? <MarkdownCodePastePlugin /> : null}

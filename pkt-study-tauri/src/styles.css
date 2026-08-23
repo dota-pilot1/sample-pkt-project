@@ -109,22 +109,22 @@ body {
   /* Lexical applies these classes to token spans at runtime. Keep the
      palette in ordinary CSS so highlighting also works in the packaged
      Tauri WebView, where Tailwind cannot see runtime-generated class names. */
-  .editor-token-atrule, .editor-token-boolean, .editor-token-builtin,
-  .editor-token-char, .editor-token-class, .editor-token-class-name,
-  .editor-token-constant, .editor-token-inserted, .editor-token-selector,
-  .editor-token-string, .editor-token-symbol, .editor-token-url {
-    color: var(--primary);
-  }
-  .editor-token-keyword { color: var(--primary); font-weight: 600; }
+  /* VS Code 계열의 대비를 내되, 일반 문서 본문과 충돌하지 않도록 코드 토큰에만 적용한다. */
   .editor-token-comment, .editor-token-cdata, .editor-token-doctype,
-  .editor-token-prolog, .editor-token-punctuation { color: var(--muted-foreground); }
-  .editor-token-comment { font-style: italic; }
-  .editor-token-namespace, .editor-token-operator { color: var(--muted-foreground); }
-  .editor-token-attr, .editor-token-entity, .editor-token-function,
-  .editor-token-property { color: var(--foreground); }
-  .editor-token-number { color: color-mix(in srgb, var(--primary) 78%, #c2410c); }
-  .editor-token-deleted, .editor-token-important, .editor-token-regex,
-  .editor-token-tag, .editor-token-variable { color: var(--destructive); }
+  .editor-token-prolog { color: #6b7280; font-style: italic; }
+  .editor-token-keyword, .editor-token-atrule, .editor-token-important { color: #7c3aed; font-weight: 700; }
+  .editor-token-string, .editor-token-char, .editor-token-regex,
+  .editor-token-attr, .editor-token-selector { color: #15803d; }
+  .editor-token-function, .editor-token-method { color: #2563eb; }
+  .editor-token-class, .editor-token-class-name, .editor-token-builtin,
+  .editor-token-type { color: #0369a1; }
+  .editor-token-property, .editor-token-constant, .editor-token-variable { color: #b45309; }
+  .editor-token-number, .editor-token-boolean { color: #c2410c; }
+  .editor-token-operator, .editor-token-punctuation, .editor-token-namespace { color: #475569; }
+  .editor-token-tag, .editor-token-symbol, .editor-token-entity,
+  .editor-token-url { color: #be185d; }
+  .editor-token-inserted { color: #15803d; }
+  .editor-token-deleted { color: #b91c1c; text-decoration: line-through; }
 
   .lexical-editor-readonly code[data-language="mermaid"],
   .lexical-editor-readonly code[data-language="mmd"] { display: none; }
@@ -141,12 +141,15 @@ body {
     overflow: hidden;
   }
   .lexical-editor-frame .lexical-editor-content { min-height: 0; }
-  .lexical-editor-input { caret-color: var(--primary); }
+  .lexical-editor-input {
+    padding: 1.5rem !important;
+    caret-color: var(--primary);
+  }
   .lexical-editor-input:focus { box-shadow: none; }
   /* 블로그형 인용 블록: 기본 왼쪽 세로선 대신 파스텔 배경과 인용 부호로 구분한다. */
   .lexical-editor-input blockquote {
     position: relative;
-    margin: 0.75rem 0 1rem;
+    margin: 0 0 0.75rem !important;
     padding: 0.875rem 1.25rem;
     border: 1px solid #dbeafe;
     border-left: 1px solid #dbeafe;
@@ -154,6 +157,42 @@ body {
     background: #eff6ff;
     color: #475569;
     font-style: normal;
+  }
+  /* 최상위 섹션은 노드 종류별 기본 margin을 제거하고 동일한 리듬으로 배치한다. */
+  .lexical-editor-input > h1,
+  .lexical-editor-input > h2,
+  .lexical-editor-input > h3,
+  .lexical-editor-input > blockquote,
+  .lexical-editor-input > code,
+  .lexical-editor-input > p {
+    margin-block-start: 0 !important;
+  }
+  .lexical-editor-input > h1,
+  .lexical-editor-input > h2,
+  .lexical-editor-input > h3 {
+    margin-block-end: 0.5rem !important;
+  }
+  .lexical-editor-input > blockquote {
+    margin-block-end: 0.75rem !important;
+  }
+  .lexical-editor-input > code[data-language],
+  .lexical-editor-input > code[data-highlight-language] {
+    margin-block-start: 0.25rem !important;
+    margin-block-end: 0.75rem !important;
+  }
+  .lexical-editor-input > p:has(+ code[data-language]),
+  .lexical-editor-input > p:has(+ code[data-highlight-language]) {
+    margin-block-end: 0.25rem !important;
+  }
+  .lexical-editor-input > blockquote > p,
+  .lexical-editor-input > blockquote > ul,
+  .lexical-editor-input > blockquote > ol {
+    margin-block-start: 0 !important;
+    margin-block-end: 0 !important;
+  }
+  .lexical-editor-input > blockquote > p + ul,
+  .lexical-editor-input > blockquote > p + ol {
+    margin-block-start: 0.5rem !important;
   }
   /* 인용문 안 마지막 문단의 기본 하단 마진이 카드 여백과 겹치지 않게 한다. */
   .lexical-editor-input blockquote > p:last-child,
@@ -166,8 +205,8 @@ body {
   }
   /* 섹션 제목은 배경 없는 제목으로 두고, 본문·목록·코드 블록과 시각적 역할을 분리한다. */
   .lexical-editor-input h2 {
-    margin-top: 1.5rem;
-    margin-bottom: 0.5rem;
+    margin-top: 1rem !important;
+    margin-bottom: 0.5rem !important;
     padding: 0;
     border: 0;
     border-radius: 0;
@@ -191,7 +230,15 @@ body {
   /* 의도적인 빈 paragraph는 한 줄보다 작게 두어 섹션 간 호흡만 남긴다. */
   .lexical-editor-input p:empty,
   .lexical-editor-input p:has(> br:only-child) {
-    min-height: 0.75rem;
+    height: 0.75rem;
+    min-height: 0;
+    line-height: 0;
+    margin-block-start: 0 !important;
+    margin-bottom: 0 !important;
+  }
+  /* 코드 블록 뒤에는 코드 자체의 기본 하단 margin과 빈 paragraph 간격을 겹치지 않는다. */
+  .lexical-editor-input > code[data-language],
+  .lexical-editor-input > code[data-highlight-language] {
     margin-bottom: 0 !important;
   }
   ::highlight(pkt-document-search) { background-color: #fef08a; color: inherit; }

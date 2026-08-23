@@ -151,7 +151,7 @@ function DocumentDrawer({
       const apiBase = getApiBase();
       const endpoint = `${apiBase}/api/public/hospital-playbook/ai-edit/documents/${issued.documentId}`;
       const connection = [
-        "MES AI EDIT CONNECTION",
+        "MES SINGLE DOCUMENT LLM EDIT API",
         `documentId: ${issued.documentId}`,
         `expectedVersion: ${issued.expectedVersion}`,
         `expiresAt: ${issued.expiresAt}`,
@@ -309,7 +309,7 @@ function DocumentDrawer({
           <button type="button" className="ui-icon-button size-8" onClick={() => void copyAiContent()} disabled={isSharing} title="AI용 Markdown 내용 복사">
             {aiContentCopied ? <Check className="size-4" /> : <Clipboard className="size-4" />}
           </button>
-          <button type="button" className="ui-icon-button size-8 text-brand-primary" onClick={() => void copyAiEditConnection()} disabled={isIssuingAiToken} title="AI 편집 연결 정보 복사">
+              <button type="button" className="ui-icon-button size-8 text-brand-primary" onClick={() => void copyAiEditConnection()} disabled={isIssuingAiToken} title="개별 문서 편집 API for LLM 복사">
             <span className="font-mono text-xs font-black leading-none">{"{}"}</span>
           </button>
           <button type="button" className="ui-icon-button size-8 text-destructive" onClick={() => setDeleteConfirmOpen(true)} title="삭제">
@@ -407,7 +407,7 @@ function DocumentDrawer({
             <div className="w-full max-w-sm rounded-lg border border-surface-border bg-surface-raised p-5 shadow-xl">
               <h3 className="text-base font-black text-text-primary">문서를 삭제할까요?</h3>
               <p className="mt-2 text-sm leading-6 text-text-secondary">
-                <strong>{document.title}</strong> 문서를 삭제합니다. 하위 문서는 최상위 문서로 남습니다.
+                <strong>{document.title}</strong> 문서와 하위 문서, 댓글을 함께 삭제합니다. 삭제 후 복구할 수 없습니다.
               </p>
               <div className="mt-5 flex justify-end gap-2">
                 <button type="button" onClick={() => setDeleteConfirmOpen(false)} className="ui-icon-button h-9 px-3 text-xs font-black">취소</button>

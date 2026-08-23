@@ -14,6 +14,24 @@ function nodeText(node: Record<string, unknown>): string {
   }).join('')
 }
 
+function resolveCodeLanguage(source: string, declared: unknown): string {
+  const value = typeof declared === 'string' ? declared.toLowerCase() : ''
+  const normalized = value.replace(/^code-highlight\./, '').replace(/^language-/, '')
+  const aliases: Record<string, string> = { ts: 'typescript', tsx: 'typescript', js: 'javascript', jsx: 'javascript', jsonc: 'json' }
+  if (normalized && !['text', 'plaintext', 'plain'].includes(normalized)) return aliases[normalized] ?? normalized
+
+  const extension = source.match(/(?:^|[\s/])[^\s/]+\.(tsx?|mts|cts|jsx?|java|json|sql)\b/i)?.[1]?.toLowerCase()
+  if (extension) return aliases[extension] ?? extension
+  const stripped = source.trim().replace(/^(?:\/\/[^\n]*\n|#[^\n]*\n|\/\*[\s\S]*?\*\/\s*)+/, '').trim()
+  if (/^(SELECT|WITH|INSERT\s+INTO|UPDATE\s+\w+\s+SET|DELETE\s+FROM|CREATE\s+(TABLE|INDEX|VIEW)|ALTER\s+TABLE)\b/im.test(stripped)) return 'sql'
+  if (/^(?:package\s+\w+|import\s+java\.|public\s+(?:class|interface|enum)|(?:private|protected)\s+(?:final\s+)?[\w<>,?\[\]]+\s+\w+\s*\(|@(?:Service|Entity|Override|Transactional)\b)/m.test(stripped)) return 'java'
+  if (/^\s*[\[{]/.test(stripped)) {
+    try { JSON.parse(stripped); return 'json' } catch { /* not JSON */ }
+  }
+  if (/^(?:import\s+.*from|export\s+(?:default\s+)?|interface\s+\w+|type\s+\w+\s*=|(?:const|let|var)\s+\w+\s*=|function\s+\w+\s*\()/m.test(stripped)) return 'typescript'
+  return 'plaintext'
+}
+
 function isCodeLikeParagraph(text: string): boolean {
   return text.split(/\r?\n/).some((line) => {
     const value = line.trim()
@@ -222,8 +240,17 @@ function normalizedNode(value: unknown, parentType: string): Record<string, unkn
       }
     }
     if (type === 'code' && children.length > 0) {
-      const codeChildren = children.filter((child) => child.type === 'code-highlight' || child.type === 'text')
+      const codeChildren = children
+        .filter((child) => child.type === 'code-highlight' || child.type === 'text' || child.type === 'linebreak')
+        // The persisted Lexical format uses `code-highlight` children. That is
+        // valid serialized data, but the runtime Prism transform starts from
+        // ordinary TextNodes. Convert only the in-memory editor state; the
+        // saved/API format remains unchanged.
+        .map((child) => child.type === 'code-highlight'
+          ? { ...child, type: 'text', format: 0 }
+          : child)
       const sourceText = nodeText(source)
+      const language = resolveCodeLanguage(sourceText, source.language)
       const formattedText = restoreJavaCodeLayout(sourceText)
       if (formattedText !== sourceText) {
         const firstCodeChild = codeChildren[0]
@@ -231,13 +258,15 @@ function normalizedNode(value: unknown, parentType: string): Record<string, unkn
           ...source,
           type,
           children: [{
-            ...(firstCodeChild ?? { type: 'code-highlight', detail: 0, format: 0, mode: 'normal', style: '', version: 1 }),
-            type: 'code-highlight',
+          ...(firstCodeChild ?? { type: 'text', detail: 0, format: 0, mode: 'normal', style: '', version: 1 }),
+            type: 'text',
             format: 0,
             text: formattedText,
           }],
+          language,
         }
       }
+      return { ...source, type, language, children: codeChildren }
     }
     return { ...source, type, children }
   }
