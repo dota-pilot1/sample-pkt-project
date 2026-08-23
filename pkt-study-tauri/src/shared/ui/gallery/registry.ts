@@ -1,11 +1,17 @@
 import type { ComponentType } from "react";
+import { Badge } from "./badge";
 import { Button } from "./button";
+import { Input } from "./input";
+import { Select } from "./select";
+import { TableDemo } from "./table-demo";
+import { Toggle } from "./toggle";
 
 /** 미리보기에서 값을 바꿔볼 수 있는 prop 하나의 정의. */
 export type GalleryControl =
   | { name: string; type: "select"; options: string[] }
   | { name: string; type: "boolean" }
-  | { name: string; type: "text" };
+  | { name: string; type: "text" }
+  | { name: string; type: "number"; min?: number; max?: number };
 
 export type GalleryEntry = {
   id: string;
@@ -47,6 +53,73 @@ export const GALLERY_ENTRIES: GalleryEntry[] = [
       { name: "children", type: "text" },
     ],
     sourceFiles: ["button.tsx", "button.css"],
+  },
+  {
+    id: "input",
+    label: "Input",
+    Component: Input,
+    defaultProps: { label: "LOT 번호", placeholder: "LOT-24081", size: "md", invalid: false, error: "형식이 올바르지 않습니다.", hint: "" },
+    controls: [
+      { name: "size", type: "select", options: ["sm", "md", "lg"] },
+      { name: "invalid", type: "boolean" },
+      { name: "disabled", type: "boolean" },
+      { name: "label", type: "text" },
+      { name: "placeholder", type: "text" },
+      { name: "hint", type: "text" },
+    ],
+    sourceFiles: ["input.tsx", "input.css"],
+  },
+  {
+    id: "select",
+    label: "Select",
+    Component: Select,
+    defaultProps: { label: "공정", options: ["노광", "식각", "세정", "검사"], placeholder: "선택하세요", size: "md" },
+    controls: [
+      { name: "size", type: "select", options: ["sm", "md", "lg"] },
+      { name: "disabled", type: "boolean" },
+      { name: "label", type: "text" },
+      { name: "placeholder", type: "text" },
+    ],
+    sourceFiles: ["select.tsx", "select.css"],
+  },
+  {
+    id: "toggle",
+    label: "Checkbox · Radio · Switch",
+    Component: Toggle,
+    defaultProps: { kind: "checkbox", label: "이상 LOT만 보기", checked: true, disabled: false },
+    controls: [
+      { name: "kind", type: "select", options: ["checkbox", "radio", "switch"] },
+      { name: "checked", type: "boolean" },
+      { name: "disabled", type: "boolean" },
+      { name: "label", type: "text" },
+    ],
+    sourceFiles: ["toggle.tsx", "toggle.css"],
+  },
+  {
+    id: "badge",
+    label: "Badge",
+    Component: Badge,
+    defaultProps: { tone: "info", size: "md", dot: true, children: "진행" },
+    controls: [
+      { name: "tone", type: "select", options: ["neutral", "info", "success", "warning", "danger"] },
+      { name: "size", type: "select", options: ["sm", "md"] },
+      { name: "dot", type: "boolean" },
+      { name: "children", type: "text" },
+    ],
+    sourceFiles: ["badge.tsx", "badge.css"],
+  },
+  {
+    id: "table",
+    label: "Table",
+    Component: TableDemo,
+    defaultProps: { rowCount: 5, compact: false, striped: true, hover: true },
+    controls: [
+      { name: "rowCount", type: "number", min: 0, max: 5 },
+      { name: "compact", type: "boolean" },
+      { name: "striped", type: "boolean" },
+      { name: "hover", type: "boolean" },
+    ],
+    sourceFiles: ["table.tsx", "table.css", "table-demo.tsx"],
   },
 ];
 
