@@ -1,10 +1,10 @@
 import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clipboard, ExternalLink, Link2, Pencil, Search, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { writeText as writeClipboardText } from "@tauri-apps/plugin-clipboard-manager";
 import type { PlaybookDocument } from "../../features/hospital-playbook/api";
 import { playbookApi } from "../../features/hospital-playbook/api";
 import { lexicalToMarkdown } from "../../features/hospital-playbook/lexicalToMarkdown";
 import { ApiError, getApiBase } from "../../shared/api/client";
+import { copyToClipboard } from "../../shared/lib/clipboard";
 import { LexicalEditor } from "../../shared/ui/lexical/lexical-editor";
 import { collectPreviewBlocks } from "../../features/hospital-playbook/previewBlocks";
 import PreviewGallery from "./PreviewGallery";
@@ -20,28 +20,6 @@ const DRAWER_SIZES = [
   { label: "L", value: 80 },
   { label: "XL", value: 92 },
 ] as const;
-
-async function copyToClipboard(value: string) {
-  try {
-    await writeClipboardText(value);
-    return;
-  } catch {
-    // 웹 개발 서버에서는 Tauri 플러그인이 없을 수 있어 브라우저 방식으로 보완한다.
-  }
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(value);
-    return;
-  }
-  const textarea = document.createElement("textarea");
-  textarea.value = value;
-  textarea.style.position = "fixed";
-  textarea.style.opacity = "0";
-  document.body.appendChild(textarea);
-  textarea.select();
-  const copied = document.execCommand("copy");
-  textarea.remove();
-  if (!copied) throw new Error("CLIPBOARD_UNAVAILABLE");
-}
 
 function storedDrawerSize() {
   const value = Number(window.localStorage.getItem(DRAWER_SIZE_KEY));
