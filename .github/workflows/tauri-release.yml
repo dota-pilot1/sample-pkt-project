@@ -23,6 +23,10 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            pkt-study-tauri
+          sparse-checkout-cone-mode: true
 
       - name: Setup Node
         uses: actions/setup-node@v4
