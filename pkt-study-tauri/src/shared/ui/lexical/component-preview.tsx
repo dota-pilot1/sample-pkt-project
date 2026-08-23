@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { Check, ChevronDown } from 'lucide-react'
 import { findGalleryEntry, getGallerySource, type GalleryControl } from '../gallery/registry'
 
 export type ComponentPreviewBlock = {
@@ -23,7 +23,7 @@ function ControlField({
 
   if (control.type === 'select') {
     return (
-      <label className="flex items-center gap-1.5">
+      <label className="flex h-8 items-center gap-1.5">
         {label}
         {/* 기본 select 화살표가 OS마다 달라 보여서 직접 그린다. */}
         <span className="relative inline-flex items-center">
@@ -46,7 +46,7 @@ function ControlField({
 
   if (control.type === 'number') {
     return (
-      <label className="flex items-center gap-1.5">
+      <label className="flex h-8 items-center gap-1.5">
         {label}
         <input
           type="number"
@@ -61,21 +61,28 @@ function ControlField({
   }
 
   if (control.type === 'boolean') {
+    const checked = Boolean(value)
     return (
-      <label className="flex cursor-pointer items-center gap-1.5">
+      <label className="flex h-8 cursor-pointer items-center gap-1.5">
         {label}
-        <input
-          type="checkbox"
-          checked={Boolean(value)}
-          onChange={(event) => onChange(event.target.checked)}
-          className="size-4 cursor-pointer accent-[var(--primary)]"
-        />
+        {/* 네이티브 체크박스는 OS마다 크기와 색이 달라 다른 컨트롤과 안 맞는다. */}
+        <span className="relative inline-flex size-[18px] items-center justify-center">
+          <input
+            type="checkbox"
+            checked={checked}
+            onChange={(event) => onChange(event.target.checked)}
+            className="peer size-[18px] cursor-pointer appearance-none rounded-[5px] border border-surface-border bg-surface-raised transition-colors checked:border-brand-primary checked:bg-brand-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-primary"
+          />
+          {checked ? (
+            <Check className="pointer-events-none absolute size-3 text-text-on-brand" strokeWidth={3.5} />
+          ) : null}
+        </span>
       </label>
     )
   }
 
   return (
-    <label className="flex items-center gap-1.5">
+    <label className="flex h-8 items-center gap-1.5">
       {label}
       <input
         value={String(value ?? '')}
