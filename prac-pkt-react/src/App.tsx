@@ -1,5 +1,6 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { BookOpen, ClipboardList, LayoutDashboard, Settings2 } from "lucide-react";
+import AppHeader from "./widgets/app-shell/AppHeader";
 
 const navigation = [
   { to: "/", label: "대시보드", icon: LayoutDashboard },
@@ -15,6 +16,6 @@ export default function App() {
       <Link to="/" className="mb-8 flex items-center gap-2 px-2 text-lg font-black text-sky-700"><span className="grid size-9 place-items-center rounded-xl bg-sky-600 text-white">P</span>PKT React Practice</Link>
       <nav className="space-y-1">{navigation.map(({ to, label, icon: Icon }) => { const active = to === "/" ? location.pathname === "/" : location.pathname.startsWith(to); return <Link key={to} to={to} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold transition ${active ? "bg-sky-50 text-sky-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-950"}`}><Icon className="size-4" />{label}</Link>; })}</nav>
     </aside>
-    <main className="min-h-screen lg:pl-60"><div className="mx-auto max-w-7xl p-5 sm:p-8"><Outlet /></div></main>
+    <main className="min-h-screen lg:pl-60"><AppHeader /><div className="mx-auto max-w-7xl p-5 sm:p-8"><Outlet /></div></main>
   </div>;
 }

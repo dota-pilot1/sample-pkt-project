@@ -1,14 +1,72 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { LotTable } from "../features/lot/ui/LotTable";
+import { LotTableSkeleton } from "../features/lot/ui/LotTableSkeleton";
 import { useLots } from "../features/lot/model/useLots";
-import type { Lot } from "../features/lot/model/lot.types";
+import type { Lot, LotSort } from "../features/lot/model/lot.types";
+import { DEFAULT_LOT_SORT, isLotSortField } from "../features/lot/model/lot.types";
+import { Pagination } from "../shared/ui/Pagination";
+
+const PAGE_SIZE_OPTIONS = [10, 20, 50];
+const DEFAULT_PAGE_SIZE = 10;
+
+/** 쿼리스트링은 사용자 기준 1-based, API는 0-based를 쓴다. */
+function readPage(params: URLSearchParams) {
+  const parsed = Number(params.get("page"));
+  return Number.isInteger(parsed) && parsed > 0 ? parsed - 1 : 0;
+}
+
+/** 허용된 페이지 크기만 사용해 잘못된 URL 입력을 기본값으로 보정한다. */
+function readSize(params: URLSearchParams) {
+  const parsed = Number(params.get("size"));
+  return PAGE_SIZE_OPTIONS.includes(parsed) ? parsed : DEFAULT_PAGE_SIZE;
+}
+
+/** 서버 화이트리스트에 없는 정렬 값이 들어오면 기본 정렬로 되돌린다. */
+function readSort(params: URLSearchParams): LotSort {
+  const field = params.get("sort") ?? "";
+  const direction = params.get("dir");
+  if (!isLotSortField(field)) return DEFAULT_LOT_SORT;
+  return { field, direction: direction === "asc" ? "asc" : "desc" };
+}
 
 export default function LotsPage() {
-  const { data: rows = [], isLoading, isError } = useLots();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = readPage(searchParams);
+  const pageSize = readSize(searchParams);
+  const sort = readSort(searchParams);
+  const { data, isPending, isError, error, isFetching, refetch } = useLots(page, pageSize, sort);
   const [selectedLot, setSelectedLot] = useState<Lot | null>(null);
 
-  if (isLoading) return <p className="text-sm font-semibold text-slate-500">LOT 목록을 불러오는 중입니다.</p>;
-  if (isError) return <p role="alert" className="text-sm font-semibold text-red-600">LOT 목록을 불러오지 못했습니다.</p>;
+  /**
+   * 페이지·크기·정렬을 URL에 기록해 새로고침과 링크 공유에서 목록 조건이 유지되게 한다.
+   * page를 함께 넘기지 않으면 1페이지로 돌아간다. 크기나 정렬이 바뀌면 기존 페이지 번호가 의미를 잃기 때문이다.
+   */
+  const updateQuery = (next: { page?: number; size?: number; sort?: LotSort }) =>
+    setSearchParams(
+      (current) => {
+        const params = new URLSearchParams(current);
+        params.set("page", String((next.page ?? 0) + 1));
+        if (next.size !== undefined) params.set("size", String(next.size));
+        if (next.sort !== undefined) {
+          params.set("sort", next.sort.field);
+          params.set("dir", next.sort.direction);
+        }
+        return params;
+      },
+      { replace: true },
+    );
+
+  const rows = data?.content ?? [];
+  const totalPages = data?.totalPages ?? 0;
+  const totalElements = data?.totalElements ?? 0;
+
+  useEffect(() => setSelectedLot(null), [page, pageSize, sort.field, sort.direction]);
+
+  // 삭제나 페이지 크기 변경으로 범위를 벗어난 페이지 번호를 되돌린다.
+  useEffect(() => {
+    if (totalPages > 0 && page >= totalPages) updateQuery({ page: totalPages - 1 });
+  }, [page, totalPages]);
 
   return <div className="space-y-5">
     <header>
@@ -18,8 +76,33 @@ export default function LotsPage() {
     </header>
 
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <LotTable rows={rows} selectedLotId={selectedLot?.id} onSelect={setSelectedLot} />
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-busy={isFetching}>
+        {isPending ? <LotTableSkeleton rows={pageSize > 10 ? 10 : pageSize} /> : isError ? (
+          <div role="alert" className="space-y-3 p-5">
+            <p className="text-sm font-bold text-red-700">{error.message}</p>
+            <button type="button" onClick={() => void refetch()} className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-bold text-red-700 transition hover:bg-red-100">다시 시도</button>
+          </div>
+        ) : <>
+          <div className={isFetching ? "opacity-50 transition-opacity" : "transition-opacity"}>
+            <LotTable
+              rows={rows}
+              selectedLotId={selectedLot?.id}
+              onSelect={setSelectedLot}
+              sort={sort}
+              onSortChange={(next) => updateQuery({ sort: next })}
+            />
+          </div>
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            totalPages={totalPages}
+            totalElements={totalElements}
+            pageSizeOptions={PAGE_SIZE_OPTIONS}
+            disabled={isFetching}
+            onPageChange={(next) => updateQuery({ page: next })}
+            onPageSizeChange={(size) => updateQuery({ page: 0, size })}
+          />
+        </>}
       </div>
 
       <aside className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" aria-live="polite">

@@ -7,10 +7,23 @@ import DashboardPage from "./pages/DashboardPage";
 import GoalsPage from "./pages/GoalsPage";
 import LotsPage from "./pages/LotsPage";
 import SettingsPage from "./pages/SettingsPage";
+import LoginPage from "./features/auth/ui/LoginPage";
+import RequireAuth from "./features/auth/ui/RequireAuth";
+import { AuthProvider } from "./features/auth/model/auth.store";
+import { UnauthorizedError } from "./shared/api/http";
 import "./styles.css";
 
-const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: false } } });
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+      // 인증이 끊긴 요청은 재시도해도 같은 401이므로 바로 로그인 화면으로 넘긴다.
+      retry: (failureCount, error) => !(error instanceof UnauthorizedError) && failureCount < 2,
+    },
+  },
+});
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode><BrowserRouter><QueryClientProvider client={queryClient}><Routes><Route element={<App />}><Route path="/" element={<DashboardPage />} /><Route path="/lots" element={<LotsPage />} /><Route path="/goals" element={<GoalsPage />} /><Route path="/settings" element={<SettingsPage />} /></Route></Routes></QueryClientProvider></BrowserRouter></StrictMode>,
+  <StrictMode><BrowserRouter><AuthProvider><QueryClientProvider client={queryClient}><Routes><Route path="/login" element={<LoginPage />} /><Route element={<RequireAuth />}><Route element={<App />}><Route path="/" element={<DashboardPage />} /><Route path="/lots" element={<LotsPage />} /><Route path="/goals" element={<GoalsPage />} /><Route path="/settings" element={<SettingsPage />} /></Route></Route></Routes></QueryClientProvider></AuthProvider></BrowserRouter></StrictMode>,
 );
