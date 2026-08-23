@@ -61,6 +61,7 @@ import {
   GitBranch,
   Minus,
   PanelTop,
+  Blocks,
   Quote,
   Redo,
   Strikethrough,
@@ -78,6 +79,9 @@ import { extractYouTubeId } from './nodes/youtube-node'
 import { MermaidPreview } from './mermaid-preview'
 import { $createMermaidNode } from './nodes/mermaid-node'
 import { $createHtmlPreviewNode } from './nodes/html-preview-node'
+import { $createComponentPreviewNode } from './nodes/component-preview-node'
+import { ComponentPreview } from './component-preview'
+import { GALLERY_ENTRIES } from '../gallery/registry'
 import { HtmlPreview } from './html-preview'
 
 type Props = {
@@ -397,6 +401,7 @@ export function LexicalToolbar({ className, onImageUpload, variant = 'full' }: P
         <MarkdownInsertButton />
         <MermaidInsertButton />
         <HtmlPreviewInsertButton />
+        <ComponentPreviewInsertButton />
         <LinkInsertButton />
       </div>
     )
@@ -483,6 +488,7 @@ export function LexicalToolbar({ className, onImageUpload, variant = 'full' }: P
       <MarkdownInsertButton />
       <MermaidInsertButton />
       <HtmlPreviewInsertButton />
+      <ComponentPreviewInsertButton />
 
       <Divider />
 
@@ -631,6 +637,92 @@ function MermaidInsertButton() {
               >
                 삽입
               </Button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </>
+  )
+}
+
+/** 갤러리에 등록된 컴포넌트를 골라 props를 맞춘 뒤 본문에 꽂는다. */
+function ComponentPreviewInsertButton() {
+  const [editor] = useLexicalComposerContext()
+  const [open, setOpen] = useState(false)
+  const [componentId, setComponentId] = useState(GALLERY_ENTRIES[0]?.id ?? '')
+  const [props, setProps] = useState<Record<string, unknown>>(() => ({ ...(GALLERY_ENTRIES[0]?.defaultProps ?? {}) }))
+  const entry = GALLERY_ENTRIES.find((item) => item.id === componentId)
+
+  const selectEntry = (nextId: string) => {
+    setComponentId(nextId)
+    const next = GALLERY_ENTRIES.find((item) => item.id === nextId)
+    setProps({ ...(next?.defaultProps ?? {}) })
+  }
+
+  const handleInsert = () => {
+    if (!entry) return
+    editor.focus()
+    editor.update(() => {
+      const node = $createComponentPreviewNode({ componentId: entry.id, props })
+      const selection = $getSelection()
+      if ($isRangeSelection(selection)) selection.insertNodes([node])
+      else $getRoot().append(node)
+    })
+    setOpen(false)
+  }
+
+  return (
+    <>
+      <ToolbarButton onClick={() => setOpen(true)} title="컴포넌트 미리보기 삽입">
+        <Blocks className="size-3.5" />
+      </ToolbarButton>
+      <Dialog.Root open={open} onOpenChange={setOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-[240] bg-black/35" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-[241] flex max-h-[calc(100vh-2rem)] w-[min(900px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-surface-border-soft bg-surface-raised shadow-2xl">
+            <div className="flex items-center justify-between gap-3 border-b border-surface-border-soft px-5 py-4">
+              <div>
+                <Dialog.Title className="text-base font-semibold text-text-primary">컴포넌트 미리보기 삽입</Dialog.Title>
+                <Dialog.Description className="mt-1 text-xs text-text-muted">
+                  코드가 아니라 갤러리 컴포넌트의 id와 props만 저장합니다. 렌더는 앱의 실제 구현이 맡습니다.
+                </Dialog.Description>
+              </div>
+              <Dialog.Close asChild><button type="button" className="flex size-8 items-center justify-center rounded-md text-text-secondary hover:bg-surface-muted" aria-label="닫기"><X className="size-4" /></button></Dialog.Close>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto p-5">
+              <label className="flex items-center gap-2">
+                <span className="text-xs font-black text-text-secondary">컴포넌트</span>
+                <select
+                  value={componentId}
+                  onChange={(event) => selectEntry(event.target.value)}
+                  className="rounded-md border border-surface-border bg-surface-raised px-2 py-1 text-xs font-bold text-text-primary"
+                >
+                  {GALLERY_ENTRIES.map((item) => (
+                    <option key={item.id} value={item.id}>{item.label}</option>
+                  ))}
+                </select>
+              </label>
+
+              {entry ? (
+                <div className="mt-4">
+                  <ComponentPreview block={{ componentId: entry.id, props }} />
+                  <p className="mt-2 text-[11px] font-semibold text-text-muted">
+                    위 컨트롤로 맞춘 값이 그대로 저장됩니다. 저장한 뒤에도 문서에서 다시 바꿔볼 수 있습니다.
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-4 text-xs font-bold text-text-muted">갤러리에 등록된 컴포넌트가 없습니다.</p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 border-t border-surface-border-soft px-5 py-3">
+              <Dialog.Close asChild>
+                <button type="button" className="ui-icon-button h-9 px-4 text-[13px] font-black">취소</button>
+              </Dialog.Close>
+              <button type="button" onClick={handleInsert} disabled={!entry} className="ui-icon-button-brand h-9 px-4 text-[13px] font-black disabled:opacity-40">
+                삽입
+              </button>
             </div>
           </Dialog.Content>
         </Dialog.Portal>
