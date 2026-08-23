@@ -4,7 +4,7 @@
 
 - 대상: `sk-pkt-mes-server`
 - 운영: Spring Boot JAR + systemd + Docker PostgreSQL
-- GitHub Actions: `.github/workflows/backend-deploy.yml`에서 수동 실행 가능
+- GitHub Actions: `.github/workflows/backend-deploy.yml`은 `main` push 시 자동 실행되며 수동 실행도 가능
 - 운영 환경변수는 EC2에서만 관리하며 저장소에 커밋하지 않습니다.
 - 이 머신에 EC2 SSH 개인키가 없으면 원격 백엔드 배포를 수행할 수 없습니다.
 - SSH 키 파일 경로, 권한, 보안그룹의 22번 포트 허용 여부를 먼저 확인합니다.
