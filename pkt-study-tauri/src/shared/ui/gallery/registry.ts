@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import { Badge } from "./badge";
 import { Button } from "./button";
 import { Input } from "./input";
+import { ModalDemo } from "./modal-demo";
 import { Select } from "./select";
 import { TableDemo } from "./table-demo";
 import { Toggle } from "./toggle";
@@ -120,6 +121,20 @@ export const GALLERY_ENTRIES: GalleryEntry[] = [
       { name: "hover", type: "boolean" },
     ],
     sourceFiles: ["table.tsx", "table.css", "table-demo.tsx"],
+  },
+  {
+    id: "modal",
+    label: "Modal · Drawer",
+    Component: ModalDemo,
+    defaultProps: { kind: "modal", side: "right", open: true, title: "LOT 삭제", description: "되돌릴 수 없습니다." },
+    controls: [
+      { name: "kind", type: "select", options: ["modal", "drawer"] },
+      { name: "side", type: "select", options: ["right", "left"] },
+      { name: "open", type: "boolean" },
+      { name: "title", type: "text" },
+      { name: "description", type: "text" },
+    ],
+    sourceFiles: ["modal.tsx", "modal.css", "modal-demo.tsx"],
   },
 ];
 
