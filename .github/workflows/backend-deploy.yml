@@ -1,0 +1,108 @@
+name: Deploy backend
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to deploy
+        required: true
+        default: main
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: sk-pkt-mes-server
+
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Build boot JAR
+        run: ./gradlew bootJar -x test
+
+      - name: Select deployable JAR
+        id: jar
+        shell: bash
+        run: |
+          jar_path="$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-plain.jar' -print -quit)"
+          test -n "$jar_path"
+          echo "path=$jar_path" >> "$GITHUB_OUTPUT"
+
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+
+      - name: Configure SSH host key
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' '${{ secrets.EC2_KNOWN_HOSTS }}' > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Upload JAR
+        shell: bash
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+        run: |
+          scp "${{ steps.jar.outputs.path }}" \
+            "$EC2_USER@$EC2_HOST:/tmp/sample-pkt-mes-${GITHUB_SHA}.jar"
+
+      - name: Install JAR and restart service
+        shell: bash
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+        run: |
+          ssh "$EC2_USER@$EC2_HOST" bash -s -- "$GITHUB_SHA" <<'REMOTE'
+          set -eu
+          sha="$1"
+          app='/home/ubuntu/sample-pkt-project/app.jar'
+          incoming="/tmp/sample-pkt-mes-${sha}.jar"
+          backup="/home/ubuntu/sample-pkt-project/app.jar.$(date +%Y%m%d-%H%M%S).bak"
+          sudo cp "$app" "$backup"
+          sudo install -o ubuntu -g ubuntu -m 644 "$incoming" "$app"
+          sudo systemctl restart sample-pkt-mes.service
+          sudo systemctl is-active --quiet sample-pkt-mes.service
+          rm -f "$incoming"
+          echo "deployed=$app backup=$backup"
+          REMOTE
+
+      - name: Verify external API
+        run: |
+          curl --fail --silent --show-error --max-time 20 \
+            https://api.hibot-docu.com/v3/api-docs \
+            -o /tmp/api-docs.json
+          python3 - <<'PY'
+          import json
+          with open('/tmp/api-docs.json', encoding='utf-8') as f:
+              spec = json.load(f)
+          params = [p['name'] for p in spec['paths']['/api/lots']['get']['parameters']]
+          print('LOT parameters:', params)
+          required = {'page', 'size', 'sort', 'direction'}
+          missing = required - set(params)
+          if missing:
+              raise SystemExit(f'Missing LOT parameters after deploy: {sorted(missing)}')
+          PY
