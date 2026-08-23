@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { findGalleryEntry, getGallerySource, type GalleryControl } from '../gallery/registry'
 
 export type ComponentPreviewBlock = {
   componentId: string
   props: Record<string, unknown>
 }
+
+const CONTROL_BASE =
+  'h-8 rounded-md border border-surface-border bg-surface-raised px-2.5 text-[12.5px] font-bold text-text-primary outline-none transition-colors focus:border-brand-primary'
 
 function ControlField({
   control,
@@ -21,17 +25,21 @@ function ControlField({
     return (
       <label className="flex items-center gap-1.5">
         {label}
-        <select
-          value={String(value ?? '')}
-          onChange={(event) => onChange(event.target.value)}
-          className="rounded-md border border-surface-border bg-surface-raised px-2 py-1.5 text-[12.5px] font-bold text-text-primary"
-        >
-          {control.options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+        {/* 기본 select 화살표가 OS마다 달라 보여서 직접 그린다. */}
+        <span className="relative inline-flex items-center">
+          <select
+            value={String(value ?? '')}
+            onChange={(event) => onChange(event.target.value)}
+            className={`${CONTROL_BASE} appearance-none pr-7`}
+          >
+            {control.options.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-2 size-3.5 text-text-muted" />
+        </span>
       </label>
     )
   }
@@ -46,7 +54,7 @@ function ControlField({
           max={control.max}
           value={Number(value ?? 0)}
           onChange={(event) => onChange(Number(event.target.value))}
-          className="w-20 rounded-md border border-surface-border bg-surface-raised px-2 py-1.5 text-[12.5px] font-bold text-text-primary"
+          className={`${CONTROL_BASE} w-16`}
         />
       </label>
     )
@@ -54,9 +62,14 @@ function ControlField({
 
   if (control.type === 'boolean') {
     return (
-      <label className="flex items-center gap-1.5">
+      <label className="flex cursor-pointer items-center gap-1.5">
         {label}
-        <input type="checkbox" className="size-4" checked={Boolean(value)} onChange={(event) => onChange(event.target.checked)} />
+        <input
+          type="checkbox"
+          checked={Boolean(value)}
+          onChange={(event) => onChange(event.target.checked)}
+          className="size-4 cursor-pointer accent-[var(--primary)]"
+        />
       </label>
     )
   }
@@ -67,7 +80,7 @@ function ControlField({
       <input
         value={String(value ?? '')}
         onChange={(event) => onChange(event.target.value)}
-        className="w-36 rounded-md border border-surface-border bg-surface-raised px-2 py-1.5 text-[12.5px] font-bold text-text-primary"
+        className={`${CONTROL_BASE} w-36`}
       />
     </label>
   )
