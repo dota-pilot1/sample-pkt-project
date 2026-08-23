@@ -24,9 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 1
           sparse-checkout: |
             pkt-study-tauri
-          sparse-checkout-cone-mode: true
+          sparse-checkout-cone-mode: false
 
       - name: Setup Node
         uses: actions/setup-node@v4
