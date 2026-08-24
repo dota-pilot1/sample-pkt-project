@@ -66,7 +66,7 @@ public class SecurityConfig {
             RestAuthenticationEntryPoint entryPoint,
             AccessDeniedHandler accessDeniedHandler,
             @Value("${app.playbook.llm-api-public:false}") boolean llmApiPublic,
-            @Value("${app.cors.allowed-origins:http://localhost:4200,http://localhost:4300}") String allowedOrigins) throws Exception {
+            @Value("${app.cors.allowed-origins:http://localhost:4200,http://localhost:4300,http://localhost:4301,tauri://localhost,http://tauri.localhost}") String allowedOrigins) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource(allowedOrigins)))
@@ -107,7 +107,7 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource(
-            @Value("${app.cors.allowed-origins:http://localhost:4200,http://localhost:4300}") String allowedOrigins) {
+            @Value("${app.cors.allowed-origins:http://localhost:4200,http://localhost:4300,http://localhost:4301,tauri://localhost,http://tauri.localhost}") String allowedOrigins) {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(allowedOrigins.split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));

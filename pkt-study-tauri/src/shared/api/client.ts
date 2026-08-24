@@ -18,7 +18,7 @@ export async function safeFetch(input: URL | RequestInfo, init?: RequestInit): P
   return fetch(input, init);
 }
 
-// MES 프로토타입 서버의 로컬 API를 사용한다.
+// 이 앱은 로컬 Spring 서버에 연결한다. 배포 버튼도 같은 로컬 서버를 대상으로 한다.
 const LOCAL_API_BASE = "http://localhost:4201";
 const DEPLOY_API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:4201";
 
