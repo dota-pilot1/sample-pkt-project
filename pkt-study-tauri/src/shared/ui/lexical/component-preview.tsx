@@ -3,6 +3,7 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { Check, ChevronDown, Clipboard, X } from 'lucide-react'
 import { findGalleryEntry, getGallerySource, type GalleryControl } from '../gallery/registry'
 import { copyToClipboard } from '../../lib/clipboard'
+import { codeLanguageOf, highlightCode } from './code-tokens'
 
 export type ComponentPreviewBlock = {
   componentId: string
@@ -225,7 +226,7 @@ export function ComponentPreview({ block, framed = true }: { block: ComponentPre
             )}
 
             <pre className="min-h-0 flex-1 overflow-auto bg-surface-muted px-5 py-4 font-mono text-[12.5px] leading-6 text-text-primary">
-              {shownSource?.code}
+              {shownSource ? highlightCode(shownSource.code, codeLanguageOf(shownSource.file)) : null}
             </pre>
           </Dialog.Content>
         </Dialog.Portal>

@@ -159,45 +159,45 @@ function StaffAppShell({
 
         <div
           ref={accountRef}
-          className="relative flex w-full flex-wrap items-center justify-center gap-1.5 border-t px-1 py-2"
+          className="relative flex min-h-[136px] w-full flex-col items-center gap-2 border-t px-2 py-3"
           style={{ borderColor: railTint(10) }}
         >
-          <span
-            title={`${APP_PROFILE.displayName} v${APP_VERSION}`}
-            className="max-h-3 select-none overflow-hidden text-[9px] font-bold tabular-nums"
-            style={{ color: railTint(85) }}
-          >
-            v{APP_VERSION}
-          </span>
-
           <button
             onClick={() => onSelect("settings")}
             title="설정"
             className={
-              "flex h-[34px] w-[34px] items-center justify-center transition-all duration-200 " +
-              (active === "settings" ? "rounded-[14px]" : "rounded-[20px] hover:rounded-[14px]")
+              "flex h-[40px] w-[76px] items-center justify-center transition-all duration-200 " +
+              (active === "settings" ? "rounded-[13px]" : "rounded-[20px] hover:rounded-[13px] hover:bg-white/10")
             }
             style={{ backgroundColor: active === "settings" ? railTint(25) : undefined }}
           >
-            <Settings className="size-[18px]" strokeWidth={2} />
+            <Settings className="size-[20px]" strokeWidth={2} />
           </button>
 
           <button
             onClick={() => setAccountOpen((open) => !open)}
             title={`${displayName} · ${roleName}`}
             className={
-              "grid h-[34px] w-[34px] place-items-center rounded-lg border p-0 transition-all " +
+              "grid h-[40px] w-[76px] place-items-center rounded-[20px] border p-0 transition-all " +
               (accountOpen
                 ? "bg-surface-raised shadow-lg"
                 : "border-transparent bg-transparent hover:bg-[color-mix(in_srgb,var(--primary-foreground)_20%,transparent)]")
             }
             style={{ borderColor: accountOpen ? railTint(60) : undefined }}
           >
-            <span className="grid h-[28px] w-[28px] place-items-center overflow-hidden rounded-full border bg-surface-raised text-[11px] font-black uppercase text-text-primary"
+            <span className="grid h-[30px] w-[30px] place-items-center overflow-hidden rounded-full border bg-surface-raised text-[12px] font-black uppercase text-text-primary"
                   style={{ borderColor: railTint(30) }}>
               {displayName.charAt(0) || "U"}
             </span>
           </button>
+
+          <span
+            title={`${APP_PROFILE.displayName} v${APP_VERSION}`}
+            className="mt-0.5 max-h-3 select-none overflow-hidden text-[8.5px] font-bold tracking-[0.02em] tabular-nums"
+            style={{ color: railTint(85) }}
+          >
+            v{APP_VERSION}
+          </span>
 
           {accountOpen && (
             <div className="absolute bottom-[52px] left-[86px] z-50 w-[200px] rounded-lg border border-surface-border bg-surface-raised p-1.5 text-text-primary shadow-xl">
