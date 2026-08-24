@@ -25,6 +25,7 @@ function ListColumn({
   createPlaceholder,
   disabled = false,
   collapsed = false,
+  expandedWidth,
   onToggle,
 }: {
   title: string;
@@ -39,6 +40,8 @@ function ListColumn({
   createPlaceholder: string;
   disabled?: boolean;
   collapsed?: boolean;
+  /** 펼친 상태의 컬럼 폭. 접히는 동안 목록이 눌리지 않게 안쪽 폭을 이 값으로 고정한다. */
+  expandedWidth: number;
   onToggle: () => void;
 }) {
   const [adding, setAdding] = useState(false);
@@ -67,73 +70,76 @@ function ListColumn({
 
   return (
     <section className="flex h-full min-h-0 min-w-0 flex-col rounded-lg border border-surface-border bg-surface-raised shadow-sm">
-      <div className={`flex h-12 min-h-12 shrink-0 items-center gap-2 border-b border-surface-border-soft bg-surface-muted/30 ${collapsed ? "justify-center px-2" : "px-3"}`}>
-        {collapsed ? (
-          <>
-            <span className="whitespace-nowrap text-xs font-black text-text-primary">{title}</span>
-            <span className="grid min-w-5 place-items-center rounded-full border border-brand-border/40 bg-brand-glass px-1.5 py-0.5 text-[10px] font-black tabular-nums text-brand-primary" title={`${items.length}개`}>
-              {items.length}
-            </span>
-            <button
-              type="button"
-              onClick={onToggle}
-              aria-expanded={false}
-              aria-label={`${title} 펼치기`}
-              title={`${title} 펼치기`}
-              className="ui-icon-button size-7 text-brand-primary"
-            >
-              <ChevronRight className="size-4" />
-            </button>
-          </>
-        ) : (
-          <>
-        <h2 className="min-w-0 truncate text-sm font-black text-text-primary">{title}</h2>
-        <span className="grid min-w-5 place-items-center rounded-full border border-brand-border/40 bg-brand-glass px-1.5 py-0.5 text-[10px] font-black tabular-nums text-brand-primary" title={`${items.length}개`}>
-          {items.length}
-        </span>
-        <span className="flex-1" />
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-expanded={true}
-          aria-label={`${title} 접기`}
-          title={`${title} 접기`}
-          className="ui-icon-button size-7 shrink-0 text-text-muted"
+      {/* 접힘/펼침 헤더를 겹쳐 두고 투명도만 바꾼다. 마크업을 갈아치우면 폭이 줄기 전에 내용이 튄다. */}
+      <div className="relative flex h-12 min-h-12 shrink-0 items-center border-b border-surface-border-soft bg-surface-muted/30">
+        <div
+          aria-hidden={!collapsed}
+          className={
+            "absolute inset-0 flex items-center justify-center gap-2 px-2 transition-opacity duration-150 " +
+            (collapsed ? "opacity-100" : "pointer-events-none opacity-0")
+          }
         >
-          <ChevronLeft className="size-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => setAdding((v) => !v)}
-          disabled={disabled}
-          title={`${title} 추가`}
-          className="ui-icon-button h-7 w-7 shrink-0 border-brand-border bg-brand-glass text-brand-primary disabled:opacity-40"
+          <span className="whitespace-nowrap text-xs font-black text-text-primary">{title}</span>
+          <span className="grid min-w-5 place-items-center rounded-full border border-brand-border/40 bg-brand-glass px-1.5 py-0.5 text-[10px] font-black tabular-nums text-brand-primary" title={`${items.length}개`}>
+            {items.length}
+          </span>
+          <button
+            type="button"
+            onClick={onToggle}
+            tabIndex={collapsed ? 0 : -1}
+            aria-expanded={false}
+            aria-label={`${title} 펼치기`}
+            title={`${title} 펼치기`}
+            className="ui-icon-button size-7 text-brand-primary"
+          >
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
+        <div
+          aria-hidden={collapsed}
+          className={
+            "absolute inset-0 flex items-center gap-2 px-3 transition-opacity duration-150 " +
+            (collapsed ? "pointer-events-none opacity-0" : "opacity-100")
+          }
         >
-          <Plus className="size-4" />
-        </button>
-          </>
-        )}
+          <h2 className="min-w-0 truncate text-sm font-black text-text-primary">{title}</h2>
+          <span className="grid min-w-5 place-items-center rounded-full border border-brand-border/40 bg-brand-glass px-1.5 py-0.5 text-[10px] font-black tabular-nums text-brand-primary" title={`${items.length}개`}>
+            {items.length}
+          </span>
+          <span className="flex-1" />
+          <button
+            type="button"
+            onClick={onToggle}
+            tabIndex={collapsed ? -1 : 0}
+            aria-expanded={true}
+            aria-label={`${title} 접기`}
+            title={`${title} 접기`}
+            className="ui-icon-button size-7 shrink-0 text-text-muted"
+          >
+            <ChevronLeft className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setAdding((v) => !v)}
+            disabled={disabled || collapsed}
+            tabIndex={collapsed ? -1 : 0}
+            title={`${title} 추가`}
+            className="ui-icon-button h-7 w-7 shrink-0 border-brand-border bg-brand-glass text-brand-primary disabled:opacity-40"
+          >
+            <Plus className="size-4" />
+          </button>
+        </div>
       </div>
 
-      {!collapsed && <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2.5">
-        {adding && (
-          <input
-            autoFocus
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={submit}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") submit();
-              if (e.key === "Escape") {
-                setDraft("");
-                setAdding(false);
-              }
-            }}
-            placeholder={createPlaceholder}
-            className="ui-input"
-          />
-        )}
-
+      <div
+        aria-hidden={collapsed}
+        className={
+          "min-h-0 flex-1 overflow-hidden transition-opacity duration-150 " +
+          (collapsed ? "pointer-events-none opacity-0" : "opacity-100")
+        }
+      >
+        {/* 접히는 동안 항목이 찌그러지지 않도록 펼친 폭을 유지한 채 잘려 나가게 한다. */}
+        <div className="h-full space-y-2 overflow-y-auto p-2.5" style={{ width: expandedWidth }}>
         {items.length === 0 && !adding && (
           <p className="px-1 py-6 text-center text-[13px] font-semibold text-text-muted">{emptyLabel}</p>
         )}
@@ -210,7 +216,26 @@ function ListColumn({
             </div>
           );
         })}
-      </div>}
+
+        {adding && (
+          <input
+            autoFocus
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={submit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submit();
+              if (e.key === "Escape") {
+                setDraft("");
+                setAdding(false);
+              }
+            }}
+            placeholder={createPlaceholder}
+            className="ui-input"
+          />
+        )}
+        </div>
+      </div>
     </section>
   );
 }
