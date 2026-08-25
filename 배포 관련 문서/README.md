@@ -12,6 +12,7 @@
 6. `06-장애-대응-체크리스트.md` - 검증, 장애, 롤백
 7. `07-Tauri-앱-배포-정보-총정리.md` - 기존 `pkt-study-tauri` 배포 참고
 8. `08-PKT-Study-Fullstack-하이브리드-릴리즈.md` - 현행 앱의 로컬 macOS + Actions Windows 릴리즈
+9. `09-macOS-공증-중요-디버깅.md` - Apple 공증 401, 셸 변수 확장, staple/Gatekeeper 검증
 
 ## 상태 보고를 재현하는 문서
 
