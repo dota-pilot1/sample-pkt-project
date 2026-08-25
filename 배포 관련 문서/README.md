@@ -10,6 +10,8 @@
 4. `04-앱-릴리즈.md` - Tauri GitHub Release와 updater
 5. `05-Secrets-및-보안.md` - Secret과 민감정보 원칙
 6. `06-장애-대응-체크리스트.md` - 검증, 장애, 롤백
+7. `07-Tauri-앱-배포-정보-총정리.md` - 기존 `pkt-study-tauri` 배포 참고
+8. `08-PKT-Study-Fullstack-하이브리드-릴리즈.md` - 현행 앱의 로컬 macOS + Actions Windows 릴리즈
 
 ## 상태 보고를 재현하는 문서
 
@@ -26,8 +28,9 @@
 - 웹: <https://hibot-docu.com>
 - API: <https://api.hibot-docu.com>
 - 웹/API 저장소: <https://github.com/dota-pilot1/sample-pkt-project>
-- 앱 저장소: <https://github.com/dota-pilot1/pkt-study-tauri>
-- 앱 Release: <https://github.com/dota-pilot1/pkt-study-tauri/releases>
+- 현행 풀스택 앱 저장소: <https://github.com/dota-pilot1/pkt-study-fullstack>
+- 현행 풀스택 앱 Release: <https://github.com/dota-pilot1/pkt-study-fullstack/releases>
+- 기존 분리형 앱 저장소: <https://github.com/dota-pilot1/pkt-study-tauri>
 
 > 보안: 비밀번호, 개인키, p12 원문, Apple 계정 비밀번호는 이 폴더에 기록하지 않습니다.
 
@@ -44,8 +47,9 @@ main push
             ├─ CloudFront invalidation
             └─ 웹 응답 확인
 
-vX.Y.Z tag push
-  └─ PKT Study Tauri Release
+PKT Study Fullstack 릴리즈
+  ├─ macOS: 로컬 빌드·Developer ID 서명·Apple 공증·Release 직접 업로드
+  └─ Windows: workflow_dispatch로 NSIS 설치 파일만 빌드·기존 Release에 추가
 ```
 
-백엔드와 프론트 워크플로는 `main` push에 자동 실행된다. 프론트는 백엔드 워크플로가 성공한 경우에만 이어서 실행되며, 두 워크플로 모두 GitHub Actions 화면에서 수동 실행할 수도 있다. Tauri 앱은 일반 커밋이 아니라 `v*` 태그 push로 릴리즈한다.
+백엔드와 프론트 워크플로는 `main` push에 자동 실행된다. 프론트는 백엔드 워크플로가 성공한 경우에만 이어서 실행되며, 두 워크플로 모두 GitHub Actions 화면에서 수동 실행할 수도 있다. 현행 `pkt-study-fullstack` Tauri 앱은 Actions 비용을 줄이기 위해 `08-PKT-Study-Fullstack-하이브리드-릴리즈.md`의 절차를 따른다.
