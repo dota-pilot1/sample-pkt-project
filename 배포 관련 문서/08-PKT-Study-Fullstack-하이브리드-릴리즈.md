@@ -96,7 +96,7 @@ src-tauri/target/release/bundle/macos/PKT Study Fullstack.app.tar.gz.sig
 
 ## Apple 공증과 티켓 고정
 
-공증 명령은 `SECRET_DIR`, Apple ID, app-specific password를 각각 별도 명령으로 대입한 뒤 실행한다. 한 줄의 환경변수 대입에 명령 치환과 `$VARIABLE` 인자 확장을 함께 넣지 않는다. 셸 평가 순서로 인해 401이 발생할 수 있으며, 상세 사례는 [`09-macOS-공증-중요-디버깅.md`](./09-macOS-공증-중요-디버깅.md)에 기록되어 있다.
+공증 명령은 `SECRET_DIR`, Apple ID, app-specific password를 각각 별도 명령으로 대입한 뒤 실행한다. 비밀번호는 개행 제거 등의 가공도 하지 않고 파일에서 직접 읽는다. 401 발생 사례와 검증 절차는 [`09-macOS-공증-중요-디버깅.md`](./09-macOS-공증-중요-디버깅.md)에 기록되어 있다.
 
 Apple ID와 앱 전용 비밀번호는 Git에 넣지 않은 로컬 보호 파일을 사용합니다. 아래 경로는 파일 위치만 나타내며 값 자체는 문서화하지 않습니다.
 

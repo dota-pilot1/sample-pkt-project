@@ -22,7 +22,7 @@ Apple 인증서 원본은 로컬 배포 가이드의 보호된 `.local-secrets`�
 
 - 빌드 서명: `APPLE_SIGNING_IDENTITY` 값과 Keychain의 유효한 Developer ID Application 인증서가 일치해야 한다.
 - Apple 공증: `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`를 사용한다.
-- 공증 명령에서는 `SECRET_DIR`, Apple ID, app-specific password를 먼저 별도 명령으로 변수에 대입한다. 여러 환경변수 대입을 `xcrun notarytool` 앞 한 줄에 섞으면 셸 확장 순서 때문에 잘못된 값이 전달될 수 있다. 상세 원인과 검증법은 `09-macOS-공증-중요-디버깅.md`를 따른다.
+- 공증 명령에서는 `SECRET_DIR`, Apple ID, app-specific password를 먼저 별도 명령으로 변수에 대입하고, 비밀번호를 `tr`·`sed` 등으로 가공하지 않는다. 401이 발생하면 상세 원인과 재시도 절차를 `09-macOS-공증-중요-디버깅.md`에서 확인한다.
 - 인증서 설치: Keychain에 인증서가 없을 때만 `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`가 필요하다.
 - Tauri updater 서명: Apple 서명과 별개로 `pkt-study-fullstack-updater.key`와 일치하는 공개키를 사용한다.
 
