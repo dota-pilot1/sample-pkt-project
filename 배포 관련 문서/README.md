@@ -50,6 +50,10 @@ main push
 PKT Study Fullstack 릴리즈
   ├─ macOS: 로컬 빌드·Developer ID 서명·Apple 공증·Release 직접 업로드
   └─ Windows: workflow_dispatch로 NSIS 설치 파일만 빌드·기존 Release에 추가
+
+기존 PKT Study Tauri 릴리즈
+  ├─ macOS: 로컬 universal DMG 빌드·서명·공증·Release 직접 업로드
+  └─ Windows: workflow_dispatch로 NSIS와 updater 산출물 생성
 ```
 
 백엔드와 프론트 워크플로는 `main` push에 자동 실행된다. 프론트는 백엔드 워크플로가 성공한 경우에만 이어서 실행되며, 두 워크플로 모두 GitHub Actions 화면에서 수동 실행할 수도 있다. 현행 `pkt-study-fullstack` Tauri 앱은 Actions 비용을 줄이기 위해 `08-PKT-Study-Fullstack-하이브리드-릴리즈.md`의 절차를 따른다.

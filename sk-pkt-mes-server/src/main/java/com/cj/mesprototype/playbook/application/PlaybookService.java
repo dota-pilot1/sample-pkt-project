@@ -111,7 +111,11 @@ public class PlaybookService {
     @Transactional
     public ShareResponse shareDocument(Long documentId, Long requesterId, boolean admin) {
         PlaybookDocument document = findDocument(documentId);
-        ensureAuthorOrAdmin(document, requesterId, admin);
+        // 시더와 LLM 공개 API로 생성된 문서는 소유자가 없다. 이런 공용 문서는
+        // 로그인한 노트 사용자라면 공유할 수 있어야 AI 편집 토큰 발급 규칙과도 일치한다.
+        if (document.getCreatedBy() != null) {
+            ensureAuthorOrAdmin(document, requesterId, admin);
+        }
         document.issueShareToken(UUID.randomUUID().toString().replace("-", ""));
         return new ShareResponse(document.getShareToken());
     }

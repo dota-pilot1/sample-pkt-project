@@ -51,3 +51,6 @@ coverage/
 **/src-tauri/target/
 target/
 **/target/
+
+# Independently versioned application
+/pkt-study-fullstack/

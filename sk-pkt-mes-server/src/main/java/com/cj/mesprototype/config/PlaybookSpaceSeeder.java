@@ -36,7 +36,7 @@ public class PlaybookSpaceSeeder implements ApplicationRunner {
                 new SpaceSeed("RAG", "RAG 플레이북"),
                 new SpaceSeed("SECURITY", "보안 플레이북"),
                 new SpaceSeed("DEVOPS", "DevOps 플레이북"),
-                new SpaceSeed("PKT_FRONT_LEV1", "PKT Front Lev1")
+                new SpaceSeed("PKT_FRONT_LEV1", "기본 화면 설계")
         ).forEach(seed -> repository.findByCode(seed.code())
                 .orElseGet(() -> repository.save(PlaybookSpace.of(seed.code(), seed.name()))));
     }

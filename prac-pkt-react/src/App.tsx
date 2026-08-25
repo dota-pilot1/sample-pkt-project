@@ -1,12 +1,12 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { BookOpen, ClipboardList, LayoutDashboard, Settings2 } from "lucide-react";
+import { ClipboardCheck, ClipboardList, Factory, LayoutDashboard } from "lucide-react";
 import AppHeader from "./widgets/app-shell/AppHeader";
 
 const navigation = [
   { to: "/", label: "대시보드", icon: LayoutDashboard },
   { to: "/lots", label: "LOT 목록", icon: ClipboardList },
-  { to: "/goals", label: "학습 목표", icon: BookOpen },
-  { to: "/settings", label: "설정", icon: Settings2 },
+  { to: "/work-orders", label: "작업 관리", icon: Factory },
+  { to: "/quality-inspections", label: "품질 검사", icon: ClipboardCheck },
 ];
 
 export default function App() {
