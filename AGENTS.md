@@ -89,8 +89,8 @@ When adding PKT learning notes, use the current Tauri app's `API for LLM` base U
 - 릴리즈 전 `pkt-study-fullstack/.data/pkt-study.db`를 기준 시드로 확정하고 백업한다.
 - 기준 시드는 릴리즈 저장소에 추적되는 패키징 경로에 포함되어야 하며, `.gitignore`에 걸린 로컬 DB를 그대로 두고 배포하지 않는다.
 - 빌드 후 패키징된 시드에 의도한 `space/category/topic/document`와 본문 수가 들어갔는지 확인한다. 메뉴 개수만 확인하지 않는다.
-- 기존 설치 DB는 덮어쓰지 않되, 신규 시스템 갤러리와 문서는 `PKT_STUDY_SEED_DB` 병합 경로로 추가되어야 한다.
-- 최종 검증은 새 설치 DB와 기존 사용자 DB 복제본 양쪽에서 UI 갤러리 문서 본문이 보이는지 확인한 뒤 진행한다.
+- 현재 Tauri 학습 앱 정책은 릴리즈 버전이 바뀔 때 패키징된 기준 시드로 사용자 DB를 동기화하는 것이다. 기존 DB는 `.before-seed-sync` 백업을 남긴 뒤 교체한다.
+- 최종 검증은 새 설치 DB와 이전 버전 사용자 DB 복제본 양쪽에서 UI 갤러리 문서 본문이 기준 시드와 동일한지 확인한 뒤 진행한다.
 - Tauri 릴리즈 커밋에는 앱 코드, 패키징 시드, 데이터 병합 코드, 버전 파일을 함께 포함한다.
 
 ### 버전 어긋남 확인
