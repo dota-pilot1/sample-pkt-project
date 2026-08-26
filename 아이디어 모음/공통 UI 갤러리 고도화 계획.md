@@ -171,3 +171,137 @@ type ComponentExample = {
 - 시스템 메뉴와 보호 대상 본문은 일반 삭제 흐름으로 제거되지 않는다.
 - 좁은 패널에서도 드롭다운·코드·미리보기 내용이 잘리지 않는다.
 - 사용자는 문서의 소스를 복사해 별도 화면에 바로 적용할 수 있다.
+
+## 7. Tailwind TSX 컴포넌트 노드 세부 계획
+
+### 7.1 목표와 범위
+
+Lexical 본문에 `Tailwind TSX 컴포넌트` 노드를 삽입하고, 전체 화면에 가까운 편집 다이얼로그에서 코드와 미리보기를 함께 편집한다.
+
+- 한 노드는 Button·Input·Badge 등 `샘플 컴포넌트 하나`를 표현한다.
+- 왼쪽에서 Tailwind 클래스가 포함된 TSX를 편집하고 오른쪽에서 렌더링 결과를 확인한다.
+- 본문에서는 코드 편집기를 항상 노출하지 않고, 미리보기 카드와 `편집`·`소스 보기` 버튼만 표시한다.
+- 갤러리에 등록된 실제 컴포넌트와 문서에서 작성한 자유 TSX 샘플을 서로 구분한다.
+
+1차 범위는 외부 패키지 import가 없는 단일 React 함수 컴포넌트로 제한한다. 네트워크 요청, 임의 파일 접근, 서버 API 호출, 사용자 임의 npm 의존성 설치는 허용하지 않는다.
+
+### 7.2 편집 화면 UX
+
+```text
+┌ Tailwind TSX 컴포넌트 편집 ────────────────────────────────────┐
+│ 샘플명  Button / Primary       테마  Light   화면폭  Desktop │
+├──────────────────────────┬──────────────────────────┤
+│ 코드                         │ 미리보기                    │
+│ CodeMirror 6                 │ 독립된 샌드박스             │
+│                              │                              │
+│ export default function ...  │        [ 저장 ]              │
+│ return <button className=...  │                              │
+├──────────────────────────┴──────────────────────────┤
+│ 컴파일 오류 0개        초기화   취소   삽입/업데이트 │
+└─────────────────────────────────────────────────────┘
+```
+
+- 다이얼로그는 `100vw × 100vh`를 메우는 방식보다 가장자리 여백을 12~16px 남긴 풀사이즈 방식으로 한다.
+- 기본은 좌우 50:50이며, 분할선을 드래그해 편집기와 미리보기 너비를 조절한다.
+- 작은 화면에서는 좌우 분할을 `코드 / 미리보기` 탭으로 전환한다.
+- 코드 변경 후 300~500ms debounce로 컴파일하되, 직전에 성공한 미리보기는 새 컴파일이 완료될 때까지 유지한다.
+- 문법·컴파일·렌더링 오류를 구분하고, 해당 줄·열과 요약을 편집기 및 미리보기 영역에 함께 표시한다.
+- `Cmd/Ctrl + Enter`는 즉시 미리보기, `Cmd/Ctrl + S`는 노드 저장으로 사용한다.
+- 새 노드는 `Button`, `Input`, `Card`, `Empty State` 등 최소 템플릿에서 시작할 수 있게 한다.
+
+### 7.3 컴포넌트 분리
+
+특정 편집기나 컴파일러에 종속되지 않도록 다음 경계를 유지한다.
+
+```text
+TailwindTsxNode
+├─ source·metadata를 Lexical JSON으로 저장
+└─ TailwindTsxPreviewCard를 decorate
+
+TailwindTsxWorkbenchDialog
+├─ UiCodeEditor          # CodeMirror 6 adapter
+├─ PreviewCompiler      # TSX 변환
+├─ TailwindStyleEngine  # 입력 클래스의 CSS 생성
+└─ PreviewFrame         # 격리 렌더링·오류 전달
+```
+
+- `UiCodeEditor` props는 `value`, `language`, `onChange`, `readOnly`, `diagnostics`로 제한한다. 나중에 CodeMirror를 Monaco로 바꾸더라도 다이얼로그나 Lexical 노드는 바꾸지 않는다.
+- `PreviewCompiler`는 편집기와 분리한 Web Worker 또는 독립 모듈로 구성한다.
+- `PreviewFrame`은 앱 DOM에 직접 실행 코드를 삽입하지 않고 sandbox iframe에서 렌더링한다.
+- 노드를 저장하는 일과 실제 갤러리 소스 파일을 수정하는 일을 분리한다. 문서 편집은 기본으로 로컬 DB의 Lexical JSON만 변경한다.
+
+### 7.4 Lexical 저장 모델
+
+```ts
+type SerializedTailwindTsxNode = {
+  type: "tailwind-tsx-preview";
+  version: 1;
+  title: string;
+  source: string;
+  templateId?: string;
+  viewport: "mobile" | "tablet" | "desktop" | "responsive";
+  theme: "light" | "dark";
+};
+```
+
+- `source`는 편집기의 순수 TSX 문자열이며 CodeMirror 전용 상태를 저장하지 않는다.
+- 편집기의 컴파일 결과·오류·분할 비율은 문서 데이터에 저장하지 않는다.
+- 노드를 클릭해 재편집하면 기존 노드의 key를 유지한 채 값만 갱신하여 undo/redo가 동작하게 한다.
+- `lexical-state.ts`의 허용 노드 타입, 미리보기 블록 수집기, Markdown 변환기에도 새 타입을 반영한다.
+
+### 7.5 TSX·Tailwind 실행 정책
+
+CodeMirror 6은 코드 입력과 문법 표시만 담당한다. 실제 미리보기는 별도의 TSX 변환기와 Tailwind CSS 생성기가 맡는다.
+
+- 실행 코드는 `export default function Preview()` 형태의 단일 컴포넌트로 제한한다.
+- 1차에서는 React 기본 API와 앱이 허용한 소수의 헬퍼만 주입하고 임의 `import`는 거부한다.
+- `eval`, `Function`, 동적 script, `fetch`, WebSocket, storage, Tauri API 접근을 차단한다.
+- iframe에는 최소 sandbox 권한만 주고 부모와는 정의된 `postMessage` 메시지로만 통신한다.
+- 임의 입력 Tailwind 클래스는 기존 Next.js 빌드 CSS에 자동으로 포함되지 않으므로, 런타임 클래스 생성 방식을 따로 검증한다.
+- 폐쇄망·Tauri 패키지를 고려해 CDN과 외부 번들러에 의존하지 않고 변환기·런타임·필요 자산을 앱에 함께 패키징한다.
+
+### 7.6 단계별 구현
+
+#### 0단계 — 기술 검증
+
+- 단일 Button TSX를 순수 브라우저 환경에서 변환·렌더링한다.
+- Tauri 패키징 후에도 외부 네트워크 없이 동일하게 실행되는지 확인한다.
+- Tailwind 정적·arbitrary class를 수정했을 때 CSS가 즉시 갱신되는 방식을 검증한다.
+- 변환 시간, 초기 로딩, 패키지 용량을 측정한 뒤 TSX 변환기와 Tailwind 생성 방식을 확정한다.
+
+#### 1단계 — CodeMirror 편집 작업대
+
+- `UiCodeEditor` 추상화 컴포넌트와 CodeMirror 6 adapter를 추가한다.
+- 풀사이즈 좌우 분할 다이얼로그, 작은 화면 탭, 키보드 단축키를 구현한다.
+- 일단은 등록된 Button 컴포넌트의 소스를 편집기에 보여주고, 오른쪽에는 기존 레지스트리 컴포넌트를 렌더링한다.
+- 편집기와 런타임 간 계약을 완성하고, 소스를 실행하는 기능은 기술 검증 결과를 적용한 뒤 켠다.
+
+#### 2단계 — 단일 Tailwind TSX 실행
+
+- TSX 변환기와 sandbox iframe 미리보기를 연결한다.
+- 정상 성공, 문법 오류, 런타임 오류, 렌더링 오류를 각각 표시한다.
+- 런타임 Tailwind CSS를 연결하고 Light·Dark 테마와 mobile·tablet·desktop 미리보기를 지원한다.
+- 기본 템플릿을 추가하고 삽입·재편집·삭제·undo/redo를 완성한다.
+
+#### 3단계 — 갤러리 연결
+
+- 갤러리 문서의 미리보기 탭에서 `tailwind-tsx-preview` 노드를 문서 순서대로 수집·렌더링한다.
+- `실제 컴포넌트`와 `문서 TSX 샘플`의 배지를 다르게 표시한다.
+- 소스 보기·복사·파일로 내보내기와 문서 버전 업데이트 경로를 완성한다.
+
+#### 4단계 — 품질 보강
+
+- 자동 완성, 코드 포맷, 접근성 진단은 사용성을 확인한 뒤 선택적으로 추가한다.
+- CodeMirror가 제공하는 수준을 넘는 TypeScript 진단이 필요하면 `UiCodeEditor` adapter를 Monaco로 교체한다.
+- 반복 렌더링 시 메모리 누수, 빠른 연속 입력, 큰 소스, 오류 반복 상태를 점검한다.
+
+### 7.7 검증 항목
+
+- CodeMirror 입력이 문서 저장 전까지 외부 파일을 수정하지 않는다.
+- 삽입한 노드를 문서 저장·재조회했을 때 소스·테마·화면폭이 동일하다.
+- 노드 재편집 후 undo/redo로 이전 소스를 복구할 수 있다.
+- 오류가 난 TSX를 저장할지 정책을 명확히 한다. 기본은 저장은 허용하되 갤러리에는 `오류 있음` 배지를 표시한다.
+- iframe 내의 스타일·이벤트·전역 객체가 앱 본문과 다른 미리보기로 누출되지 않는다.
+- 외부 네트워크를 차단한 Tauri 패키지에서도 편집·컴파일·미리보기·저장이 동작한다.
+- 기존 `html-preview`, `component-preview`, 일반 Lexical 코드 블록의 저장·렌더링이 깨지지 않는다.
+- `npm run lint`, `npm run build`, Tauri 패키지 실행 검증을 모두 통과한다.
