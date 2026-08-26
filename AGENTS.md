@@ -68,7 +68,7 @@ Never commit real secrets. Backend local secrets belong in `mes-prototype-server
 
 ## PKT LLM Note API
 
-When adding PKT learning notes, prefer the dedicated `/api/llm/hospital-playbook` endpoints over direct database writes. Create the 1st/2nd-level structure first, then fetch IDs, save the main document body, add child documents, and verify with the read endpoints. Use the `API for LLM` button in the desktop app for the current base URL and request examples. Tokenless access is local-only and controlled by `PLAYBOOK_LLM_API_PUBLIC=true`; never enable it for production.
+When adding PKT learning notes, use the current Tauri app's `API for LLM` base URL and request examples as the source of truth. First verify the screen-selected 1st/2nd-level location with `tree` or `topic`; never hard-code a topic ID such as `151`, assume the repository's Spring API is the note app, or call `structure` when the location already exists. For web-development practice, make one TODO a body document and split long TODOs into API implementation and Front implementation child documents; do not force an API child for frontend-only work. Verify parent IDs, versions, Lexical code blocks, and rendered location through read endpoints. Prefer the dedicated playbook API over direct database writes. Tokenless access is local-only when supported by the current app configuration; never enable it for production.
 
 ## 운영 환경 성격 (온보딩용 테스트 환경)
 
@@ -81,6 +81,17 @@ When adding PKT learning notes, prefer the dedicated `/api/llm/hospital-playbook
 즉 "운영 반영"은 승인 절차가 필요한 릴리스가 아니라 실습의 한 단계로 취급합니다. 다만 배포 후에는 프론트와 백엔드 버전이 어긋나지 않았는지 반드시 확인합니다.
 
 주의: 이 도메인은 원래 `towercrane-for-uiux`(Node·pm2·SQLite)가 쓰던 인프라 슬롯을 인계받았습니다. **`towercrane-deploy` 스킬은 이 프로젝트에 적용되지 않습니다.** 현재 `api.hibot-docu.com`은 `sk-pkt-mes-server`(Spring Boot + Postgres)가 서빙하고 있습니다.
+
+### Tauri 로컬 데이터 배포 필수 지침
+
+`pkt-study-fullstack`은 화면 코드와 학습 데이터가 분리된 Tauri 앱이다. 메뉴 생성 코드만 배포하면 본문이 없는 메뉴가 생기므로, UI 갤러리·샘플 노트 등 배포 대상 로컬 데이터도 반드시 릴리즈에 포함한다.
+
+- 릴리즈 전 `pkt-study-fullstack/.data/pkt-study.db`를 기준 시드로 확정하고 백업한다.
+- 기준 시드는 릴리즈 저장소에 추적되는 패키징 경로에 포함되어야 하며, `.gitignore`에 걸린 로컬 DB를 그대로 두고 배포하지 않는다.
+- 빌드 후 패키징된 시드에 의도한 `space/category/topic/document`와 본문 수가 들어갔는지 확인한다. 메뉴 개수만 확인하지 않는다.
+- 기존 설치 DB는 덮어쓰지 않되, 신규 시스템 갤러리와 문서는 `PKT_STUDY_SEED_DB` 병합 경로로 추가되어야 한다.
+- 최종 검증은 새 설치 DB와 기존 사용자 DB 복제본 양쪽에서 UI 갤러리 문서 본문이 보이는지 확인한 뒤 진행한다.
+- Tauri 릴리즈 커밋에는 앱 코드, 패키징 시드, 데이터 병합 코드, 버전 파일을 함께 포함한다.
 
 ### 버전 어긋남 확인
 

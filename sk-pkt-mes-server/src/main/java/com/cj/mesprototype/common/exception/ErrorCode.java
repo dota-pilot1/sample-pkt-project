@@ -53,6 +53,7 @@ public enum ErrorCode {
     QUALITY_INSPECTION_DEFECT_REASON_REQUIRED(HttpStatus.BAD_REQUEST, "QC_004", "불합격 처리 시 불량 사유를 입력해야 합니다."),
     PRODUCTION_PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "PLAN_001", "생산계획을 찾을 수 없습니다."),
     PRODUCTION_PLAN_CODE_DUPLICATE(HttpStatus.CONFLICT, "PLAN_002", "이미 존재하는 생산계획 코드입니다."),
+    EQUIPMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "EQP_001", "설비를 찾을 수 없습니다."),
     PLAYBOOK_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "PLAYBOOK_001", "플레이북 영역을 찾을 수 없습니다."),
     PLAYBOOK_TOPIC_NOT_FOUND(HttpStatus.NOT_FOUND, "PLAYBOOK_002", "플레이북 주제를 찾을 수 없습니다."),
     PLAYBOOK_DOCUMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PLAYBOOK_003", "플레이북 문서를 찾을 수 없습니다."),

@@ -8,11 +8,11 @@
 |---|---|
 | 앱 이름 | `PKT Study` |
 | identifier | `com.cj.pkt.study` |
-| 앱 소스 | `pkt-study-tauri` |
-| 릴리즈 저장소 | `dota-pilot1/pkt-study-tauri` |
+| 앱 소스 | `pkt-study-fullstack` |
+| 릴리즈 저장소 | `dota-pilot1/pkt-study-fullstack` |
 | 운영 API | `https://api.hibot-docu.com/api` |
 | updater | GitHub Release `latest.json` |
-| 마지막 성공 릴리즈 | `v0.1.23` |
+| 마지막 성공 릴리즈 | `v0.1.30` |
 | 빌드 방식 | macOS 로컬, Windows 수동 Actions |
 
 ## 릴리즈 저장소의 핵심 파일
@@ -36,7 +36,7 @@
 
 ## GitHub Secrets
 
-저장소 `dota-pilot1/pkt-study-tauri`에 등록합니다.
+저장소 `dota-pilot1/pkt-study-fullstack`에 등록합니다.
 
 - `VITE_API_BASE`: `https://api.hibot-docu.com/api`
 - `TAURI_SIGNING_PRIVATE_KEY`
@@ -79,9 +79,9 @@ Secret 원문은 GitHub에서 다시 읽을 수 없으므로, 원본 파일은 �
 
 ## 검증 명령
 
-- `gh run list --repo dota-pilot1/pkt-study-tauri --limit 5`
-- `gh release view vX.Y.Z --repo dota-pilot1/pkt-study-tauri`
-- `curl -I -L https://github.com/dota-pilot1/pkt-study-tauri/releases/latest/download/latest.json`
+- `gh run list --repo dota-pilot1/pkt-study-fullstack --limit 5`
+- `gh release view vX.Y.Z --repo dota-pilot1/pkt-study-fullstack`
+- `curl -I -L https://github.com/dota-pilot1/pkt-study-fullstack/releases/latest/download/latest.json`
 
 HTTP 200, macOS DMG, Windows 설치 파일, Windows `.sig`, `latest.json`이 모두 있어야 배포 완료로 판단합니다.
 
@@ -97,7 +97,7 @@ Apple 6종 Secret과 p12 base64 형식, p12 비밀번호, signing identity를 �
 
 ### 로컬 macOS updater 키 불일치
 
-`tauri.conf.json`의 updater 공개키와 로컬 `.pub` 파일을 원문 출력 없이 비교합니다. 일치하는 개인키가 없으면 다른 앱의 키를 사용하지 않습니다. DMG만 로컬 빌드하고 Windows Actions가 Windows updater 산출물과 `latest.json`을 생성하게 합니다. macOS updater artifact가 필요한 릴리스는 일치하는 개인키를 복구하거나 macOS Actions Secret을 사용해야 합니다.
+`tauri.conf.json`의 updater 공개키와 로컬 `.pub` 파일을 원문 출력 없이 비교합니다. 현재 개인키 파일은 공개키와 일치하지만 보유한 비밀번호로 해독되지 않습니다. 다른 앱의 키를 사용하지 않고 DMG만 로컬 빌드하며, macOS updater artifact가 필요한 릴리스는 올바른 개인키 비밀번호를 복구하거나 검증된 macOS Actions Secret을 사용해야 합니다.
 
 ### updater 실패
 
@@ -105,10 +105,33 @@ Apple 6종 Secret과 p12 base64 형식, p12 비밀번호, signing identity를 �
 
 ## 보안·롤백
 
-- updater private key는 교체 전에 기존 설치 앱의 검증 영향을 검토합니다.
+- updater private key는 교체 전에 기존 설치 앱의 검증 영향을 검토합니다. 공개키가 바뀌면 기존 설치본이 새 서명을 신뢰하지 못할 수 있으므로 즉시 교체하지 않습니다.
 - Apple app-specific password나 인증서가 노출되면 즉시 폐기/재발급합니다.
 - 문제 릴리즈는 이전 정상 Release로 배포합니다.
 - 운영 API 장애는 앱을 재빌드하기 전에 API 상태와 CORS를 먼저 확인합니다.
+
+## 현재 v0.1.30 상태
+
+- Release: <https://github.com/dota-pilot1/pkt-study-fullstack/releases/tag/v0.1.30>
+- Windows Actions: <https://github.com/dota-pilot1/pkt-study-fullstack/actions/runs/32928964483> 성공
+- Windows 설치 파일·`.sig`: 업로드 완료
+- macOS Apple Silicon DMG: 공증 및 stapler 검증 후 업로드 완료
+- 기존 설치 DB 병합: `PKT_STUDY_SEED_DB`로 신규 시드의 누락된 space/category/topic/document를 추가
+- `latest.json`: Windows updater 플랫폼만 제공
+- macOS 자동 업데이트: 키 비밀번호 확인 전까지 사용하지 않고 DMG 수동 설치
+
+## v0.1.29 릴리즈 기록
+
+## v0.1.29 릴리즈 기록
+
+- 커밋: `7dc6e85 feat: collapse nested documents by default`
+- Release: <https://github.com/dota-pilot1/pkt-study-fullstack/releases/tag/v0.1.29>
+- Windows Actions: <https://github.com/dota-pilot1/pkt-study-fullstack/actions/runs/32927988983> 성공
+- Windows 설치 파일·`.sig`: 업로드 완료
+- macOS Apple Silicon DMG: Apple 공증 `Accepted`, stapler 검증 및 업로드 완료
+- macOS updater archive: 개인키 비밀번호 문제로 미생성
+- `latest.json`: Windows updater 플랫폼 제공
+- macOS: v0.1.29 DMG 수동 설치
 
 ## v0.1.23 릴리즈 기록
 

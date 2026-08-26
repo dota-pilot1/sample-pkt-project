@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { ClipboardCheck, ClipboardList, Factory, LayoutDashboard } from "lucide-react";
+import { ClipboardCheck, ClipboardList, Factory, LayoutDashboard, MonitorCog } from "lucide-react";
 import AppHeader from "./widgets/app-shell/AppHeader";
 
 const navigation = [
@@ -7,6 +7,7 @@ const navigation = [
   { to: "/lots", label: "LOT 목록", icon: ClipboardList },
   { to: "/work-orders", label: "작업 관리", icon: Factory },
   { to: "/quality-inspections", label: "품질 검사", icon: ClipboardCheck },
+  { to: "/equipments", label: "설비 관리", icon: MonitorCog },
 ];
 
 export default function App() {

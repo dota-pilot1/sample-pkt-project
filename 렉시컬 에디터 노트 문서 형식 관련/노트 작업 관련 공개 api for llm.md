@@ -1,25 +1,30 @@
 # PKT Playbook 노트 작업 관련 공개 API for LLM
 
-이 문서는 PKT Playbook의 2차 주제 본문 문서와 TODO 하위 문서를 조회·생성·수정·정렬하는 API 기준이다. 구체적인 `spaceCode`, `topicId`, 문서 ID, 버전은 작업 전에 API로 조회한다.
+이 문서는 PKT Playbook의 2차 주제 본문 문서와 TODO 하위 문서를 조회·생성·수정·정렬하는 API 기준이다. `spaceCode`, Category·Topic·Document ID, `version`, API base URL은 고정하지 않으며 작업 직전에 현재 앱의 `API for LLM` 안내와 조회 응답으로 확정한다.
 
 ## 작업 원칙
 
-1. 먼저 tree 또는 topic 조회로 기존 문서와 `version`을 확인한다.
-2. 본문 문서에는 전체 TODO 계획만 작성한다.
-3. TODO 하나마다 하위 문서 하나를 만든다. Step은 하위 문서 본문 안에 작성한다.
-4. 수정 시 최신 `expectedVersion`을 사용한다.
-5. 구현 전에는 존재하지 않는 파일·API·응답을 확정하지 않는다.
-6. 구현 후 실제 파일 경로, 코드, 테스트·조회 결과를 문서에 반영한다.
+1. 현재 앱의 `API for LLM` 버튼에서 base URL과 요청 예시를 확인한다. 이 문서의 예시 주소보다 현재 앱 안내를 우선한다.
+2. `tree` 또는 `topic` 조회로 화면에서 선택한 1차 영역·2차 주제와 기존 TODO 본문 문서·`version`을 확인한다.
+3. 같은 1차 영역·2차 주제·본문 문서가 있으면 새 구조나 문서를 만들지 않는다.
+4. TODO 하나를 하나의 본문 문서로 만든다. 본문에는 해당 TODO의 목표·범위·선행 조건·완료 기준만 작성한다.
+5. TODO가 길면 API 구현·Front 구현 하위 문서를 만들고, 각 하위 문서 안에 Step 1~N을 작성한다.
+6. 수정 시 최신 `expectedVersion`을 사용한다.
+7. 구현 전에는 존재하지 않는 파일·API·응답을 확정하지 않는다.
+8. 구현 후 실제 파일 경로, 코드, 테스트·조회 결과를 문서에 반영한다.
 
 ## 기본 URL과 식별자
 
 ```text
-baseUrl: http://localhost:4201/api/llm/hospital-playbook
-spaceCode: 작업 대상 공간 코드
-topicId: 작업 대상 2차 주제 ID
+baseUrl: 현재 앱의 API for LLM 버튼에서 확인
+spaceCode: tree 조회로 확인한 작업 대상 공간 코드
+categoryId: 화면에서 선택한 1차 영역 조회 결과
+topicId: 화면에서 선택한 2차 주제 조회 결과
 ```
 
 ## 구조 생성
+
+`structure`는 기존 Category·Topic을 재사용하지 않는 구현일 수 있으므로, 기존 트리 확인 없이 호출하지 않는다. 화면에 이미 보이는 1차 영역·2차 주제라면 구조 생성 대신 조회한 `topicId`를 사용한다. 새 구조가 정말 필요할 때만 현재 앱 안내의 구조 생성 API를 호출하고, 응답 ID를 다시 조회해 확인한다.
 
 ```http
 POST {baseUrl}/structure
@@ -28,9 +33,9 @@ Content-Type: application/json
 
 ```json
 {
-  "spaceCode": "PKT_FRONT_LEV1",
-  "categoryTitle": "기본 UI 실습",
-  "topicTitles": ["기본 테이블", "컴포넌트 만들기", "페이지에 적용"]
+  "spaceCode": "조회로 확인한 spaceCode",
+  "categoryTitle": "조회 결과에 없는 새 1차 영역",
+  "topicTitles": ["조회 결과에 없는 새 2차 주제"]
 }
 ```
 

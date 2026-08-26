@@ -16,8 +16,8 @@ macOS GitHub 호스팅 러너가 Windows보다 비싸므로, Apple 인증서와 
 |---|---|
 | 로컬 소스 | `/Users/terecal/pilot-project/sample-pkt-project/pkt-study-fullstack` |
 | 소스 전용 저장소 | `dota-pilot1/pkt-study-fullstack` |
-| 공개 배포 저장소 | `dota-pilot1/pkt-study-tauri` |
-| Release/updater | <https://github.com/dota-pilot1/pkt-study-tauri/releases> |
+| 배포 저장소 | `dota-pilot1/pkt-study-fullstack` |
+| Release/updater | <https://github.com/dota-pilot1/pkt-study-fullstack/releases> |
 | 워크플로 | `.github/workflows/tauri-release.yml` |
 | macOS 산출물 | Apple Silicon용 `.dmg` |
 | Windows 산출물 | x64 NSIS `-setup.exe` |
@@ -30,7 +30,36 @@ macOS GitHub 호스팅 러너가 Windows보다 비싸므로, Apple 인증서와 
 - 앱 업데이트·재설치용 번들 교체 때 사용자 데이터베이스를 덮어쓰지 않습니다. 따라서 설치 후 작성한 노트는 업데이트로 초기화되지 않습니다.
 - 릴리즈 전에는 로컬 DB를 백업하고, 패키징된 시드의 문서 수가 의도한 값과 같은지 확인합니다.
 
-이번 `v0.1.26`부터 이 정책을 적용했습니다. 이전 버전에서 번들 내부에만 저장된 데이터는 앱 업데이트 과정에서 유실될 수 있으므로, 배포 전 로컬 `.data/pkt-study.db` 또는 SQLite 백업 파일을 보존해야 합니다.
+### 로컬 데이터 포함 필수 체크
+
+메뉴 생성 코드와 SQLite 본문 데이터는 별개입니다. `.data/`가 `.gitignore`에 포함되어 있더라도, 릴리즈에 사용할 기준 시드는 반드시 추적되는 패키징 경로에 넣어야 합니다. 로컬 DB를 포함하지 않으면 `Hover (0)`처럼 메뉴만 보이고 본문이 비어 있는 릴리즈가 만들어집니다.
+
+릴리즈 커밋에는 다음을 함께 포함합니다.
+
+1. UI 갤러리 본문이 들어 있는 기준 SQLite 시드
+2. 패키징 스크립트의 시드 복사 단계
+3. 기존 설치 DB에 신규 UI space/category/topic/document를 병합하는 코드
+4. 시드 문서 수와 본문 존재 여부를 확인하는 검증 결과
+
+최소 검증 예시는 다음과 같습니다.
+
+```bash
+cd pkt-study-fullstack
+test -f .data/pkt-study.db
+node - <<'NODE'
+const Database = require('better-sqlite3');
+const db = new Database('.data/pkt-study.db', { readonly: true });
+for (const code of ['UIUX', 'UI_NAV', 'UI_FORM', 'UI_LAYOUT', 'UI_STATE']) {
+  const space = db.prepare('SELECT id FROM playbook_spaces WHERE code = ?').get(code);
+  const row = db.prepare('SELECT COUNT(*) AS count FROM playbook_documents d JOIN playbook_topics t ON t.id = d.topic_id JOIN playbook_categories c ON c.id = t.category_id WHERE c.space_id = ? AND TRIM(d.content) <> \'\'').get(space.id);
+  console.log(code, row.count);
+}
+NODE
+```
+
+기존 설치 DB 검증에서는 사용자 문서를 덮어쓰지 않는지와 신규 UI 문서가 병합되는지를 별도로 확인합니다. 새 버전에서 `latest.json`만 확인하고 본문을 확인하지 않는 것은 배포 완료로 보지 않습니다.
+
+이번 `v0.1.26`부터 이 정책을 적용했습니다. 로컬 SQLite 시드 데이터 포함은 의도된 배포 정책입니다. 이전 버전에서 번들 내부에만 저장된 데이터는 앱 업데이트 과정에서 유실될 수 있으므로, 배포 전 로컬 `.data/pkt-study.db` 또는 SQLite 백업 파일을 보존해야 합니다.
 
 ## 버전 동기화
 
@@ -145,7 +174,7 @@ shasum -a 256 "$DMG_PATH"
 
 ## GitHub Release 직접 생성·업로드
 
-소스 전용 저장소의 태그가 예정 커밋을 가리키는지 먼저 확인한다. 공개 배포 저장소는 소스 태그를 공유하지 않으므로 `gh release create --verify-tag`를 사용하지 않고 `--target main`으로 배포용 태그를 생성한다.
+소스 저장소와 Release 저장소가 동일한 `dota-pilot1/pkt-study-fullstack`이다. 태그를 먼저 push한 뒤 Actions가 해당 Release를 생성한다. macOS DMG를 먼저 올려야 하는 경우에만 Release를 수동 생성하고, 이미 있으면 파일만 추가한다.
 
 ```bash
 TAG='vX.Y.Z'
@@ -153,7 +182,7 @@ DMG_PATH='src-tauri/target/release/bundle/dmg/PKT Study Fullstack_VERSION_aarch6
 
 gh api "repos/dota-pilot1/pkt-study-fullstack/git/ref/tags/$TAG"
 gh release create "$TAG" "$DMG_PATH#PKT Study Fullstack $TAG · macOS Apple Silicon" \
-  --repo dota-pilot1/pkt-study-tauri \
+  --repo dota-pilot1/pkt-study-fullstack \
   --target main \
   --latest \
   --title "PKT Study Fullstack $TAG" \
@@ -164,7 +193,7 @@ Release가 이미 있으면 새로 만들지 않고 파일만 추가합니다.
 
 ```bash
 gh release upload "$TAG" "$DMG_PATH" \
-  --repo dota-pilot1/pkt-study-tauri
+  --repo dota-pilot1/pkt-study-fullstack
 ```
 
 동일한 이름의 자산을 의도적으로 교체할 때만 `--clobber`를 사용합니다.
@@ -193,7 +222,7 @@ gh run watch RUN_ID \
   --exit-status
 ```
 
-이 워크플로는 `windows-latest` 한 개만 사용하고 `--bundles nsis`로 Windows 설치 파일만 빌드한다. **현재 workflow는 소스 전용 저장소의 Release에만 결과를 올리며, 공개 배포 저장소로 자동 이관하지 않는다.** Actions 성공 후 `.exe`, `.exe.sig`, Windows용 `latest.json`을 내려받아 공개 Release에 업로드하고, macOS 항목을 유지한 채 두 `latest.json`의 `platforms`를 병합해야 한다.
+이 워크플로는 `windows-latest` 한 개만 사용하고 `--bundles nsis`로 Windows 설치 파일과 Windows updater 자산을 같은 저장소의 Release에 올린다. 현재는 별도 공개 배포 저장소로 자산을 이관하지 않는다.
 
 ```bash
 mkdir -p /tmp/pkt-windows-release
@@ -205,16 +234,16 @@ gh release download vX.Y.Z \
 gh release upload vX.Y.Z \
   /tmp/pkt-windows-release/*.exe \
   /tmp/pkt-windows-release/*.exe.sig \
-  --repo dota-pilot1/pkt-study-tauri
+  --repo dota-pilot1/pkt-study-fullstack
 ```
 
-Windows용 `latest.json`을 공개 Release에 그대로 올리면 macOS updater 항목이 사라진다. 따라서 소스 및 공개 Release의 JSON을 내려받아 `version`과 `pub_date`를 신규 버전으로 맞춘 후, `platforms`를 병합하고 결과에 `darwin-aarch64`, `darwin-aarch64-app`, `windows-x86_64`, `windows-x86_64-nsis` 네 키가 모두 있는지 확인해 `--clobber`로 올린다. updater endpoint는 반드시 공개 배포 저장소를 사용한다.
+macOS updater archive와 `.sig`를 생성한 릴리스라면 `latest.json`에 macOS 플랫폼을 병합해야 한다. macOS DMG만 배포하는 릴리스에서는 `latest.json`에 Windows 플랫폼만 존재할 수 있으며, macOS 사용자는 DMG를 수동 설치한다. updater endpoint는 반드시 현재 Release 저장소를 사용한다.
 
 ## 최종 검증
 
 ```bash
 gh release view vX.Y.Z \
-  --repo dota-pilot1/pkt-study-tauri \
+  --repo dota-pilot1/pkt-study-fullstack \
   --json url,tagName,assets
 ```
 
@@ -222,9 +251,9 @@ gh release view vX.Y.Z \
 
 - `PKT.Study.Fullstack_VERSION_aarch64.dmg`
 - `PKT.Study.Fullstack_VERSION_x64-setup.exe`
-- `PKT Study Fullstack.app.tar.gz` 및 `.sig`
+- `PKT Study Fullstack.app.tar.gz` 및 `.sig` (macOS updater artifact를 만든 경우에만)
 - `PKT.Study.Fullstack_VERSION_x64-setup.exe.sig`
-- macOS와 Windows 플랫폼이 모두 포함된 `latest.json`
+- 생성한 updater 플랫폼에 해당하는 키가 포함된 `latest.json`
 
 macOS DMG는 Apple 서명·공증·staple 검증을 통과해야 합니다. Windows 작업은 Actions 성공뿐 아니라 Release에 실제 `.exe`가 업로드됐는지 확인해야 합니다.
 
@@ -235,6 +264,53 @@ macOS DMG는 Apple 서명·공증·staple 검증을 통과해야 합니다. Wind
 - macOS는 로컬에서 빌드하여 GitHub Actions 비용을 사용하지 않습니다.
 - Windows는 설치 파일이 필요할 때만 수동 실행합니다.
 - Windows Actions가 결제 제한으로 시작되지 않으면 코드 문제가 아니므로 GitHub Billing의 결제 수단과 Actions 예산을 확인합니다.
+
+## updater 키 운영 원칙
+
+- `src-tauri/tauri.conf.json`의 공개키와 서명에 사용하는 개인키는 반드시 한 쌍이어야 합니다.
+- 기존 설치 앱의 공개키가 이미 배포된 상태이므로, 지금 당장 새 updater 키를 생성하거나 공개키를 교체하지 않습니다.
+- 현재 로컬의 `pkt-study-fullstack-updater.key`는 공개키와 일치하지만, 보유한 비밀번호 파일로는 해독되지 않습니다. 따라서 macOS `.app.tar.gz.sig`를 만들 수 없는 상태입니다.
+- GitHub Secret은 원문을 다시 읽을 수 없으므로 `TAURI_SIGNING_PRIVATE_KEY`의 실제 키와 비밀번호는 GitHub에서 추출하지 못합니다. Windows Actions가 생성한 `.exe.sig`가 현재 공개키로 검증되는지 먼저 확인한 뒤 macOS 서명 경로를 복구합니다.
+- macOS 자동 업데이트가 꼭 필요해지는 시점에만 다음 순서로 조치합니다: 올바른 키 비밀번호 확인 → 키/공개키 쌍 검증 → macOS updater archive와 `.sig` 생성 → `latest.json`의 macOS 플랫폼 병합.
+- 기존 키를 잃어버린 경우 새 키 생성은 마지막 수단입니다. 공개키가 바뀌므로 기존 설치본의 updater 호환성 영향을 검토하고 마이그레이션 릴리스를 별도로 설계해야 합니다.
+
+## 현재 상태: v0.1.30
+
+- 커밋: `5136bc1 fix: merge packaged playbook seed into user database`
+- 태그: `v0.1.30`
+- Release: <https://github.com/dota-pilot1/pkt-study-fullstack/releases/tag/v0.1.30>
+- Windows Actions: <https://github.com/dota-pilot1/pkt-study-fullstack/actions/runs/32928964483> (`success`)
+- Windows: `PKT.Study.Fullstack_0.1.30_x64-setup.exe` 및 `.sig` 업로드 완료
+- macOS: Apple Silicon DMG 빌드·Developer ID 서명·Apple 공증 `Accepted`·stapler 검증·Release 업로드 완료
+- 설치 DB 병합: 기존 사용자 DB를 보존하면서 번들 시드에만 있는 신규 문서 구조를 추가
+- 검증: 기존 DB 복제본에서 `설비 관리` topic 및 문서 9개 병합 확인
+- macOS updater: `.app.tar.gz.sig` 생성은 키 비밀번호 불일치로 보류
+- `latest.json`: `windows-x86_64`, `windows-x86_64-nsis` 제공
+- 현재 조치: Windows는 자동 업데이트 가능, macOS는 v0.1.30 DMG 수동 설치
+
+## 이전 상태: v0.1.29
+
+- 커밋: `7dc6e85 feat: collapse nested documents by default`
+- 태그: `v0.1.29`
+- Release: <https://github.com/dota-pilot1/pkt-study-fullstack/releases/tag/v0.1.29>
+- Windows Actions: <https://github.com/dota-pilot1/pkt-study-fullstack/actions/runs/32927988983> (`success`)
+- Windows: `PKT.Study.Fullstack_0.1.29_x64-setup.exe` 및 `.sig` 업로드 완료
+- macOS: Apple Silicon DMG 빌드·Developer ID 서명·Apple 공증 `Accepted`·stapler 검증·Release 업로드 완료
+- macOS updater: `.app.tar.gz.sig` 생성은 키 비밀번호 불일치로 보류
+- `latest.json`: `windows-x86_64`, `windows-x86_64-nsis` 제공
+- 현재 조치: Windows는 자동 업데이트 가능, macOS는 v0.1.29 DMG 수동 설치
+
+## 이전 상태: v0.1.28
+
+- 커밋: `49e840e fix: align updater release endpoint`
+- 태그: `v0.1.28`
+- Release: <https://github.com/dota-pilot1/pkt-study-fullstack/releases/tag/v0.1.28>
+- Windows Actions: <https://github.com/dota-pilot1/pkt-study-fullstack/actions/runs/32926687825> (`success`)
+- Windows: `PKT.Study.Fullstack_0.1.28_x64-setup.exe` 및 `.sig` 업로드 완료
+- macOS: Apple Silicon DMG 빌드·Developer ID 서명·Apple 공증·stapler 검증·Release 업로드 완료
+- macOS updater: `.app.tar.gz.sig` 생성은 키 비밀번호 불일치로 보류
+- `latest.json`: `windows-x86_64`, `windows-x86_64-nsis` 제공
+- 현재 조치: Windows는 자동 업데이트 가능, macOS는 v0.1.28 DMG 수동 설치
 
 ## v0.1.22 수동 릴리즈 기록
 
