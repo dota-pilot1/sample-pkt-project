@@ -54,3 +54,7 @@ target/
 
 # Independently versioned application
 /pkt-study-fullstack/
+**/.data/
+*.db
+*.db-shm
+*.db-wal
