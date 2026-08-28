@@ -45,10 +45,8 @@ public class AuthService {
         if (userRepository.existsByEmail(req.email())) {
             throw new DuplicateEmailException();
         }
-        String signupRoleCode = userRepository.count() == 0
-                ? RoleSeeder.ROLE_ADMIN
-                : RoleSeeder.ROLE_USER;
-        Role defaultRole = roleRepository.findByCode(signupRoleCode)
+        // 공개 회원가입은 항상 일반 사용자로 시작한다. 관리자 권한은 별도 관리 기능에서 부여한다.
+        Role defaultRole = roleRepository.findByCode(RoleSeeder.ROLE_USER)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ROLE_NOT_FOUND));
         String hash = passwordEncoder.encode(req.password());
         User saved = userRepository.save(User.createNewUser(req.email(), hash, req.username(), defaultRole));

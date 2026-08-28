@@ -9,6 +9,7 @@ import WorkOrdersPage from "./pages/WorkOrdersPage";
 import QualityInspectionsPage from "./pages/QualityInspectionsPage";
 import EquipmentsPage from "./pages/EquipmentsPage";
 import LoginPage from "./features/auth/ui/LoginPage";
+import SignupPage from "./features/auth/ui/SignupPage";
 import RequireAuth from "./features/auth/ui/RequireAuth";
 import { AuthProvider } from "./features/auth/model/auth.store";
 import { UnauthorizedError } from "./shared/api/http";
@@ -26,5 +27,5 @@ const queryClient = new QueryClient({
 });
 
 createRoot(document.getElementById("root")!).render(
-      <StrictMode><BrowserRouter><AuthProvider><QueryClientProvider client={queryClient}><Routes><Route path="/login" element={<LoginPage />} /><Route element={<RequireAuth />}><Route element={<App />}><Route path="/" element={<DashboardPage />} /><Route path="/lots" element={<LotsPage />} /><Route path="/work-orders" element={<WorkOrdersPage />} /><Route path="/quality-inspections" element={<QualityInspectionsPage />} /><Route path="/equipments" element={<EquipmentsPage />} /></Route></Route></Routes></QueryClientProvider></AuthProvider></BrowserRouter></StrictMode>,
+      <StrictMode><BrowserRouter><AuthProvider><QueryClientProvider client={queryClient}><Routes><Route path="/login" element={<LoginPage />} /><Route path="/signup" element={<SignupPage />} /><Route element={<RequireAuth />}><Route element={<App />}><Route path="/" element={<DashboardPage />} /><Route path="/lots" element={<LotsPage />} /><Route path="/work-orders" element={<WorkOrdersPage />} /><Route path="/quality-inspections" element={<QualityInspectionsPage />} /><Route path="/equipments" element={<EquipmentsPage />} /></Route></Route></Routes></QueryClientProvider></AuthProvider></BrowserRouter></StrictMode>,
 );
