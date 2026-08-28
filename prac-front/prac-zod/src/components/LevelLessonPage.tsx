@@ -1,15 +1,6 @@
 type Lesson = { title: string; description: string; code: string };
 
 const lessonSets = {
-  2: {
-    title: "검증 규칙",
-    description: "issues와 refine으로 잘못된 입력을 정확히 설명합니다.",
-    lessons: [
-      { title: "issues 읽기", description: "실패 결과에서 path와 message를 필드별로 확인합니다.", code: `const result = schema.safeParse(input);\nif (!result.success) {\n  result.error.issues.forEach((issue) => {\n    console.log(issue.path, issue.message);\n  });\n}` },
-      { title: "refine으로 관계 검증", description: "두 개 이상의 필드를 함께 비교해 규칙을 추가합니다.", code: `const passwordSchema = z.object({\n  password: z.string().min(8),\n  confirm: z.string(),\n}).refine((value) => value.password === value.confirm, {\n  path: ["confirm"],\n});` },
-      { title: "superRefine으로 여러 오류", description: "하나의 입력에서 여러 검증 오류를 직접 추가합니다.", code: `const schema = z.string().superRefine((value, ctx) => {\n  if (!value.includes("@")) {\n    ctx.addIssue({ code: "custom", message: "@가 필요합니다." });\n  }\n});` },
-    ],
-  },
   3: {
     title: "변환·API",
     description: "입력 데이터 변환과 외부 응답 검증으로 경계를 안전하게 만듭니다.",
@@ -21,7 +12,7 @@ const lessonSets = {
   },
 } as const;
 
-export default function LevelLessonPage({ level }: { level: 2 | 3 }) {
+export default function LevelLessonPage({ level }: { level: 3 }) {
   const current = lessonSets[level];
   return <main className="shell"><header className="hero compact-hero"><p className="eyebrow">FRONTEND PRACTICE · LEVEL {level}</p><h1>{current.title}</h1><p>{current.description}</p></header><section className="lesson-grid">{current.lessons.map((lesson, index) => <article className="lesson-tile" key={lesson.title}><div className="tile-number">0{index + 1}</div><h2>{lesson.title}</h2><p>{lesson.description}</p><pre>{lesson.code}</pre><span>학습 예정</span></article>)}</section></main>;
 }
