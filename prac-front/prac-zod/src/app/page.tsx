@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -50,6 +51,7 @@ export default function HomePage() {
       </div></article>
       <article className="card result-card"><div className="card-title"><span>03</span><div><h2>검증 결과</h2><p>성공 데이터와 issues를 비교합니다.</p></div></div>{result.length === 0 ? <p className="empty">값을 입력하고 검증을 실행하세요.</p> : <ul className={parsed ? "success" : "errors"}>{result.map((item) => <li key={item}>{item}</li>)}</ul>}{parsed && <pre>{JSON.stringify(parsed, null, 2)}</pre>}</article>
     </section>
+    <nav className="topic-nav" aria-label="Level 1 학습 주제"><span>Level 1 학습 주제</span><Link href="/level-1/schema">기본 스키마</Link><Link href="/level-1/safe-parse">safeParse와 issues</Link><Link href="/level-1/object">객체 스키마와 타입</Link></nav>
     <footer><span>다음 단계</span> API 응답 검증 → transform / preprocess → React Hook Form resolver</footer>
   </main>;
 }
