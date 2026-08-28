@@ -15,6 +15,11 @@ const signupSchema = z
       .number()
       .int("나이는 정수로 입력하세요.")
       .min(14, "14세 이상만 가입할 수 있습니다."),
+    // 중첩 객체를 사용하면 오류 path가 ["address", "zipCode"]처럼 생성된다.
+    address: z.object({
+      city: z.string().trim().min(1, "도시를 입력하세요."),
+      zipCode: z.string().regex(/^\d{5}$/, "우편번호 5자리를 입력하세요."),
+    }),
   })
   // refine은 password와 passwordConfirm처럼 여러 필드의 관계를 검증한다.
   .refine((value) => value.password === value.passwordConfirm, {
@@ -28,12 +33,24 @@ type FormState = {
   password: string;
   passwordConfirm: string;
   age: string;
+  address: {
+    city: string;
+    zipCode: string;
+  };
 };
+
+type BasicFieldName = Exclude<keyof FormState, "address">;
+type AddressFieldName = keyof FormState["address"];
+
 const initialForm: FormState = {
   email: "",
   password: "",
   passwordConfirm: "",
   age: "",
+  address: {
+    city: "",
+    zipCode: "",
+  },
 };
 
 function EyeIcon({ closed = false }: { closed?: boolean }) {
@@ -95,8 +112,19 @@ export default function HomePage() {
   }
 
   // 각 입력 필드가 자신의 이름을 명시해 폼 상태를 갱신한다.
-  function updateField(name: keyof FormState, value: string) {
+  function updateField(name: BasicFieldName, value: string) {
     setForm((current) => ({ ...current, [name]: value }));
+  }
+
+  // 중첩 객체는 기존 address 값을 유지하면서 변경된 필드만 덮어쓴다.
+  function updateAddressField(name: AddressFieldName, value: string) {
+    setForm((current) => ({
+      ...current,
+      address: {
+        ...current.address,
+        [name]: value,
+      },
+    }));
   }
 
   return (
@@ -118,83 +146,117 @@ export default function HomePage() {
           </div>
           <div className="form">
             {/* 필드마다 의미와 동작이 다르므로 반복문 대신 명시적으로 작성한다. */}
-            <label>
-              이메일
-              <input
-                type="email"
-                value={form.email}
-                onChange={(event) => updateField("email", event.target.value)}
-              />
-            </label>
-            <label>
-              나이
-              <input
-                type="text"
-                value={form.age}
-                onChange={(event) => updateField("age", event.target.value)}
-                placeholder="예: 20"
-              />
-            </label>
-            <label>
-              비밀번호
-              <span className="password-input">
+            <fieldset className="form-section">
+              <legend>기본 정보</legend>
+              <label>
+                이메일
                 <input
-                  type={visiblePasswords.password ? "text" : "password"}
-                  value={form.password}
-                  onChange={(event) =>
-                    updateField("password", event.target.value)
-                  }
+                  type="email"
+                  value={form.email}
+                  onChange={(event) => updateField("email", event.target.value)}
                 />
-                <button
-                  type="button"
-                  className="icon-button"
-                  aria-label={
-                    visiblePasswords.password
-                      ? "비밀번호 숨기기"
-                      : "비밀번호 보기"
-                  }
-                  onClick={() =>
-                    setVisiblePasswords((current) => ({
-                      ...current,
-                      password: !current.password,
-                    }))
-                  }
-                >
-                  <EyeIcon closed={!visiblePasswords.password} />
-                </button>
-              </span>
-            </label>
-            <label>
-              비밀번호 확인
-              <span className="password-input">
+              </label>
+              <label>
+                나이
                 <input
-                  type={
-                    visiblePasswords.passwordConfirm ? "text" : "password"
-                  }
-                  value={form.passwordConfirm}
-                  onChange={(event) =>
-                    updateField("passwordConfirm", event.target.value)
-                  }
+                  type="text"
+                  value={form.age}
+                  onChange={(event) => updateField("age", event.target.value)}
+                  placeholder="예: 20"
                 />
-                <button
-                  type="button"
-                  className="icon-button"
-                  aria-label={
-                    visiblePasswords.passwordConfirm
-                      ? "비밀번호 확인 숨기기"
-                      : "비밀번호 확인 보기"
+              </label>
+            </fieldset>
+
+            <fieldset className="form-section">
+              <legend>보안 정보</legend>
+              <label>
+                비밀번호
+                <span className="password-input">
+                  <input
+                    type={visiblePasswords.password ? "text" : "password"}
+                    value={form.password}
+                    onChange={(event) =>
+                      updateField("password", event.target.value)
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="icon-button"
+                    aria-label={
+                      visiblePasswords.password
+                        ? "비밀번호 숨기기"
+                        : "비밀번호 보기"
+                    }
+                    onClick={() =>
+                      setVisiblePasswords((current) => ({
+                        ...current,
+                        password: !current.password,
+                      }))
+                    }
+                  >
+                    <EyeIcon closed={!visiblePasswords.password} />
+                  </button>
+                </span>
+              </label>
+              <label>
+                비밀번호 확인
+                <span className="password-input">
+                  <input
+                    type={
+                      visiblePasswords.passwordConfirm ? "text" : "password"
+                    }
+                    value={form.passwordConfirm}
+                    onChange={(event) =>
+                      updateField("passwordConfirm", event.target.value)
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="icon-button"
+                    aria-label={
+                      visiblePasswords.passwordConfirm
+                        ? "비밀번호 확인 숨기기"
+                        : "비밀번호 확인 보기"
+                    }
+                    onClick={() =>
+                      setVisiblePasswords((current) => ({
+                        ...current,
+                        passwordConfirm: !current.passwordConfirm,
+                      }))
+                    }
+                  >
+                    <EyeIcon closed={!visiblePasswords.passwordConfirm} />
+                  </button>
+                </span>
+              </label>
+            </fieldset>
+
+            <fieldset className="form-section">
+              <legend>주소 정보</legend>
+              <label>
+                도시
+                <input
+                  type="text"
+                  value={form.address.city}
+                  onChange={(event) =>
+                    updateAddressField("city", event.target.value)
                   }
-                  onClick={() =>
-                    setVisiblePasswords((current) => ({
-                      ...current,
-                      passwordConfirm: !current.passwordConfirm,
-                    }))
+                  placeholder="예: 서울"
+                />
+              </label>
+              <label>
+                우편번호
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={form.address.zipCode}
+                  onChange={(event) =>
+                    updateAddressField("zipCode", event.target.value)
                   }
-                >
-                  <EyeIcon closed={!visiblePasswords.passwordConfirm} />
-                </button>
-              </span>
-            </label>
+                  placeholder="예: 04524"
+                />
+              </label>
+            </fieldset>
             {/* 버튼을 누른 시점에만 safeParse를 실행한다. */}
             <button type="button" onClick={validate}>
               safeParse 실행
