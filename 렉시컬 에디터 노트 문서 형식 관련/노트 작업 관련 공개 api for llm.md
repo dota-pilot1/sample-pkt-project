@@ -120,3 +120,5 @@ DELETE {baseUrl}/documents/{documentId}
 - code 블록의 children에는 `type: "code-highlight"` 노드를 두고 전체 코드를 `text`에 넣는다.
 - 섹션 사이에는 빈 `paragraph` 2개를 둔다. 목록 항목 사이에는 빈 paragraph를 두지 않는다.
 - JSON 문자열 안의 줄바꿈은 JSON 직렬화에 맡긴다. `\\n`을 수동으로 이중 escape하지 않는다.
+- 실제 코드의 줄바꿈·들여쓰기·빈 줄을 그대로 보존한다. TypeScript·TSX의 import, 타입, 함수, JSX, props를 한 줄로 압축하거나 minify하지 않는다.
+- 코드 문자열을 만들기 전에 formatter가 읽을 수 있는 여러 줄 소스 형태를 유지하고, JSON.stringify 이후에도 `code-highlight.text`에 원래 개행이 남아 있는지 확인한다.
