@@ -94,6 +94,11 @@ export default function HomePage() {
     }
   }
 
+  // 각 입력 필드가 자신의 이름을 명시해 폼 상태를 갱신한다.
+  function updateField(name: keyof FormState, value: string) {
+    setForm((current) => ({ ...current, [name]: value }));
+  }
+
   return (
     <main className="shell">
       {/* 화면 구조: 개념 설명 → 입력 폼 → 검증 결과 순서로 학습한다. */}
@@ -144,67 +149,84 @@ export default function HomePage() {
             </div>
           </div>
           <div className="form">
-            {/* 입력 이벤트를 직접 상태에 반영해 폼 라이브러리의 역할을 관찰한다. */}
-            {(
-              [
-                ["email", "이메일", "email"],
-                ["age", "나이", "text"],
-              ] as const
-            ).map(([name, label, type]) => (
-              <label key={name}>
-                {label}
+            {/* 필드마다 의미와 동작이 다르므로 반복문 대신 명시적으로 작성한다. */}
+            <label>
+              이메일
+              <input
+                type="email"
+                value={form.email}
+                onChange={(event) => updateField("email", event.target.value)}
+              />
+            </label>
+            <label>
+              나이
+              <input
+                type="text"
+                value={form.age}
+                onChange={(event) => updateField("age", event.target.value)}
+                placeholder="예: 20"
+              />
+            </label>
+            <label>
+              비밀번호
+              <span className="password-input">
                 <input
-                  type={type}
-                  value={form[name]}
+                  type={visiblePasswords.password ? "text" : "password"}
+                  value={form.password}
                   onChange={(event) =>
-                    setForm((current) => ({
+                    updateField("password", event.target.value)
+                  }
+                />
+                <button
+                  type="button"
+                  className="icon-button"
+                  aria-label={
+                    visiblePasswords.password
+                      ? "비밀번호 숨기기"
+                      : "비밀번호 보기"
+                  }
+                  onClick={() =>
+                    setVisiblePasswords((current) => ({
                       ...current,
-                      [name]: event.target.value,
+                      password: !current.password,
                     }))
                   }
-                  placeholder={name === "age" ? "예: 20" : undefined}
+                >
+                  <EyeIcon closed={!visiblePasswords.password} />
+                </button>
+              </span>
+            </label>
+            <label>
+              비밀번호 확인
+              <span className="password-input">
+                <input
+                  type={
+                    visiblePasswords.passwordConfirm ? "text" : "password"
+                  }
+                  value={form.passwordConfirm}
+                  onChange={(event) =>
+                    updateField("passwordConfirm", event.target.value)
+                  }
                 />
-              </label>
-            ))}
-            {(
-              [
-                ["password", "비밀번호"],
-                ["passwordConfirm", "비밀번호 확인"],
-              ] as const
-            ).map(([name, label]) => (
-              <label key={name}>
-                {label}
-                <span className="password-input">
-                  <input
-                    type={visiblePasswords[name] ? "text" : "password"}
-                    value={form[name]}
-                    onChange={(event) =>
-                      setForm((current) => ({
-                        ...current,
-                        [name]: event.target.value,
-                      }))
-                    }
-                  />
-                  <button
-                    type="button"
-                    className="icon-button"
-                    aria-label={
-                      visiblePasswords[name]
-                        ? `${label} 숨기기`
-                        : `${label} 보기`
-                    }
-                    onClick={() =>
-                      setVisiblePasswords((current) => ({
-                        ...current,
-                        [name]: !current[name],
-                      }))
-                    }
-                  >
-                    <EyeIcon closed={!visiblePasswords[name]} />
-                  </button>
-                </span>
-              </label>
-            ))}
+                <button
+                  type="button"
+                  className="icon-button"
+                  aria-label={
+                    visiblePasswords.passwordConfirm
+                      ? "비밀번호 확인 숨기기"
+                      : "비밀번호 확인 보기"
+                  }
+                  onClick={() =>
+                    setVisiblePasswords((current) => ({
+                      ...current,
+                      passwordConfirm: !current.passwordConfirm,
+                    }))
+                  }
+                >
+                  <EyeIcon closed={!visiblePasswords.passwordConfirm} />
+                </button>
+              </span>
+            </label>
             {/* 버튼을 누른 시점에만 safeParse를 실행한다. */}
             <button type="button" onClick={validate}>
               safeParse 실행
