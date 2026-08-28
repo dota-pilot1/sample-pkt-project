@@ -14,6 +14,10 @@ For writing and reviewing MES development notes, read [`렉시컬 에디터 노�
 - `mes-prototype-server/src/test/`: backend tests.
 - `scripts/create-project-from-template.sh`: copies this boilerplate into a renamed project.
 
+### Tauri 릴리즈 대상 저장소 식별
+
+Tauri 릴리즈 요청에서 대상은 반드시 `/Users/terecal/pilot-project/sample-pkt-project/pkt-study-fullstack` 저장소로 한다. 이 저장소의 `.data/pkt-study.db`를 기준 시드로 확인·포함하고, `design-playbook-tauri/`는 별도 실험용 중첩 저장소이므로 사용자의 명시적 요청 없이는 커밋·푸시·릴리즈하지 않는다.
+
 ## Build, Test, and Development Commands
 
 Frontend:
