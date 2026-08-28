@@ -1,10 +1,5 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: #f4f7fb; color: #172033; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
-.site-header { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid #dbe3ef; background: #ffffffdd; backdrop-filter: blur(14px); }
-.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; max-width: 1240px; margin: 0 auto; padding: 14px 20px; }
-.brand { display: inline-flex; align-items: center; gap: 10px; color: #172033; text-decoration: none; font-size: 15px; font-weight: 900; white-space: nowrap; }
-.brand-mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; color: white; background: #2563eb; font-size: 15px; }
-nav { display: flex; gap: 5px; align-items: center; overflow-x: auto; } .nav-link { border-radius: 9px; padding: 8px 11px; color: #64748b; font-size: 12px; font-weight: 800; text-decoration: none; white-space: nowrap; } .nav-link.active { color: #1d4ed8; background: #dbeafe; } .nav-link.disabled { color: #b4becd; cursor: not-allowed; }
 .shell { max-width: 1240px; margin: 0 auto; padding: 64px 20px 48px; }
 .hero { padding: 40px; border-radius: 28px; color: #eef7ff; background: linear-gradient(130deg, #172554, #2563eb 60%, #06b6d4); box-shadow: 0 20px 50px #1e3a8a25; }
 .eyebrow { margin: 0 0 12px; color: #bae6fd; font-size: 12px; font-weight: 800; letter-spacing: .16em; }
@@ -21,4 +16,4 @@ h2 { margin: 0; font-size: 20px; } .card-title p { margin: 5px 0 0; color: #6474
 button { margin-top: 4px; border: 0; border-radius: 10px; padding: 12px; color: white; background: #2563eb; font: inherit; font-weight: 800; cursor: pointer; } button:hover { background: #1d4ed8; }
 .empty { color: #94a3b8; } .success, .errors { display: grid; gap: 10px; margin: 0; padding-left: 20px; font-size: 13px; } .success { color: #047857; } .errors { color: #dc2626; } pre { overflow: auto; margin-top: 22px; padding: 14px; border-radius: 12px; color: #dbeafe; background: #172033; font-size: 12px; }
 footer { margin-top: 18px; padding: 17px 20px; border-radius: 14px; color: #475569; background: #e0f2fe; font-size: 13px; } footer span { margin-right: 10px; color: #0369a1; font-weight: 900; }
-@media (max-width: 850px) { .header-inner { align-items: flex-start; flex-direction: column; gap: 10px; } .grid { grid-template-columns: 1fr; } .card { min-height: auto; } .shell { padding-top: 28px; } }
+@media (max-width: 850px) { .grid { grid-template-columns: 1fr; } .card { min-height: auto; } .shell { padding-top: 28px; } }
