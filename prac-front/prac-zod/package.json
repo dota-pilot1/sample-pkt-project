@@ -1,0 +1,23 @@
+{
+  "name": "prac-zod",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 4320",
+    "build": "next build",
+    "start": "next start -p 4320",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "16.1.4",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.33",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}
