@@ -4,21 +4,25 @@ import Link from "next/link";
 import { useState } from "react";
 import { z } from "zod";
 
+// 학습 포인트 1: 스키마는 런타임에 들어오는 값의 모양과 규칙을 선언한다.
 const signupSchema = z
   .object({
     email: z.email("올바른 이메일을 입력하세요."),
     password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다."),
     passwordConfirm: z.string(),
+    // HTML input 값은 문자열이므로 coerce로 검증 전에 숫자로 변환한다.
     age: z.coerce
       .number()
       .int("나이는 정수로 입력하세요.")
       .min(14, "14세 이상만 가입할 수 있습니다."),
   })
+  // refine은 password와 passwordConfirm처럼 여러 필드의 관계를 검증한다.
   .refine((value) => value.password === value.passwordConfirm, {
     path: ["passwordConfirm"],
     message: "비밀번호가 일치하지 않습니다.",
   });
 
+// 폼 상태는 브라우저 input의 원시 문자열을 그대로 보관한다.
 type FormState = {
   email: string;
   password: string;
@@ -33,6 +37,7 @@ const initialForm: FormState = {
 };
 
 function EyeIcon({ closed = false }: { closed?: boolean }) {
+  // 비밀번호 표시 상태에 따라 보기 아이콘과 숨김 아이콘을 바꾼다.
   return closed ? (
     <svg
       aria-hidden="true"
@@ -58,6 +63,7 @@ function EyeIcon({ closed = false }: { closed?: boolean }) {
 }
 
 export default function HomePage() {
+  // React Hook Form 없이 useState만으로 입력·검증 흐름을 직접 관찰한다.
   const [form, setForm] = useState(initialForm);
   const [result, setResult] = useState<string[]>([]);
   const [parsed, setParsed] = useState<Record<string, unknown> | null>(null);
@@ -67,8 +73,10 @@ export default function HomePage() {
   });
 
   function validate() {
+    // 학습 포인트 2: safeParse는 예외 대신 success로 성공·실패를 분기한다.
     const outcome = signupSchema.safeParse(form);
     if (outcome.success) {
+      // 성공 결과에는 coerce로 변환된 타입 안전한 데이터가 들어 있다.
       setResult([
         "검증 성공",
         `타입 변환된 age: ${outcome.data.age}`,
@@ -76,6 +84,7 @@ export default function HomePage() {
       ]);
       setParsed(outcome.data);
     } else {
+      // 실패 결과의 issues에서 필드 경로와 사용자 메시지를 꺼낸다.
       setResult(
         outcome.error.issues.map(
           (issue) => `${issue.path.join(".") || "form"}: ${issue.message}`,
@@ -87,6 +96,7 @@ export default function HomePage() {
 
   return (
     <main className="shell">
+      {/* 화면 구조: 개념 설명 → 입력 폼 → 검증 결과 순서로 학습한다. */}
       <header className="hero">
         <p className="eyebrow">FRONTEND PRACTICE · LEVEL 1</p>
         <h1>기본 스키마</h1>
@@ -102,6 +112,7 @@ export default function HomePage() {
             </div>
           </div>
           <ol className="topics">
+            {/* 왼쪽 목록은 실행할 Zod 핵심 개념을 한눈에 보여준다. */}
             <li>
               <b>schema</b>
               <span>데이터 모양과 규칙 선언</span>
@@ -133,6 +144,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="form">
+            {/* 입력 이벤트를 직접 상태에 반영해 폼 라이브러리의 역할을 관찰한다. */}
             {(
               [
                 ["email", "이메일", "email"],
@@ -193,6 +205,7 @@ export default function HomePage() {
                 </span>
               </label>
             ))}
+            {/* 버튼을 누른 시점에만 safeParse를 실행한다. */}
             <button type="button" onClick={validate}>
               safeParse 실행
             </button>
@@ -219,6 +232,7 @@ export default function HomePage() {
         </article>
       </section>
       <nav className="topic-nav" aria-label="Level 1 학습 주제">
+        {/* 레벨 1을 schema·safeParse·object 주제 페이지로 나누어 복습한다. */}
         <span>Level 1 학습 주제</span>
         <Link href="/level-1/schema">기본 스키마</Link>
         <Link href="/level-1/safe-parse">safeParse와 issues</Link>
