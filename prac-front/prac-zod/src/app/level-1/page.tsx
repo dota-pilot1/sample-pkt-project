@@ -10,11 +10,21 @@ const signupSchema = z
     email: z.email("올바른 이메일을 입력하세요."),
     password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다."),
     passwordConfirm: z.string(),
-    // HTML input 값은 문자열이므로 coerce로 검증 전에 숫자로 변환한다.
-    age: z.coerce
-      .number()
-      .int("나이는 정수로 입력하세요.")
-      .min(14, "14세 이상만 가입할 수 있습니다."),
+    // 빈 값·숫자 형식·정수·최소 나이를 순서대로 확인한 뒤 number로 변환한다.
+    age: z
+      .string()
+      .trim()
+      .min(1, "나이를 입력하세요.")
+      .refine((value) => Number.isFinite(Number(value)), {
+        message: "나이는 숫자로 입력하세요.",
+      })
+      .transform(Number)
+      .pipe(
+        z
+          .number()
+          .int("나이는 정수로 입력하세요.")
+          .min(14, "14세 이상만 가입할 수 있습니다."),
+      ),
     // 중첩 객체를 사용하면 오류 path가 ["address", "zipCode"]처럼 생성된다.
     address: z.object({
       city: z.string().trim().min(1, "도시를 입력하세요."),
@@ -51,6 +61,17 @@ const initialForm: FormState = {
     city: "",
     zipCode: "",
   },
+};
+
+// 화면에는 친숙한 한글 라벨을 보여주고 괄호 안에 학습용 path를 남긴다.
+const fieldLabels: Record<string, string> = {
+  email: "이메일",
+  password: "비밀번호",
+  passwordConfirm: "비밀번호 확인",
+  age: "나이",
+  "address.city": "도시",
+  "address.zipCode": "우편번호",
+  form: "폼 전체",
 };
 
 function EyeIcon({ closed = false }: { closed?: boolean }) {
@@ -93,7 +114,7 @@ export default function HomePage() {
     // 학습 포인트 2: safeParse는 예외 대신 success로 성공·실패를 분기한다.
     const outcome = signupSchema.safeParse(form);
     if (outcome.success) {
-      // 성공 결과에는 coerce로 변환된 타입 안전한 데이터가 들어 있다.
+      // 성공 결과에는 transform으로 변환된 타입 안전한 데이터가 들어 있다.
       setResult([
         "검증 성공",
         `타입 변환된 age: ${outcome.data.age}`,
@@ -103,9 +124,12 @@ export default function HomePage() {
     } else {
       // 실패 결과의 issues에서 필드 경로와 사용자 메시지를 꺼낸다.
       setResult(
-        outcome.error.issues.map(
-          (issue) => `${issue.path.join(".") || "form"}: ${issue.message}`,
-        ),
+        outcome.error.issues.map((issue) => {
+          const path = issue.path.join(".") || "form";
+          const label = fieldLabels[path] ?? path;
+
+          return `${label} (${path}): ${issue.message}`;
+        }),
       );
       setParsed(null);
     }
