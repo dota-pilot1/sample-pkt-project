@@ -246,7 +246,7 @@ h2 {
 }
 .form {
   display: grid;
-  gap: 24px;
+  gap: 0;
 }
 label {
   display: grid;
@@ -274,18 +274,23 @@ input:focus {
   margin: 0;
   border: 0;
   border-top: 1px solid #e2e8f0;
-  padding: 24px 0 0;
+  padding: 16px 0;
 }
 .form-section:first-child {
   border-top: 0;
   padding-top: 0;
 }
-.form-section legend {
-  margin-bottom: 14px;
-  padding: 0;
+.form-section:last-of-type {
+  padding-bottom: 0;
+}
+.form-section h3 {
+  margin: 0;
   color: #1d4ed8;
   font-size: 12px;
   font-weight: 900;
+}
+.form > button {
+  margin-top: 24px;
 }
 .password-input {
   position: relative;

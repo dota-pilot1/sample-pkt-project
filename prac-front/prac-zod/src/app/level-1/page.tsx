@@ -170,8 +170,11 @@ export default function HomePage() {
           </div>
           <div className="form">
             {/* 필드마다 의미와 동작이 다르므로 반복문 대신 명시적으로 작성한다. */}
-            <fieldset className="form-section">
-              <legend>기본 정보</legend>
+            <section
+              className="form-section"
+              aria-labelledby="basic-info-title"
+            >
+              <h3 id="basic-info-title">기본 정보</h3>
               <label>
                 이메일
                 <input
@@ -189,10 +192,13 @@ export default function HomePage() {
                   placeholder="예: 20"
                 />
               </label>
-            </fieldset>
+            </section>
 
-            <fieldset className="form-section">
-              <legend>보안 정보</legend>
+            <section
+              className="form-section"
+              aria-labelledby="security-info-title"
+            >
+              <h3 id="security-info-title">보안 정보</h3>
               <label>
                 비밀번호
                 <span className="password-input">
@@ -253,10 +259,13 @@ export default function HomePage() {
                   </button>
                 </span>
               </label>
-            </fieldset>
+            </section>
 
-            <fieldset className="form-section">
-              <legend>주소 정보</legend>
+            <section
+              className="form-section"
+              aria-labelledby="address-info-title"
+            >
+              <h3 id="address-info-title">주소 정보</h3>
               <label>
                 도시
                 <input
@@ -280,7 +289,7 @@ export default function HomePage() {
                   placeholder="예: 04524"
                 />
               </label>
-            </fieldset>
+            </section>
             {/* 버튼을 누른 시점에만 safeParse를 실행한다. */}
             <button type="button" onClick={validate}>
               safeParse 실행
