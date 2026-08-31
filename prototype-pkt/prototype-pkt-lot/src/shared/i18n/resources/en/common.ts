@@ -1,0 +1,15 @@
+export const common = {
+  brand: "SK PKT MES",
+  tagline: "SK hynix PKT Package Test MES project.",
+  description: "Manage products, LOTs, Testers, test results, and yield history.",
+  loading: "Loading...",
+  confirm: "Confirm",
+  cancel: "Cancel",
+  save: "Save",
+  delete: "Delete",
+  edit: "Edit",
+  close: "Close",
+  search: "Search",
+  language: "Language",
+  theme: "Theme",
+};

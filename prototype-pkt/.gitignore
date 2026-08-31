@@ -1,0 +1,23 @@
+# Java / Gradle build outputs
+**/.gradle/
+**/build/
+*.class
+
+# Node / Next.js generated files
+**/node_modules/
+**/.next/
+**/out/
+**/coverage/
+
+# Local configuration and runtime data
+**/.env
+!**/.env.example
+**/*.log
+**/*.sqlite
+**/*.sqlite3
+**/*.db
+
+# OS and editor files
+.DS_Store
+.idea/
+.vscode/

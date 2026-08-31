@@ -1,0 +1,123 @@
+package com.cj.mesprototype.config;
+
+import com.cj.mesprototype.auth.security.CustomUserDetailsService;
+import com.cj.mesprototype.auth.security.JwtAuthenticationFilter;
+import com.cj.mesprototype.auth.security.RestAuthenticationEntryPoint;
+import com.cj.mesprototype.common.exception.ErrorCode;
+import com.cj.mesprototype.common.response.ErrorResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.util.List;
+
+@Configuration
+@EnableMethodSecurity
+public class SecurityConfig {
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            CustomUserDetailsService uds,
+            PasswordEncoder encoder) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(uds);
+        provider.setPasswordEncoder(encoder);
+        return new ProviderManager(provider);
+    }
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler(@Lazy ObjectMapper objectMapper) {
+        return (request, response, ex) -> {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding("UTF-8");
+            objectMapper.writeValue(response.getWriter(), ErrorResponse.of(ErrorCode.FORBIDDEN));
+        };
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(
+            HttpSecurity http,
+            JwtAuthenticationFilter jwtFilter,
+            RestAuthenticationEntryPoint entryPoint,
+            AccessDeniedHandler accessDeniedHandler,
+            @Value("${app.playbook.llm-api-public:false}") boolean llmApiPublic,
+            @Value("${app.cors.allowed-origins:http://localhost:4200,http://localhost:4300,http://localhost:4301,tauri://localhost,http://tauri.localhost}") String allowedOrigins) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource(allowedOrigins)))
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(eh -> eh
+                        .authenticationEntryPoint(entryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/auth/signup",
+                                "/api/auth/login",
+                                "/api/auth/refresh",
+                                "/api/auth/check-email"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/site-settings").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/menus").permitAll()
+                        // AI 편집 API는 JWT가 아닌 문서별 1회용 Bearer 토큰을 컨트롤러에서 검증한다.
+                        .requestMatchers("/api/public/hospital-playbook/**").permitAll()
+                        // 로컬 학습용으로만 켤 수 있는 LLM 작성 API.
+                        .requestMatchers("/api/llm/hospital-playbook/**").access((authentication, context) ->
+                                new org.springframework.security.authorization.AuthorizationDecision(
+                                        llmApiPublic || authentication.get().getPrincipal()
+                                                instanceof com.cj.mesprototype.auth.security.UserPrincipal))
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(
+            @Value("${app.cors.allowed-origins:http://localhost:4200,http://localhost:4300,http://localhost:4301,tauri://localhost,http://tauri.localhost}") String allowedOrigins) {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of(allowedOrigins.split(",")));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Authorization"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+}
