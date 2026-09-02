@@ -18,9 +18,18 @@ public record WorkOrderResponse(
         String workstation,
         String assignee,
         WorkOrderStatus status,
+        String processRouteCode,
+        String processRouteName,
+        Integer processRouteVersion,
+        int allocatedLotQuantity,
+        int remainingLotQuantity,
         List<WorkOrderProcessResponse> processes
 ) {
     public static WorkOrderResponse from(WorkOrder order) {
+        return from(order, 0);
+    }
+
+    public static WorkOrderResponse from(WorkOrder order, int allocatedLotQuantity) {
         return new WorkOrderResponse(
                 order.getId(),
                 order.getCode(),
@@ -33,6 +42,11 @@ public record WorkOrderResponse(
                 order.getWorkstation(),
                 order.getAssignee(),
                 order.getStatus(),
+                order.getProcessRoute() == null ? null : order.getProcessRoute().getRouteCode(),
+                order.getProcessRoute() == null ? null : order.getProcessRoute().getRouteName(),
+                order.getProcessRoute() == null ? null : order.getProcessRoute().getVersion(),
+                allocatedLotQuantity,
+                Math.max(0, order.getQuantity() - allocatedLotQuantity),
                 order.getProcesses().stream().map(WorkOrderProcessResponse::from).toList()
         );
     }

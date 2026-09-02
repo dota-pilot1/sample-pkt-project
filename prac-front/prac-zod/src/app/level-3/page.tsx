@@ -15,6 +15,10 @@ type ApiErrorBody = {
   message?: string;
   fieldErrors?: Partial<Record<keyof MemberForm, string[]>>;
 };
+type NicknameAvailability = {
+  status: "current" | "available" | "taken";
+  message: string;
+};
 
 class MemberApiError extends Error {
   // Route Handler가 보낸 필드별 오류를 UI까지 함께 전달하는 오류 타입이다.
@@ -49,8 +53,19 @@ async function patchMember(member: MemberForm): Promise<MemberForm> {
   return body.member;
 }
 
+async function checkNickname(nickname: string): Promise<NicknameAvailability> {
+  const response = await fetch(
+    `/api/members/nickname-availability?nickname=${encodeURIComponent(nickname)}`,
+  );
+  const body = (await response.json()) as NicknameAvailability & ApiErrorBody;
+  if (!response.ok)
+    throw new Error(body.message ?? "닉네임을 확인하지 못했습니다.");
+  return body;
+}
+
 const emptyMember: MemberForm = {
   name: "",
+  nickname: "",
   email: "",
   birthDate: "",
   department: "개발",
@@ -69,12 +84,15 @@ export default function Level3Page() {
     handleSubmit,
     reset,
     setError,
+    getValues,
+    watch,
     formState: { errors, dirtyFields, isDirty },
   } = useForm<MemberForm>({
     defaultValues: emptyMember,
     mode: "onTouched",
     resolver: zodResolver(memberSchema),
   });
+  const nickname = watch("nickname");
 
   // 학습 포인트 2: Query로 받은 서버 데이터가 도착하면 수정 폼의 기준값을 reset으로 설정한다.
   useEffect(() => {
@@ -95,22 +113,41 @@ export default function Level3Page() {
     },
   });
 
+  const [checkedNickname, setCheckedNickname] = useState<string | null>(null);
+  const nicknameCheckMutation = useMutation({
+    // 학습 포인트 4: 저장 전 중복 확인은 UX용 GET 요청으로 분리할 수 있다.
+    mutationFn: checkNickname,
+    onSuccess: (_result, checkedValue) => setCheckedNickname(checkedValue),
+  });
+  // 확인한 뒤 닉네임을 다시 입력하면 이전 결과를 숨겨 오래된 안내를 방지한다.
+  const nicknameCheckResult =
+    checkedNickname === nickname ? nicknameCheckMutation.data : undefined;
+
   const changedFields = Object.keys(dirtyFields);
 
   async function saveMember(values: MemberForm) {
     setSavedAt(null);
     try {
-      // 학습 포인트 4: 클라이언트 Zod 검증을 통과한 값도 서버에 다시 검증받아 저장한다.
+      // 학습 포인트 5: 중복 확인을 했어도 저장 시 서버에 다시 최종 검증받아야 한다.
       await updateMutation.mutateAsync(values);
     } catch (error) {
       if (error instanceof MemberApiError && error.fieldErrors) {
-        // 학습 포인트 5: 서버 fieldErrors를 React Hook Form의 각 필드 오류로 옮긴다.
+        // 학습 포인트 6: 서버 fieldErrors를 React Hook Form의 각 필드 오류로 옮긴다.
         for (const [field, messages] of Object.entries(error.fieldErrors)) {
           const message = messages?.[0];
           if (message)
             setError(field as keyof MemberForm, { type: "server", message });
         }
       }
+    }
+  }
+
+  async function checkNicknameAvailability() {
+    setCheckedNickname(null);
+    try {
+      await nicknameCheckMutation.mutateAsync(getValues("nickname"));
+    } catch {
+      // 오류 메시지는 nicknameCheckMutation.isError 분기에서 입력칸 아래에 표시한다.
     }
   }
 
@@ -162,16 +199,61 @@ export default function Level3Page() {
               <legend>
                 <span className="lesson-tag">TODO 4</span> 조회·수정 API 연결
               </legend>
-              <label>
-                이름
-                <input
-                  aria-invalid={Boolean(errors.name)}
-                  {...register("name")}
-                />
-                {errors.name && (
-                  <span className="field-error">{errors.name.message}</span>
-                )}
-              </label>
+              <div className="form-row">
+                <label>
+                  이름
+                  <input
+                    aria-invalid={Boolean(errors.name)}
+                    {...register("name")}
+                  />
+                  {errors.name && (
+                    <span className="field-error">{errors.name.message}</span>
+                  )}
+                </label>
+                <label>
+                  닉네임
+                  <span className="input-with-action">
+                    <input
+                      aria-invalid={Boolean(errors.nickname)}
+                      {...register("nickname")}
+                    />
+                    <button
+                      type="button"
+                      className="nickname-check-button"
+                      onClick={checkNicknameAvailability}
+                      disabled={nicknameCheckMutation.isPending}
+                    >
+                      {nicknameCheckMutation.isPending
+                        ? "확인 중"
+                        : "중복 확인"}
+                    </button>
+                  </span>
+                  {errors.nickname && (
+                    <span className="field-error">
+                      {errors.nickname.message}
+                    </span>
+                  )}
+                  {nicknameCheckResult && (
+                    <span
+                      className={
+                        nicknameCheckResult.status === "available"
+                          ? "nickname-available"
+                          : nicknameCheckResult.status === "current"
+                            ? "nickname-current"
+                            : "nickname-taken"
+                      }
+                      aria-live="polite"
+                    >
+                      {nicknameCheckResult.message}
+                    </span>
+                  )}
+                  {nicknameCheckMutation.isError && (
+                    <span className="field-error">
+                      {nicknameCheckMutation.error.message}
+                    </span>
+                  )}
+                </label>
+              </div>
               <label>
                 이메일
                 <input
@@ -257,10 +339,29 @@ export default function Level3Page() {
               <li>
                 <b>Route Handler</b>
                 <span>
-                  서버의 Zod 검증·이메일 충돌 응답을 필드 오류로 돌려줍니다.
+                  닉네임 중복 확인과 저장 시의 최종 검증을 서버가 담당합니다.
                 </span>
               </li>
             </ol>
+          </section>
+          <section className="nickname-example-card">
+            <p className="lesson-label">NICKNAME TEST</p>
+            <h2>중복 확인 예시</h2>
+            <p>닉네임 칸에 입력한 뒤 중복 확인을 눌러보세요.</p>
+            <ul className="nickname-examples">
+              <li className="nickname-example-taken">
+                <b>코드마스터</b>
+                <span>이미 사용 중</span>
+              </li>
+              <li className="nickname-example-taken">
+                <b>frontend-dev</b>
+                <span>이미 사용 중</span>
+              </li>
+              <li className="nickname-example-available">
+                <b>새닉네임</b>
+                <span>사용 가능</span>
+              </li>
+            </ul>
           </section>
           <section className="result-panel" aria-live="polite">
             <p className="lesson-label">CHANGE SUMMARY</p>

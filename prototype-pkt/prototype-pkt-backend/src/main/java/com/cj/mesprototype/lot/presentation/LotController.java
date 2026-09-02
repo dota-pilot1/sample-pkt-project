@@ -11,7 +11,6 @@ import com.cj.mesprototype.lot.presentation.dto.CreateLotRequest;
 import com.cj.mesprototype.lot.presentation.dto.UpdateLotRequest;
 import com.cj.mesprototype.lot.presentation.dto.LotSummaryResponse;
 import com.cj.mesprototype.lot.presentation.dto.LotRegistrationOptionsResponse;
-import com.cj.mesprototype.lot.presentation.dto.LotRegistrationProcessOptionResponse;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -49,13 +48,6 @@ public class LotController {
     @Operation(summary = "LOT 등록 제품·공정 선택지 조회")
     public LotRegistrationOptionsResponse getRegistrationOptions() {
         return lotService.getRegistrationOptions();
-    }
-
-    @GetMapping("/registration-options/products/{productId}/processes")
-    @Operation(summary = "선택한 제품의 LOT 등록 공정 경로 조회")
-    public java.util.List<LotRegistrationProcessOptionResponse> getRegistrationProcessOptions(
-            @PathVariable Long productId) {
-        return lotService.getRegistrationProcessOptions(productId);
     }
 
     @PostMapping

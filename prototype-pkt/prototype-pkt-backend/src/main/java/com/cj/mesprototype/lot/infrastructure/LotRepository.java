@@ -41,6 +41,11 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
 
     boolean existsByTesterIsNull();
 
+    @Query("select coalesce(sum(l.quantity), 0) from Lot l where l.workOrder.id = :workOrderId")
+    Long sumQuantityByWorkOrderId(@Param("workOrderId") Long workOrderId);
+
+    List<Lot> findAllByWorkOrderIdOrderByUpdatedAtDesc(Long workOrderId);
+
     @Modifying
     @Query(value = """
             update lots

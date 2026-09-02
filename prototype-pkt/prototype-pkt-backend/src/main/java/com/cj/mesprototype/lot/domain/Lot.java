@@ -1,6 +1,7 @@
 package com.cj.mesprototype.lot.domain;
 
 import com.cj.mesprototype.equipment.domain.Equipment;
+import com.cj.mesprototype.workorder.domain.WorkOrder;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -41,6 +42,11 @@ public class Lot {
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
+
+    /** LOT는 하나의 작업지시를 분할해 만든 실행 단위다. 기존 샘플은 null을 허용한다. */
+    @ManyToOne
+    @JoinColumn(name = "work_order_id")
+    private WorkOrder workOrder;
 
     @ManyToOne
     @JoinColumn(name = "current_process_id")
@@ -113,12 +119,17 @@ public class Lot {
         this.currentEquipment = equipment;
     }
 
+    public void assignWorkOrder(WorkOrder workOrder) {
+        this.workOrder = workOrder;
+    }
+
     /** 생산을 시작하기 전에는 마스터 선택값과 계획 수량을 바로잡을 수 있다. */
-    public void updateWaitingLot(Product product, ProcessDefinition process, String tester, int quantity) {
+    public void updateWaitingLot(WorkOrder workOrder, Product product, ProcessDefinition process, String tester, int quantity) {
         this.productCode = product.getProductCode();
         this.productName = product.getProductName();
         this.process = process.getProcessName();
         this.product = product;
+        this.workOrder = workOrder;
         this.currentProcess = process;
         this.tester = tester;
         this.quantity = quantity;

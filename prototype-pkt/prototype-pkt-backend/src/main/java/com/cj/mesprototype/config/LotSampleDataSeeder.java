@@ -143,6 +143,8 @@ public class LotSampleDataSeeder implements ApplicationRunner {
         for (Lot lot : lotRepository.findAll()) {
             Product product = productRepository.findByProductCode(lot.getProductCode())
                     .orElseGet(() -> productRepository.save(Product.of(lot.getProductCode(), lot.getProductName())));
+            product.fillPackageTypeIfMissing(lot.getPackageType());
+            product.fillClassificationIfMissing();
             ProcessDefinition process = processRepository.findByProcessCode(code(lot.getProcess())).orElseThrow();
             Equipment equipment = lot.getTester() == null ? null : equipmentRepository.findAllByOrderByCodeAsc().stream()
                     .filter(candidate -> candidate.getCode().equals(lot.getTester()))

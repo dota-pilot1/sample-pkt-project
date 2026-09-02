@@ -297,6 +297,32 @@ input:focus {
   pointer-events: none;
   color: #64748b;
 }
+.input-with-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.nickname-check-button {
+  margin: 0;
+  padding: 0 12px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.nickname-available,
+.nickname-current,
+.nickname-taken {
+  font-size: 12px;
+  font-weight: 800;
+}
+.nickname-available {
+  color: #047857;
+}
+.nickname-current {
+  color: #1d4ed8;
+}
+.nickname-taken {
+  color: #dc2626;
+}
 .form-section {
   display: grid;
   gap: 16px;
@@ -485,12 +511,48 @@ footer span {
 }
 .form-card,
 .flow-card,
-.result-panel {
+.result-panel,
+.nickname-example-card {
   padding: 24px;
   border: 1px solid #dbe3ef;
   border-radius: 20px;
   background: #fff;
   box-shadow: 0 8px 24px #1720330a;
+}
+.nickname-example-card h2 {
+  font-size: 18px;
+}
+.nickname-example-card > p:not(.lesson-label) {
+  margin: 6px 0 14px;
+  color: #64748b;
+  font-size: 12px;
+}
+.nickname-examples {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nickname-examples li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid #dbe3ef;
+  border-radius: 10px;
+  color: #334155;
+  background: #f8fafc;
+  font-size: 12px;
+}
+.nickname-examples span {
+  font-size: 11px;
+}
+.nickname-example-taken span {
+  color: #dc2626;
+}
+.nickname-example-available span {
+  color: #047857;
 }
 .level-two-side {
   display: grid;

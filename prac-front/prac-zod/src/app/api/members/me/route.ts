@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { memberSchema } from "../../../../features/member/member-schema";
-import { readMember, updateMember } from "../../../../server/member-store";
+import {
+  getNicknameAvailability,
+  readMember,
+  updateMember,
+} from "../../../../server/member-store";
 
 export function GET() {
   // 조회 API는 학습용 서버 메모리에 있는 현재 회원 정보를 JSON으로 반환한다.
@@ -22,13 +26,13 @@ export async function PATCH(request: Request) {
     );
   }
 
-  // 실제 서비스라면 DB의 unique 제약 조건 오류를 이 응답으로 변환한다.
-  if (parsed.data.email === "taken@example.com") {
+  // 실제 서비스라면 DB의 unique 제약 조건 오류를 이 필드 오류 응답으로 변환한다.
+  if (getNicknameAvailability(parsed.data.nickname) === "taken") {
     return NextResponse.json(
       {
-        message: "이메일이 이미 사용 중입니다.",
+        message: "닉네임이 이미 사용 중입니다.",
         fieldErrors: {
-          email: ["다른 사용자가 이미 이 이메일로 변경했습니다."],
+          nickname: ["다른 회원이 이미 사용하는 닉네임입니다."],
         },
       },
       { status: 409 },
