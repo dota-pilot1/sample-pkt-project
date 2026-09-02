@@ -1,6 +1,0 @@
-import { ArrowRight, Construction } from "lucide-react";
-import Link from "next/link";
-
-export function PackageTestPlaceholder({ eyebrow, title, description, nextLabel, nextHref }: { eyebrow: string; title: string; description: string; nextLabel?: string; nextHref?: string }) {
-  return <main className="min-h-[calc(100vh-3.5rem)] bg-muted/20 px-4 py-8 sm:px-8 lg:px-10"><section className="mx-auto max-w-7xl"><p className="text-xs font-bold tracking-[0.18em] text-primary">{eyebrow}</p><h1 className="mt-3 text-3xl font-bold tracking-tight">{title}</h1><p className="mt-2 text-sm text-muted-foreground">{description}</p><div className="mt-8 grid min-h-80 place-items-center rounded-xl border border-dashed border-border bg-card p-8 text-center"><div><span className="mx-auto grid size-12 place-items-center rounded-xl bg-muted text-muted-foreground"><Construction className="h-6 w-6" /></span><h2 className="mt-4 font-bold">다음 구현 단계</h2><p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">메뉴와 라우트만 먼저 연결했습니다. 테스트 스펙 관리가 완료되면 실제 LOT 기반 데이터 흐름을 이어서 구현합니다.</p>{nextHref && nextLabel ? <Link href={nextHref} className="mt-5 inline-flex items-center gap-1 text-sm font-bold text-primary">{nextLabel}<ArrowRight className="h-4 w-4" /></Link> : null}</div></div></section></main>;
-}
