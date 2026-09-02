@@ -6,8 +6,9 @@ import jakarta.validation.constraints.Size;
 
 /** LOT 등록 화면이 보내는, 생산 시작 전 기본 정보 계약이다. */
 public record CreateLotRequest(
+        @NotNull Long workOrderId,
         @NotNull Long productId,
-        @NotNull Long processId,
+        Long processId,
         @Size(max = 100) String tester,
         @NotNull @Positive Integer quantity
 ) {

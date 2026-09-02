@@ -1,0 +1,15 @@
+export const common = {
+  brand: "PKT Basic UI",
+  tagline: "A practical UI lab for PKT product screens.",
+  description: "Build headers, menus, forms, tables, and feedback UI step by step.",
+  loading: "Loading...",
+  confirm: "Confirm",
+  cancel: "Cancel",
+  save: "Save",
+  delete: "Delete",
+  edit: "Edit",
+  close: "Close",
+  search: "Search",
+  language: "Language",
+  theme: "Theme",
+};

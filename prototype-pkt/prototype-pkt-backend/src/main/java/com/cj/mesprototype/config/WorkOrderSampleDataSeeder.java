@@ -74,6 +74,33 @@ public class WorkOrderSampleDataSeeder implements ApplicationRunner {
             workOrderRepository.save(wo3);
         }
 
+        // P&T 화면은 일반 조립 작업지시가 아니라 제품 코드가 P&T 제품 마스터와 일치하는 지시를 사용한다.
+        seedPackageTestOrder("WO-PT-001", "PT-PLAN-2601", "PKT-A", 2_048,
+                today.minusDays(1), today.plusDays(1), "P&T Line-01", "김테스터", WorkOrderStatus.IN_PROGRESS);
+        seedPackageTestOrder("WO-PT-002", "PT-PLAN-2602", "PKT-B", 1_024,
+                today, today.plusDays(2), "P&T Line-01", "이검사", WorkOrderStatus.READY);
+        seedPackageTestOrder("WO-PT-003", "PT-PLAN-2603", "PKT-C", 2_048,
+                today.plusDays(1), today.plusDays(4), "P&T Line-02", "박테스트", WorkOrderStatus.READY);
+        seedPackageTestOrder("WO-PT-004", "PT-PLAN-2604", "PKT-D", 2_048,
+                today.minusDays(4), today.minusDays(1), "P&T Line-02", "최품질", WorkOrderStatus.COMPLETED);
+
         log.info("Seeded sample work orders: {}", workOrderRepository.count());
+    }
+
+    private void seedPackageTestOrder(String code, String planCode, String productCode, int quantity,
+                                      LocalDate startDate, LocalDate dueDate, String line, String assignee,
+                                      WorkOrderStatus status) {
+        if (workOrderRepository.existsByCode(code)) return;
+        WorkOrder order = WorkOrder.create(code, planCode, productCode, productCode, quantity,
+                startDate, dueDate, line, assignee, status);
+        order.addProcess(WorkOrderProcess.create(1, "PT_RECEIVE", "P&T LOT 입고", line, assignee,
+                startDate, startDate, status == WorkOrderStatus.IN_PROGRESS ? 100 : 0,
+                status == WorkOrderStatus.IN_PROGRESS ? WorkOrderStatus.COMPLETED : WorkOrderStatus.READY));
+        order.addProcess(WorkOrderProcess.create(2, "PT_TEST", "테스트 실행", line, assignee,
+                startDate, dueDate, status == WorkOrderStatus.IN_PROGRESS ? 45 : 0,
+                status == WorkOrderStatus.IN_PROGRESS ? WorkOrderStatus.IN_PROGRESS : WorkOrderStatus.READY));
+        order.addProcess(WorkOrderProcess.create(3, "PT_RELEASE", "결과 승인", line, assignee,
+                dueDate, dueDate, 0, WorkOrderStatus.READY));
+        workOrderRepository.save(order);
     }
 }

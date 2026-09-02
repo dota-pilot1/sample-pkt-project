@@ -5,6 +5,7 @@ import com.cj.mesprototype.workorder.presentation.dto.CreateWorkOrderRequest;
 import com.cj.mesprototype.workorder.presentation.dto.UpdateWorkOrderRequest;
 import com.cj.mesprototype.workorder.presentation.dto.WorkOrderProcessRequest;
 import com.cj.mesprototype.workorder.presentation.dto.WorkOrderResponse;
+import com.cj.mesprototype.workorder.presentation.dto.WorkOrderLotAllocationResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -34,6 +35,12 @@ public class WorkOrderController {
     @Operation(summary = "작업지시 상세 조회")
     public WorkOrderResponse getWorkOrder(@PathVariable Long id) {
         return workOrderService.getWorkOrder(id);
+    }
+
+    @GetMapping("/work-orders/{id}/lot-allocation")
+    @Operation(summary = "작업지시 LOT 분할 현황 조회")
+    public WorkOrderLotAllocationResponse getLotAllocation(@PathVariable Long id) {
+        return workOrderService.getLotAllocation(id);
     }
 
     @PostMapping("/work-orders")

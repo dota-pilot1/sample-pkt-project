@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import com.cj.mesprototype.lot.domain.ProcessRoute;
 
 @Entity
 @Table(name = "work_orders", uniqueConstraints = @UniqueConstraint(columnNames = "code"))
@@ -52,6 +53,11 @@ public class WorkOrder {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private WorkOrderStatus status;
+
+    /** 작업지시 생성 시 선택한 공정 경로 버전. 공정 단계는 별도 스냅샷으로 보존한다. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "process_route_id")
+    private ProcessRoute processRoute;
 
     @OneToMany(mappedBy = "workOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sequence ASC")
@@ -119,6 +125,8 @@ public class WorkOrder {
         processes.add(process);
         process.assignWorkOrder(this);
     }
+
+    public void applyProcessRoute(ProcessRoute route) { this.processRoute = route; }
 
     public void removeProcess(WorkOrderProcess process) {
         processes.remove(process);

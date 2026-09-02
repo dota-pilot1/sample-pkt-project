@@ -11,6 +11,12 @@ import com.cj.mesprototype.workorder.presentation.dto.CreateWorkOrderRequest;
 import com.cj.mesprototype.workorder.presentation.dto.UpdateWorkOrderRequest;
 import com.cj.mesprototype.workorder.presentation.dto.WorkOrderProcessRequest;
 import com.cj.mesprototype.workorder.presentation.dto.WorkOrderResponse;
+import com.cj.mesprototype.workorder.presentation.dto.WorkOrderLotAllocationResponse;
+import com.cj.mesprototype.lot.infrastructure.LotRepository;
+import com.cj.mesprototype.lot.presentation.dto.LotSummaryResponse;
+import com.cj.mesprototype.lot.infrastructure.ProductRepository;
+import com.cj.mesprototype.lot.infrastructure.ProductRouteAssignmentRepository;
+import com.cj.mesprototype.lot.infrastructure.ProcessRouteStepRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,18 +29,36 @@ public class WorkOrderService {
 
     private final WorkOrderRepository workOrderRepository;
     private final WorkOrderProcessRepository workOrderProcessRepository;
+    private final LotRepository lotRepository;
+    private final ProductRepository productRepository;
+    private final ProductRouteAssignmentRepository productRouteAssignmentRepository;
+    private final ProcessRouteStepRepository processRouteStepRepository;
 
     @Transactional(readOnly = true)
     public List<WorkOrderResponse> getWorkOrders() {
         return workOrderRepository.findAllByOrderByCodeAsc()
                 .stream()
-                .map(WorkOrderResponse::from)
+                .map(order -> WorkOrderResponse.from(order, allocatedLotQuantity(order.getId())))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public WorkOrderResponse getWorkOrder(Long id) {
-        return WorkOrderResponse.from(getEntity(id));
+        WorkOrder order = getEntity(id);
+        return WorkOrderResponse.from(order, allocatedLotQuantity(id));
+    }
+
+    @Transactional(readOnly = true)
+    public WorkOrderLotAllocationResponse getLotAllocation(Long id) {
+        WorkOrder order = getEntity(id);
+        int allocated = Math.toIntExact(lotRepository.sumQuantityByWorkOrderId(id));
+        return new WorkOrderLotAllocationResponse(
+                WorkOrderResponse.from(order, allocated),
+                allocated,
+                Math.max(0, order.getQuantity() - allocated),
+                lotRepository.findAllByWorkOrderIdOrderByUpdatedAtDesc(id).stream()
+                        .map(LotSummaryResponse::from)
+                        .toList());
     }
 
     @Transactional
@@ -63,7 +87,7 @@ public class WorkOrderService {
                 sequence++;
             }
         } else {
-            addDefaultProcesses(order);
+            applyDefaultProductRoute(order);
         }
 
         return WorkOrderResponse.from(workOrderRepository.save(order));
@@ -139,6 +163,10 @@ public class WorkOrderService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.WORK_ORDER_NOT_FOUND));
     }
 
+    private int allocatedLotQuantity(Long workOrderId) {
+        return Math.toIntExact(lotRepository.sumQuantityByWorkOrderId(workOrderId));
+    }
+
     private WorkOrderProcess toProcess(WorkOrderProcessRequest req, int sequence) {
         String processCode = req.processCode() != null && !req.processCode().isBlank()
                 ? req.processCode()
@@ -156,16 +184,16 @@ public class WorkOrderService {
         );
     }
 
-    // 작업지시만 등록하고 공정을 지정하지 않은 경우의 기본 공정(자재 출고 → 조립 → 검사/포장).
-    private void addDefaultProcesses(WorkOrder order) {
-        order.addProcess(WorkOrderProcess.create(
-                1, "PROC-001", "자재 출고", "자재 창고", order.getAssignee(),
-                order.getStartDate(), order.getStartDate(), 0, WorkOrderStatus.READY));
-        order.addProcess(WorkOrderProcess.create(
-                2, "PROC-002", "조립", order.getWorkstation(), order.getAssignee(),
-                order.getStartDate(), order.getDueDate(), 0, WorkOrderStatus.READY));
-        order.addProcess(WorkOrderProcess.create(
-                3, "PROC-003", "검사/포장", "검사 포장실", order.getAssignee(),
-                order.getDueDate(), order.getDueDate(), 0, WorkOrderStatus.READY));
+    /** 제품의 기본 경로를 적용해 작업지시 전용 공정 단계 스냅샷을 만든다. */
+    private void applyDefaultProductRoute(WorkOrder order) {
+        var product = productRepository.findByProductCode(order.getItemCode())
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+        var assignment = productRouteAssignmentRepository.findByProductIdAndDefaultRouteTrue(product.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.VALIDATION_FAILED));
+        order.applyProcessRoute(assignment.getRoute());
+        processRouteStepRepository.findAllByRouteIdOrderBySequenceNoAsc(assignment.getRoute().getId())
+                .forEach(step -> order.addProcess(WorkOrderProcess.fromRouteStep(
+                        step.getSequenceNo(), step.getProcess(), order.getWorkstation(), order.getAssignee(),
+                        order.getStartDate(), order.getDueDate())));
     }
 }
