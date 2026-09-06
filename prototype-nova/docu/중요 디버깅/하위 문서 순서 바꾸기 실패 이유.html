@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="티키타카 노트 하위 문서 순서 변경이 저장되지 않았던 원인과 해결 기록" />
+  <title>하위 문서 순서 바꾸기 실패 이유</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #627086;
+      --line: #dce4ee;
+      --bg: #f4f7fa;
+      --card: #ffffff;
+      --blue: #0877d1;
+      --blue-soft: #eaf4ff;
+      --navy: #203b57;
+      --green: #087650;
+      --green-soft: #e9f8f1;
+      --amber: #8c5708;
+      --amber-soft: #fff4df;
+      --red: #b33d37;
+      --red-soft: #ffedeb;
+      --code: #101827;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 24px;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      font-size: 16px;
+      line-height: 1.72;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    code, pre {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    code {
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: #edf2f7;
+      color: #243852;
+      font-size: .9em;
+    }
+
+    .layout {
+      width: min(1320px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 34px;
+      padding: 36px 28px 72px;
+    }
+
+    aside {
+      position: sticky;
+      top: 24px;
+      align-self: start;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, .92);
+      box-shadow: 0 8px 30px rgba(26, 46, 70, .05);
+    }
+
+    .brand {
+      margin-bottom: 4px;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--blue);
+    }
+
+    .edition {
+      margin-bottom: 20px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    nav {
+      display: grid;
+      gap: 7px;
+    }
+
+    nav a {
+      display: grid;
+      grid-template-columns: 25px 1fr;
+      gap: 7px;
+      padding: 7px 8px;
+      border-radius: 7px;
+      color: #46566b;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    nav a:hover {
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    nav span {
+      color: #8a98aa;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    main { min-width: 0; }
+
+    header, section {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: 0 8px 30px rgba(26, 46, 70, .045);
+    }
+
+    header {
+      padding: 40px 44px;
+      border-top: 5px solid var(--blue);
+    }
+
+    section {
+      margin-top: 20px;
+      padding: 30px 34px;
+      scroll-margin-top: 24px;
+    }
+
+    .eyebrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 13px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 25px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge.done {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      color: #0e1726;
+      font-size: clamp(29px, 4vw, 40px);
+      line-height: 1.25;
+      letter-spacing: -.045em;
+    }
+
+    h2 {
+      margin: 0 0 17px;
+      color: #101a2a;
+      font-size: 22px;
+      line-height: 1.4;
+      letter-spacing: -.025em;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      color: #17233a;
+      font-size: 16px;
+    }
+
+    p { margin: 0 0 13px; }
+    ul, ol { margin: 10px 0 0; padding-left: 22px; }
+    li + li { margin-top: 6px; }
+
+    .lead {
+      max-width: 850px;
+      margin-bottom: 12px;
+      color: #29384d;
+      font-size: 18px;
+    }
+
+    .meta {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .answer {
+      margin-top: 23px;
+      padding: 18px 20px;
+      border-left: 4px solid var(--blue);
+      border-radius: 0 10px 10px 0;
+      background: var(--blue-soft);
+      color: #1c4168;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      min-width: 0;
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfcfe;
+    }
+
+    .card strong {
+      display: block;
+      margin-bottom: 5px;
+      color: #17243a;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .symptom {
+      display: grid;
+      grid-template-columns: 115px minmax(0, 1fr);
+      gap: 16px;
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .symptom:first-of-type { border-top: 0; }
+
+    .symptom b {
+      color: var(--blue);
+      font-size: 14px;
+    }
+
+    .symptom p { margin: 0; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9px;
+      margin: 18px 0 6px;
+    }
+
+    .flow-item {
+      position: relative;
+      padding: 15px 13px;
+      border: 1px solid #cbd8e6;
+      border-radius: 10px;
+      background: #f8fbff;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .flow-item:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      top: 50%;
+      right: -17px;
+      z-index: 2;
+      transform: translateY(-52%);
+      width: 24px;
+      color: #8191a4;
+      background: var(--card);
+      font-size: 17px;
+    }
+
+    .root-cause {
+      padding: 20px;
+      border: 1px solid #f0d29b;
+      border-radius: 12px;
+      background: var(--amber-soft);
+      color: #62400b;
+    }
+
+    .root-cause strong {
+      display: block;
+      margin-bottom: 7px;
+      color: #5d3903;
+      font-size: 17px;
+    }
+
+    .layer-list {
+      display: grid;
+      gap: 11px;
+      margin-top: 18px;
+    }
+
+    .layer {
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1fr);
+      gap: 15px;
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    .layer b { color: var(--navy); }
+    .layer p { margin: 0; color: var(--muted); }
+
+    .wrong { border-left: 4px solid var(--red); }
+    .required { border-left: 4px solid var(--amber); }
+    .primary { border-left: 4px solid var(--blue); }
+
+    .comparison {
+      overflow-x: auto;
+      margin-top: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 12px 13px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f3f6fa;
+      color: #516177;
+      font-size: 12px;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    pre {
+      margin: 13px 0 0;
+      padding: 19px 20px;
+      overflow: auto;
+      border-radius: 12px;
+      background: var(--code);
+      color: #dce7f3;
+      font-size: 13px;
+      line-height: 1.62;
+      tab-size: 2;
+    }
+
+    pre code {
+      padding: 0;
+      background: transparent;
+      color: inherit;
+      font-size: inherit;
+    }
+
+    .comment { color: #8fa3b8; }
+    .keyword { color: #8ac7ff; }
+    .string { color: #acd994; }
+
+    .evidence {
+      padding: 17px 19px;
+      border-radius: 11px;
+      background: #f6f8fb;
+      color: #33445a;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .check {
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .check b {
+      display: grid;
+      place-items: center;
+      width: 23px;
+      height: 23px;
+      border-radius: 50%;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 12px;
+    }
+
+    .check p { margin: 0; }
+
+    .note {
+      margin-top: 17px;
+      padding: 14px 16px;
+      border-radius: 9px;
+      background: #f2f5f8;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .file-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 13px;
+    }
+
+    .file {
+      padding: 11px 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+
+    .file code {
+      display: block;
+      margin-bottom: 4px;
+      background: transparent;
+      padding: 0;
+      color: #1c568b;
+      font-weight: 700;
+    }
+
+    .file span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    footer {
+      padding: 25px 5px 0;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+    }
+
+    @media (max-width: 940px) {
+      .layout { grid-template-columns: 1fr; padding: 20px 16px 48px; }
+      aside { position: static; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      header { padding: 30px 22px; }
+      section { padding: 25px 20px; }
+      nav { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      .flow-item:not(:last-child)::after {
+        content: "↓";
+        top: auto;
+        right: 50%;
+        bottom: -19px;
+        transform: translateX(50%);
+      }
+      .symptom, .layer { grid-template-columns: 1fr; gap: 5px; }
+    }
+
+    @media print {
+      body { background: #fff; font-size: 13px; }
+      .layout { display: block; max-width: none; padding: 0; }
+      aside { display: none; }
+      header, section { break-inside: avoid; box-shadow: none; }
+      section { margin-top: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">중요 디버깅 기록</div>
+      <div class="edition">TIKITAKA NOTE · 2026-09-06</div>
+      <nav aria-label="문서 목차">
+        <a href="#summary"><span>01</span>결론</a>
+        <a href="#symptoms"><span>02</span>재현 증상</a>
+        <a href="#flow"><span>03</span>정상 처리 흐름</a>
+        <a href="#cause"><span>04</span>실제 원인</a>
+        <a href="#misdiagnosis"><span>05</span>오진과 방해 요인</a>
+        <a href="#fix"><span>06</span>수정 구조</a>
+        <a href="#persistence"><span>07</span>서버 저장</a>
+        <a href="#verification"><span>08</span>검증 결과</a>
+        <a href="#lessons"><span>09</span>재발 방지</a>
+      </nav>
+    </aside>
+
+    <main>
+      <header id="summary">
+        <div class="eyebrow">
+          <span class="badge done">해결 완료</span>
+          <span class="badge">Drag &amp; Drop</span>
+          <span class="badge">React Query</span>
+          <span class="badge">SQLite</span>
+        </div>
+        <h1>하위 문서 순서 바꾸기 실패 이유</h1>
+        <p class="lead">하위 문서를 끌어 놓으면 화면에서는 이동했지만 번호가 바뀌지 않았고, 다른 메뉴에 갔다 오거나 새로고침하면 원래 순서로 돌아왔다.</p>
+        <p class="meta">대상 저장소: <code>tikitaka-note/pkt-study-fullstack</code> · 기능: 제품 설계 노트의 본문·하위 문서 정렬</p>
+        <div class="answer">최종 원인: <code>@dnd-kit/react</code>의 낙관적 정렬이 DOM을 먼저 이동시킨 뒤 드롭 대상을 자기 자신으로 돌려주는데, 기존 코드가 <code>source.id === target.id</code>이면 변경이 없다고 판단해 종료했다. 따라서 화면만 잠깐 움직이고 React 상태, API 요청, DB 순서는 모두 그대로였다.</div>
+      </header>
+
+      <section id="symptoms">
+        <h2>1. 재현 증상과 그 의미</h2>
+        <div class="symptom">
+          <b>화면 순서</b>
+          <p><code>1.1 → 1.3 → 1.2</code>처럼 카드 위치는 이동했다. 이 이동은 React 데이터가 바뀐 결과가 아니라 dnd-kit 플러그인이 DOM을 낙관적으로 이동시킨 결과였다.</p>
+        </div>
+        <div class="symptom">
+          <b>번호 표시</b>
+          <p>카드의 번호는 여전히 <code>1.1 / 1.3 / 1.2</code>였다. 번호는 문서 배열의 실제 순서에서 계산하므로 React Query 캐시가 갱신되지 않았다는 증거다.</p>
+        </div>
+        <div class="symptom">
+          <b>네트워크</b>
+          <p>드롭 후 reorder <code>POST</code>가 발생하지 않았다. 화면 이동만 보고 저장 성공으로 판단하면 안 되는 핵심 단서였다.</p>
+        </div>
+        <div class="symptom">
+          <b>재조회</b>
+          <p>다른 메뉴에 갔다 오거나 새로고침하면 원래 순서로 돌아왔다. 서버와 DB의 <code>orderIdx</code>가 한 번도 변경되지 않았기 때문이다.</p>
+        </div>
+      </section>
+
+      <section id="flow">
+        <h2>2. 정상적인 순서 변경 흐름</h2>
+        <p>드래그 정렬은 화면 위치 하나만 바꾸는 기능이 아니다. 아래 네 단계가 모두 완료돼야 실제로 저장된 것이다.</p>
+        <div class="flow" aria-label="문서 정렬 처리 흐름">
+          <div class="flow-item">드롭 결과 해석<br><code>initialIndex → index</code></div>
+          <div class="flow-item">React Query 캐시<br>순서·번호 즉시 변경</div>
+          <div class="flow-item">reorder API<br>형제 ID 전체 전송</div>
+          <div class="flow-item">DB 트랜잭션<br><code>orderIdx</code> 저장</div>
+        </div>
+        <p class="note">이번 장애에서는 첫 단계에서 함수가 조기 종료되어 뒤의 세 단계가 전부 실행되지 않았다.</p>
+      </section>
+
+      <section id="cause">
+        <h2>3. 실제 원인</h2>
+        <div class="root-cause">
+          <strong>드롭 대상 ID가 아니라 sortable 인덱스가 진짜 이동 정보였다.</strong>
+          OptimisticSortingPlugin이 화면 요소를 먼저 재배치한 뒤에는 <code>target.id</code>가 이동한 문서 자신의 ID로 관찰될 수 있다. 이때 <code>source.id === target.id</code>는 “이동 없음”을 뜻하지 않는다. 이동 여부는 <code>source.initialIndex</code>와 <code>source.index</code>를 비교해야 한다.
+        </div>
+
+        <div class="comparison">
+          <table>
+            <thead>
+              <tr><th>판단 기준</th><th>드롭 당시 값</th><th>기존 해석</th><th>올바른 해석</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>source.id</code></td><td>438</td><td rowspan="2">ID가 같으므로 이동 없음</td><td rowspan="2">낙관적 DOM 정렬에서는 같을 수 있으므로 이동 판단에 사용하지 않음</td></tr>
+              <tr><td><code>target.id</code></td><td>438</td></tr>
+              <tr><td><code>source.initialIndex</code></td><td>1</td><td rowspan="2">확인하지 않음</td><td rowspan="2"><code>1 → 2</code>이므로 실제 이동</td></tr>
+              <tr><td><code>source.index</code></td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>수정한 드롭 해석 함수</h3>
+        <pre><code><span class="keyword">export function</span> documentOrderAfterDrop(
+  documents: PlaybookDocumentSummary[],
+  event: DragEndEvent,
+) {
+  <span class="keyword">const</span> { source, target } = event.operation;
+  <span class="keyword">if</span> (event.canceled || !target || !isSortable(source)) <span class="keyword">return</span> null;
+
+  <span class="keyword">const</span> document = documents.find((item) =&gt; item.id === source.id);
+  <span class="keyword">if</span> (!document) <span class="keyword">return</span> null;
+
+  <span class="keyword">const</span> group = documentSortableGroup(document);
+  <span class="keyword">if</span> (source.initialGroup !== group || source.group !== group) <span class="keyword">return</span> null;
+
+  <span class="comment">// 낙관적 정렬 뒤에는 target이 source 자신이어도 인덱스는 달라질 수 있다.</span>
+  <span class="keyword">const</span> from = source.initialIndex;
+  <span class="keyword">const</span> to = source.index;
+  <span class="keyword">const</span> siblings = documents.filter(
+    (item) =&gt; item.parentId === document.parentId,
+  );
+
+  <span class="keyword">if</span> (
+    from === to ||
+    siblings[from]?.id !== document.id ||
+    !Number.isInteger(to) ||
+    to &lt; 0 ||
+    to &gt;= siblings.length
+  ) {
+    <span class="keyword">return</span> null;
+  }
+
+  <span class="keyword">return</span> {
+    ids: arrayMove(siblings, from, to).map((item) =&gt; item.id),
+    parentId: document.parentId,
+  };
+}</code></pre>
+      </section>
+
+      <section id="misdiagnosis">
+        <h2>4. 실제 원인과 별개였던 문제들</h2>
+        <p>디버깅 중 세 문제가 겹쳤다. 모두 고쳐야 했지만, 각각의 역할을 구분하지 않아 “API는 되는데 화면은 왜 그대로인가”라는 혼란이 생겼다.</p>
+        <div class="layer-list">
+          <div class="layer primary">
+            <b>1. 화면 이벤트</b>
+            <p><strong>최종 UI 원인.</strong> 드롭 핸들러가 같은 ID를 이동 없음으로 처리해 mutation을 호출하지 않았다. 네트워크 요청 자체가 없었다.</p>
+          </div>
+          <div class="layer required">
+            <b>2. API 경로</b>
+            <p><strong>필수 보완.</strong> LLM용 reorder API와 별개로 일반 UI가 호출하는 <code>/api/hospital-playbook/topics/{topicId}/documents/reorder</code> 경로가 필요했다.</p>
+          </div>
+          <div class="layer wrong">
+            <b>3. 개발 서버</b>
+            <p><strong>검증 방해 요인.</strong> 실행 중인 Next 개발 서버가 이전 모듈을 잡고 있어 <code>reorderDocuments is not a function</code>을 냈다. 재시작 시에는 기존 4300 포트 프로세스 때문에 <code>EADDRINUSE</code>도 발생했다.</p>
+          </div>
+        </div>
+
+        <h3>왜 API 직접 호출만으로는 해결됐다고 볼 수 없었나</h3>
+        <p>인증된 상태로 reorder API를 직접 호출했을 때 <code>204</code>가 반환되고 DB 저장도 성공했다. 이것은 서버 계약이 정상이라는 뜻일 뿐, 실제 드래그 UI가 그 API를 호출한다는 증거는 아니다. 브라우저에서 드롭한 뒤 요청 목록이 비어 있었기 때문에 프론트 이벤트 경로를 다시 추적해야 했다.</p>
+      </section>
+
+      <section id="fix">
+        <h2>5. 수정 구조</h2>
+        <div class="grid">
+          <article class="card">
+            <strong>동일 부모 그룹 제한</strong>
+            <p><code>topicId + parentId</code>로 sortable group을 만들었다. 같은 부모 아래 문서끼리만 순서를 바꿀 수 있다.</p>
+          </article>
+          <article class="card">
+            <strong>인덱스로 이동 계산</strong>
+            <p><code>initialIndex</code>와 현재 <code>index</code>로 이동 전후를 계산한다. target ID 동일 여부는 무시한다.</p>
+          </article>
+          <article class="card">
+            <strong>공통 함수 사용</strong>
+            <p>목록 화면과 전체 문서 페이지가 같은 <code>documentOrderAfterDrop()</code>을 사용해 동작 차이를 없앴다.</p>
+          </article>
+          <article class="card">
+            <strong>낙관적 캐시 갱신</strong>
+            <p>서버 응답 전 React Query 캐시의 배열과 <code>orderIdx</code>를 함께 바꿔 카드 번호도 즉시 다시 계산한다.</p>
+          </article>
+          <article class="card">
+            <strong>실패 시 재조회</strong>
+            <p>저장 실패 시 서버 데이터를 다시 조회하고 오류 토스트를 보여준다. 성공 토스트는 잦은 정렬 작업을 방해하므로 생략했다.</p>
+          </article>
+          <article class="card">
+            <strong>펼침 상태 유지</strong>
+            <p>전체 문서 페이지에서 재정렬 후에도 부모 문서의 펼침 상태가 유지되도록 상태 동기화를 보완했다.</p>
+          </article>
+        </div>
+
+        <h3>변경 파일과 책임</h3>
+        <div class="file-list">
+          <div class="file"><code>src/features/hospital-playbook/document-order.ts</code><span>동일 부모 그룹 생성과 드롭 결과 해석을 담당하는 공통 함수</span></div>
+          <div class="file"><code>src/widgets/hospital-playbook/HospitalPlaybookModule.tsx</code><span>목록 화면의 sortable 설정, 낙관적 캐시 갱신, reorder mutation 호출</span></div>
+          <div class="file"><code>src/widgets/hospital-playbook/DocumentPage.tsx</code><span>전체 문서 페이지의 동일한 정렬 처리와 펼침 상태 유지</span></div>
+          <div class="file"><code>src/app/api/hospital-playbook/topics/[topicId]/documents/reorder/route.ts</code><span>일반 UI용 인증 reorder API</span></div>
+          <div class="file"><code>src/server/modules/playbook/playbook-repository.ts</code><span>형제 문서 검증과 트랜잭션 기반 <code>orderIdx</code> 저장</span></div>
+          <div class="file"><code>src/server/modules/playbook/playbook-service.ts</code><span>문서 순서 변경 저장소 함수 노출</span></div>
+        </div>
+      </section>
+
+      <section id="persistence">
+        <h2>6. 서버에서 순서를 저장하는 기준</h2>
+        <p>클라이언트는 이동한 한 건만 보내지 않고, 같은 부모를 가진 형제 문서 ID 전체를 원하는 순서대로 보낸다. 서버는 누락·혼입 여부를 검증한 뒤 배열 위치를 새 <code>orderIdx</code>로 저장한다.</p>
+        <pre><code>POST /api/hospital-playbook/topics/2030/documents/reorder
+Content-Type: application/json
+
+{
+  <span class="string">"ids"</span>: [437, 439, 438],
+  <span class="string">"parentId"</span>: 431
+}</code></pre>
+        <ul>
+          <li><code>ids</code>는 해당 부모의 전체 자식 ID를 중복 없이 포함해야 한다.</li>
+          <li>다른 부모의 문서가 섞이거나 일부가 빠지면 <code>400</code>으로 거절한다.</li>
+          <li>검증을 통과하면 하나의 DB 트랜잭션에서 <code>0, 1, 2...</code>로 다시 저장한다.</li>
+          <li>성공 응답은 본문 없는 <code>204 No Content</code>다.</li>
+        </ul>
+      </section>
+
+      <section id="verification">
+        <h2>7. 브라우저 회귀 검증 결과</h2>
+        <p>함수 단위 확인만으로 끝내지 않고 실제 브라우저에서 드래그한 뒤 네트워크, 번호, DB, 화면 재진입을 함께 확인했다.</p>
+
+        <h3>수정 전 관찰</h3>
+        <div class="evidence">화면 DOM: 437(1.1) → 439(1.3) → 438(1.2)
+POST 요청: 없음
+DB orderIdx: 437(0), 438(1), 439(2)
+결과: 화면만 이동하고 저장되지 않음</div>
+
+        <h3>수정 후 관찰</h3>
+        <div class="evidence">화면 DOM: 437(1.1) → 439(1.2) → 438(1.3)
+POST 본문: { ids: [437, 439, 438], parentId: 431 }
+DB orderIdx: 437(0), 439(1), 438(2)
+결과: 번호 변경, 메뉴 재진입, 새로고침 뒤에도 순서 유지</div>
+
+        <div class="checklist">
+          <div class="check"><b>✓</b><p>하위 문서 드래그 직후 카드 위치와 번호가 함께 바뀐다.</p></div>
+          <div class="check"><b>✓</b><p>reorder <code>POST</code>가 정확히 한 번 발생하고 같은 부모의 전체 ID를 전송한다.</p></div>
+          <div class="check"><b>✓</b><p>DB의 <code>orderIdx</code>가 화면 순서와 일치한다.</p></div>
+          <div class="check"><b>✓</b><p>다른 메뉴에 갔다 와도 변경한 순서가 유지된다.</p></div>
+          <div class="check"><b>✓</b><p>새로고침 후에도 변경한 순서와 번호가 유지된다.</p></div>
+          <div class="check"><b>✓</b><p>전체 문서 페이지에서도 정렬·번호·펼침 상태가 정상이다.</p></div>
+          <div class="check"><b>✓</b><p><code>npm run lint</code>, <code>npm run build</code>, <code>git diff --check</code>를 통과했다.</p></div>
+        </div>
+      </section>
+
+      <section id="lessons">
+        <h2>8. 재발 방지를 위한 디버깅 순서</h2>
+        <ol>
+          <li><strong>화면 이동과 상태 변경을 구분한다.</strong> DnD 라이브러리는 DOM을 먼저 움직일 수 있으므로 번호나 React DevTools 상태도 같이 본다.</li>
+          <li><strong>Network를 가장 먼저 본다.</strong> 요청이 없으면 서버·DB를 더 파기 전에 이벤트 핸들러의 조기 종료 조건을 확인한다.</li>
+          <li><strong>드롭 이벤트 원문을 기록한다.</strong> <code>source.id</code>, <code>target.id</code>, <code>initialIndex</code>, <code>index</code>, <code>group</code>을 한 번에 비교한다.</li>
+          <li><strong>직접 API 테스트와 UI 통합 테스트를 분리한다.</strong> API <code>204</code>는 서버만 통과했다는 뜻이다. 실제 드래그가 요청을 만들었는지 별도로 검증한다.</li>
+          <li><strong>저장 결과는 재조회로 확인한다.</strong> 메뉴 재진입과 새로고침을 통과해야 영속화가 끝난 것이다.</li>
+          <li><strong>개발 서버 상태를 의심한다.</strong> 새 export가 함수가 아니라고 나오면 실행 중인 프로세스와 포트를 확인하고 단일 서버로 재시작한다.</li>
+        </ol>
+        <div class="answer">완료 판정 기준: “드래그되어 보인다”가 아니라 <strong>위치 변경 + 번호 재계산 + POST 발생 + DB 반영 + 재진입 유지</strong>가 모두 성공해야 한다.</div>
+      </section>
+
+      <footer>이 문서는 하위 문서 정렬 장애의 재현, 원인, 수정, 검증을 현재 구현 기준으로 정리한 디버깅 기록이다.</footer>
+    </main>
+  </div>
+</body>
+</html>

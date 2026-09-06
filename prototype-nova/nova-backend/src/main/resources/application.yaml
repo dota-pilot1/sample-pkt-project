@@ -1,0 +1,25 @@
+server:
+  port: ${SERVER_PORT}
+
+spring:
+  config:
+    import: "optional:file:.env[.properties]"
+  application:
+    name: nova-bss-backend
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create
+    open-in-view: false
+
+app:
+  seed:
+    # 로컬 .env에서 true로 설정한 경우에만 샘플 데이터를 넣는다.
+    enabled: ${SEED_DATA_ENABLED:false}
+  cors:
+    allowed-origin: ${CORS_ALLOWED_ORIGIN}

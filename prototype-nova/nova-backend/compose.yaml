@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nova-bss-postgres
+    environment:
+      POSTGRES_DB: nova_bss
+      POSTGRES_USER: nova
+      POSTGRES_PASSWORD: nova
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nova -d nova_bss"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - nova-bss-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  nova-bss-postgres-data:

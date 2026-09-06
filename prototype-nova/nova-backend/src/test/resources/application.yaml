@@ -1,0 +1,19 @@
+server:
+  port: 0
+
+spring:
+  datasource:
+    # ./gradlew test에서만 사용하는 H2 인메모리 DB다. 실제 PostgreSQL .env 설정을 덮어쓴다.
+    url: jdbc:h2:mem:nova-bss-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+
+app:
+  seed:
+    enabled: false
+  cors:
+    allowed-origin: http://localhost:3000
