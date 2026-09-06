@@ -14,7 +14,7 @@ macOS GitHub 호스팅 러너가 Windows보다 비싸므로, Apple 인증서와 
 
 | 항목 | 값 |
 |---|---|
-| 로컬 소스 | `/Users/terecal/pilot-project/sample-pkt-project/pkt-study-fullstack` |
+| 로컬 소스 | `/Users/terecal/pilot-project/sample-pkt-project/tikitaka-note/pkt-study-fullstack` |
 | 소스 전용 저장소 | `dota-pilot1/pkt-study-fullstack` |
 | 배포 저장소 | `dota-pilot1/pkt-study-fullstack` |
 | Release/updater | <https://github.com/dota-pilot1/pkt-study-fullstack/releases> |
@@ -77,7 +77,7 @@ NODE
 ## 공통 검증
 
 ```bash
-cd /Users/terecal/pilot-project/sample-pkt-project/pkt-study-fullstack
+cd /Users/terecal/pilot-project/sample-pkt-project/tikitaka-note/pkt-study-fullstack
 npm ci
 npx next typegen
 npx tsc --noEmit
@@ -116,7 +116,7 @@ security find-identity -v -p codesigning
 Apple Silicon용 앱과 DMG를 빌드합니다.
 
 ```bash
-cd /Users/terecal/pilot-project/sample-pkt-project/pkt-study-fullstack
+cd /Users/terecal/pilot-project/sample-pkt-project/tikitaka-note/pkt-study-fullstack
 SECRET_DIR='/Users/terecal/english-agent-hub-container/배포 가이드/.local-secrets'
 APPLE_SIGNING_IDENTITY='Developer ID Application: Hyunseok oh (5PRM3RRTSH)' \
   TAURI_SIGNING_PRIVATE_KEY="$(tr -d '\r\n' < "$SECRET_DIR/pkt-study-fullstack-updater.key")" \

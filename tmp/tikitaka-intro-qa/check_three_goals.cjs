@@ -1,0 +1,23 @@
+const { chromium } = require('/Users/terecal/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const root = '/Users/terecal/pilot-project/sample-pkt-project';
+(async () => {
+ const browser=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
+ const context=await browser.newContext({viewport:{width:1440,height:1100}});
+ const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('file://'+root+'/output/pdf/tikitaka-app-introduction.html');
+ await page.locator('#api-screen').evaluate(img=>img.decode());
+ const desktop=await page.evaluate(()=>({sections:[...document.querySelectorAll('main section')].map(s=>s.id),goals:document.querySelectorAll('.goal-list li').length,imageLoaded:document.querySelector('#api-screen').naturalWidth,embedded:document.querySelector('#api-screen').src.startsWith('data:'),bodyWidth:document.body.scrollWidth,viewport:innerWidth}));
+ for(const id of ['overview','agent','learning','rag'])await page.locator('#'+id).screenshot({path:root+'/tmp/tikitaka-intro-qa/three-goals-'+id+'.png'});
+ await page.locator('#open-screen').click();const modalOpened=await page.locator('#screen-dialog').evaluate(d=>d.open);
+ await page.keyboard.press('Escape');const modalClosed=await page.locator('#screen-dialog').evaluate(d=>!d.open);
+ await page.evaluate(()=>{window.__copied='';Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>window.__copied=text}})});
+ await page.locator('#copy-prompt').click();const copyWorks=await page.evaluate(()=>window.__copied===document.querySelector('#agent-prompt').textContent);
+ await page.locator('nav a[href="#learning"]').click();const navWorks=await page.evaluate(()=>location.hash==='#learning');
+ await page.setViewportSize({width:390,height:844});await page.goto('file://'+root+'/output/pdf/tikitaka-app-introduction.html');
+ await page.screenshot({path:root+'/tmp/tikitaka-intro-qa/three-goals-mobile.png'});
+ await page.locator('#api-screen').scrollIntoViewIfNeeded();await page.screenshot({path:root+'/tmp/tikitaka-intro-qa/three-goals-mobile-image.png'});
+ const mobile=await page.evaluate(()=>({bodyWidth:document.body.scrollWidth,viewport:innerWidth}));
+ console.log(JSON.stringify({desktop,mobile,modalOpened,modalClosed,copyWorks,navWorks,errors}));
+ if(desktop.goals!==3||desktop.imageLoaded!==3420||mobile.bodyWidth>mobile.viewport||errors.length||!modalOpened||!modalClosed||!copyWorks||!navWorks)process.exitCode=1;
+ await browser.close();
+})();

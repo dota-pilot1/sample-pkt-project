@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NOVA 요금제 운영 정책 상세사항</title>
+  <style>
+    :root { --ink:#17233a; --muted:#66738a; --line:#dde5ef; --bg:#f6f8fb; --card:#fff; --blue:#1769d6; --blue-soft:#eaf2ff; --green:#087a50; --green-soft:#e9f8f1; --amber:#9a5a08; --amber-soft:#fff4df; --red:#b53c35; --red-soft:#ffedea; }
+    * { box-sizing:border-box; }
+    body { margin:0; padding:40px 20px 72px; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",sans-serif; line-height:1.65; }
+    main { max-width:960px; margin:0 auto; }
+    header, section { border:1px solid var(--line); border-radius:16px; background:var(--card); box-shadow:0 2px 8px rgba(19,35,58,.04); }
+    header { padding:34px 38px; margin-bottom:20px; }
+    section { padding:28px 32px; margin-top:18px; }
+    section > :last-child { margin-bottom:0; }
+    .eyebrow, .badge { display:inline-flex; align-items:center; border-radius:999px; font-size:12px; font-weight:750; }
+    .eyebrow { padding:5px 10px; background:var(--blue-soft); color:var(--blue); }
+    h1 { margin:12px 0 8px; font-size:29px; line-height:1.3; letter-spacing:-.04em; }
+    h2 { margin:0 0 18px; font-size:19px; letter-spacing:-.02em; }
+    h3 { margin:0 0 6px; font-size:15px; }
+    p { margin:0 0 12px; }
+    header p, .muted { color:var(--muted); }
+    .notice { margin-top:16px; padding:13px 15px; border-radius:10px; background:var(--amber-soft); color:#754708; font-size:14px; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .card { padding:16px; border:1px solid var(--line); border-radius:11px; background:#fbfcfe; }
+    .card p { margin:0; color:var(--muted); font-size:14px; }
+    .flow { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+    .flow span { padding:8px 11px; border-radius:8px; background:var(--blue-soft); color:#244a7f; font-size:13px; font-weight:750; }
+    .arrow { color:#8794a7; }
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    th, td { padding:12px; border-bottom:1px solid var(--line); vertical-align:top; text-align:left; }
+    th { background:#f8fafc; color:#58677f; font-size:12px; }
+    tr:last-child td { border-bottom:0; }
+    ul, ol { margin:14px 0 0; padding-left:21px; }
+    li + li { margin-top:6px; }
+    code { padding:2px 5px; border-radius:5px; background:#edf1f6; font-size:.9em; }
+    .badge { padding:3px 8px; white-space:nowrap; }
+    .proposal { color:var(--amber); background:var(--amber-soft); } .confirmed { color:var(--green); background:var(--green-soft); } .blocked { color:var(--red); background:var(--red-soft); }
+    .check { display:grid; grid-template-columns:30px 1fr; gap:10px; padding:13px 0; border-top:1px solid var(--line); }
+    .check:first-of-type { border-top:0; }
+    .check b { display:grid; place-items:center; width:24px; height:24px; border-radius:50%; background:var(--blue-soft); color:var(--blue); font-size:12px; }
+    .check p { margin:2px 0 0; color:var(--muted); font-size:14px; }
+    @media (max-width:700px) { body { padding:20px 14px 48px; } header,section { padding:24px 20px; } h1 { font-size:25px; } .grid { grid-template-columns:1fr; } .table-wrap { overflow-x:auto; } table { min-width:640px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <span class="eyebrow">NOVA · 요금제</span>
+      <h1>요금제 운영 정책 상세사항</h1>
+      <p>요금제를 만들고 판매할 때 지켜야 할 약속을 정리한 문서다. DB와 API를 만들기 전에 이 문서를 먼저 검토하고, <strong>제안</strong> 항목만 확정하면 된다.</p>
+      <p class="notice"><strong>문서 상태: 초안</strong> · 아래 제안은 학습용으로 잡은 기본안이다. 실제 개발 시작 전 팀의 결정으로 바꾸거나 확정한다.</p>
+    </header>
+
+    <section>
+      <h2>1. 이 문서에서 정할 것</h2>
+      <div class="grid">
+        <article class="card"><h3>정하는 것</h3><p>요금제를 언제 판매할지, 언제 멈출지, 등록할 때 무엇을 꼭 넣을지, 삭제는 어떻게 할지</p></article>
+        <article class="card"><h3>지금 정하지 않는 것</h3><p>고객 가입, 주문, 개통, 할인 계산. 이 기능들은 다음 단계에서 따로 정한다.</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. 판매 상태와 바꾸는 방법</h2>
+      <div class="flow" aria-label="요금제 상태 흐름">
+        <span>작성 중</span><b class="arrow">→</b><span>판매 시작</span><b class="arrow">→</b><span>판매 중지</span><b class="arrow">→</b><span>완전 종료</span>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>현재 상태</th><th>할 수 있는 일</th><th>정책</th><th>상태</th></tr></thead>
+        <tbody>
+          <tr><td>작성 중</td><td>수정, 삭제, 판매 시작</td><td>이름·종류·월 요금·판매 시작일을 모두 넣었을 때만 판매 시작 가능</td><td><span class="badge proposal">제안</span></td></tr>
+          <tr><td>판매 시작</td><td>수정, 판매 중지</td><td>새 고객이 선택할 수 있는 상태. 삭제하지 않음</td><td><span class="badge proposal">제안</span></td></tr>
+          <tr><td>판매 중지</td><td>다시 판매 시작, 완전 종료</td><td>새 고객은 선택할 수 없음. 다시 팔 수 있게 할지는 팀이 결정</td><td><span class="badge proposal">결정 필요</span></td></tr>
+          <tr><td>완전 종료</td><td>조회만 가능</td><td>다시 판매하지 않음. 기존 기록을 보기 위해 남김</td><td><span class="badge proposal">제안</span></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section>
+      <h2>3. 등록·수정 규칙</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>항목</th><th>규칙</th><th>상태</th></tr></thead>
+        <tbody>
+          <tr><td>요금제 코드</td><td>다른 요금제와 겹치면 안 되고, 한 번 만든 뒤에는 바꾸지 않는다. 예: <code>PLN-MOB-00001</code></td><td><span class="badge proposal">제안</span></td></tr>
+          <tr><td>요금제 종류</td><td>등록 화면에서 사용 중인 종류 하나를 반드시 고른다.</td><td><span class="badge proposal">제안</span></td></tr>
+          <tr><td>이름</td><td>비어 있으면 저장할 수 없다.</td><td><span class="badge proposal">제안</span></td></tr>
+          <tr><td>한 달 요금</td><td>0원 이상, 원 단위 정수로 저장한다.</td><td><span class="badge proposal">제안</span></td></tr>
+          <tr><td>판매 기간</td><td>판매 시작일은 필수. 종료일을 넣으면 시작일보다 빠를 수 없다.</td><td><span class="badge proposal">제안</span></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section>
+      <h2>4. 삭제와 변경 기록</h2>
+      <div class="grid">
+        <article class="card"><h3>삭제</h3><p><span class="badge proposal">제안</span> 아직 판매 시작 전인 “작성 중” 요금제만 삭제할 수 있다. 판매를 시작한 뒤에는 지우지 않고 판매 중지 또는 종료로 남긴다.</p></article>
+        <article class="card"><h3>변경 기록</h3><p><span class="badge proposal">제안</span> 이름, 요금, 종류, 판매 상태가 바뀌면 누가·언제·무엇을 바꿨는지 남긴다.</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. 요금제 종류 기준정보</h2>
+      <p>요금제 종류는 <code>plan_categories</code>에서 관리한다. 예: 휴대폰, 데이터 전용, IoT.</p>
+      <ul>
+        <li><span class="badge proposal">제안</span> 새 종류는 추가할 수 있다.</li>
+        <li><span class="badge proposal">제안</span> 이미 요금제가 쓰고 있는 종류는 바로 삭제하지 않고 “사용 중지”로 바꾼다.</li>
+        <li><span class="badge proposal">제안</span> 사용 중지된 종류는 새 요금제를 만들 때 선택할 수 없다.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>6. 개발 시작 전 체크</h2>
+      <div class="check"><b>1</b><div><strong>판매 중지된 요금제를 다시 판매할 수 있나?</strong><p>가능/불가능 중 하나를 고른다.</p></div></div>
+      <div class="check"><b>2</b><div><strong>요금제 코드는 자동으로 만들까, 사람이 입력할까?</strong><p>자동 생성이면 코드 형식도 같이 정한다.</p></div></div>
+      <div class="check"><b>3</b><div><strong>판매 시작 상태에서도 이름·요금을 수정할 수 있나?</strong><p>가능하다면 변경 기록을 반드시 남긴다.</p></div></div>
+      <div class="check"><b>4</b><div><strong>요금제 종류를 누가 추가·중지할 수 있나?</strong><p>처음에는 관리자만 가능하게 시작해도 충분하다.</p></div></div>
+      <div class="check"><b>5</b><div><strong>이 다섯 가지를 확정했나?</strong><p>확정하면 ERD, API, 테스트 코드에 그대로 반영하고 개발을 시작한다.</p></div></div>
+    </section>
+  </main>
+</body>
+</html>

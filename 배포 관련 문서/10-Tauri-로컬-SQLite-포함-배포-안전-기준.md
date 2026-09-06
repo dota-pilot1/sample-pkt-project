@@ -28,7 +28,7 @@
 ### 2. WAL 체크포인트와 무결성 검사
 
 ```bash
-cd /Users/terecal/pilot-project/sample-pkt-project/pkt-study-fullstack
+cd /Users/terecal/pilot-project/sample-pkt-project/tikitaka-note/pkt-study-fullstack
 
 sqlite3 .data/pkt-study.db \
   "PRAGMA wal_checkpoint(TRUNCATE); PRAGMA integrity_check;"
@@ -116,4 +116,3 @@ sqlite3 dist/next/.data/pkt-study.db "PRAGMA integrity_check;"
 - 기준 공간·문서 수가 예상값보다 작으면 빌드 실패
 - macOS와 Windows 워크플로 중 하나라도 실패하면 릴리즈 완료 처리 금지
 - 설치 후 `/api/health`가 HTTP 200이 아니면 배포 검증 실패
-
