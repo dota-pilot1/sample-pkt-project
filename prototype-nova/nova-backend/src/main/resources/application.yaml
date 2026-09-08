@@ -17,6 +17,9 @@ spring:
       ddl-auto: create
     open-in-view: false
 
+mybatis:
+  mapper-locations: classpath*:mapper/**/*.xml
+
 app:
   seed:
     # 로컬 .env에서 true로 설정한 경우에만 샘플 데이터를 넣는다.

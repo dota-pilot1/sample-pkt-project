@@ -1,14 +1,15 @@
 package com.cj.novabss.plan.presentation;
 
 import com.cj.novabss.plan.application.RatePlanQueryService;
-import com.cj.novabss.plan.domain.RatePlanSalesStatus;
 import com.cj.novabss.plan.presentation.dto.RatePlanCategoryResponse;
 import com.cj.novabss.plan.presentation.dto.RatePlanPageResponse;
+import com.cj.novabss.plan.presentation.dto.RatePlanSearchCondition;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -26,14 +27,12 @@ public class RatePlanQueryController {
         return ratePlanQueryService.findActiveCategories();
     }
 
+    // 선택 필터와 페이지·정렬 기본값을 GET /api/plans의 query 계약으로 받는다.
     @GetMapping("/plans")
     public RatePlanPageResponse getPlans(
-        @RequestParam(required = false) String keyword,
-        @RequestParam(required = false) String categoryCode,
-        @RequestParam(required = false) RatePlanSalesStatus status,
-        @RequestParam(defaultValue = "1") int page,
-        @RequestParam(defaultValue = "20") int size
+        @Valid @ModelAttribute RatePlanSearchCondition condition
     ) {
-        return ratePlanQueryService.findRatePlans(keyword, categoryCode, status, page, size);
+        // Controller는 HTTP query를 DTO로 묶어 검증하고, 조회는 Service에 위임한다.
+        return ratePlanQueryService.findRatePlans(condition);
     }
 }

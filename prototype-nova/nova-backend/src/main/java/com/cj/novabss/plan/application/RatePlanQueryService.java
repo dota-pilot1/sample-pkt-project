@@ -1,19 +1,14 @@
 package com.cj.novabss.plan.application;
 
-import com.cj.novabss.plan.domain.RatePlan;
-import com.cj.novabss.plan.domain.RatePlanCategory;
 import com.cj.novabss.plan.domain.RatePlanSalesStatus;
 import com.cj.novabss.plan.infrastructure.RatePlanCategoryRepository;
-import com.cj.novabss.plan.infrastructure.RatePlanRepository;
+import com.cj.novabss.plan.infrastructure.RatePlanListRow;
+import com.cj.novabss.plan.infrastructure.RatePlanQueryMapper;
 import com.cj.novabss.plan.presentation.dto.RatePlanCategoryResponse;
 import com.cj.novabss.plan.presentation.dto.RatePlanPageResponse;
+import com.cj.novabss.plan.presentation.dto.RatePlanSearchCondition;
 import com.cj.novabss.plan.presentation.dto.RatePlanSummaryResponse;
-import jakarta.persistence.criteria.Join;
 import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,40 +16,62 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class RatePlanQueryService {
     private final RatePlanCategoryRepository categoryRepository;
-    private final RatePlanRepository ratePlanRepository;
+    private final RatePlanQueryMapper ratePlanQueryMapper;
 
-    public RatePlanQueryService(RatePlanCategoryRepository categoryRepository, RatePlanRepository ratePlanRepository) {
+    public RatePlanQueryService(
+        RatePlanCategoryRepository categoryRepository,
+        RatePlanQueryMapper ratePlanQueryMapper
+    ) {
         this.categoryRepository = categoryRepository;
-        this.ratePlanRepository = ratePlanRepository;
+        this.ratePlanQueryMapper = ratePlanQueryMapper;
     }
 
     public List<RatePlanCategoryResponse> findActiveCategories() {
-        return categoryRepository.findByActiveTrueOrderBySortOrderAsc().stream()
-            .map(category -> new RatePlanCategoryResponse(category.getId(), category.getCode(), category.getName(), category.getSortOrder()))
-            .toList();
+        return categoryRepository.findByActiveTrueOrderBySortOrderAsc()
+                .stream()
+                .map(category -> new RatePlanCategoryResponse(category.getId(), category.getCode(), category.getName(), category.getSortOrder()))
+                .toList();
     }
 
-    public RatePlanPageResponse findRatePlans(String keyword, String categoryCode, RatePlanSalesStatus status, int page, int size) {
-        Specification<RatePlan> specification = (root, query, builder) -> {
-            var predicate = builder.conjunction();
-            if (keyword != null && !keyword.isBlank()) {
-                String pattern = "%" + keyword.trim().toLowerCase() + "%";
-                predicate = builder.and(predicate, builder.or(
-                    builder.like(builder.lower(root.get("ratePlanCode")), pattern),
-                    builder.like(builder.lower(root.get("name")), pattern)
-                ));
-            }
-            if (categoryCode != null && !categoryCode.isBlank()) {
-                Join<RatePlan, RatePlanCategory> category = root.join("category");
-                predicate = builder.and(predicate, builder.equal(category.get("code"), categoryCode.trim().toUpperCase()));
-            }
-            if (status != null) predicate = builder.and(predicate, builder.equal(root.get("salesStatus"), status));
-            return predicate;
-        };
-        int safePage = Math.max(page, 1);
-        int safeSize = Math.min(Math.max(size, 1), 100);
-        Page<RatePlan> result = ratePlanRepository.findAll(specification, PageRequest.of(safePage - 1, safeSize, Sort.by("ratePlanCode").ascending()));
-        return new RatePlanPageResponse(result.getContent().stream().map(RatePlanSummaryResponse::from).toList(), safePage, safeSize, result.getTotalElements(), result.getTotalPages());
+    public RatePlanPageResponse findRatePlans(RatePlanSearchCondition condition) {
+        String status = condition.getStatus();
+        int page = condition.getPage();
+        int size = condition.getSize();
+        String sort = condition.getSort();
+        String direction = condition.getDirection();
+
+        // Controller의 @Valid를 거치지 않는 배치·다른 Service 호출도 같은 페이지 계약을 지키도록 방어 검증한다.
+        if (page < 1) throw new RatePlanQueryException("INVALID_PAGE", "page는 1 이상이어야 합니다.");
+        if (size < 1 || size > 100) throw new RatePlanQueryException("INVALID_SIZE", "size는 1 이상 100 이하여야 합니다.");
+
+        // 문자열 query를 허용된 enum 값으로 변환해 이후 로직에서 임의의 값을 사용하지 못하게 한다.
+        RatePlanSalesStatus statusFilter = parseStatus(status);
+        RatePlanSortField sortField = RatePlanSortField.fromParameter(sort);
+        RatePlanSortDirection sortDirection = RatePlanSortDirection.fromParameter(direction);
+
+        List<RatePlanListRow> rows = ratePlanQueryMapper.findRatePlans(
+            condition, statusFilter, sortField, sortDirection
+        );
+
+        long total = ratePlanQueryMapper.countRatePlans(condition, statusFilter);
+
+        return new RatePlanPageResponse(
+            rows.stream().map(row -> new RatePlanSummaryResponse(
+                row.id(), row.ratePlanCode(), row.name(), row.categoryCode(), row.categoryName(),
+                row.monthlyFee(), row.salesStatus(), row.updatedAt()
+            )).toList(),
+            page, size, total, (int) Math.ceil((double) total / size)
+        );
+    }
+
+    private RatePlanSalesStatus parseStatus(String status) {
+        // status가 없으면 전체 판매 상태를 조회하고, 값이 있으면 API에 공개된 enum만 허용한다.
+        if (status == null || status.isBlank()) return null;
+        try {
+            return RatePlanSalesStatus.valueOf(status.trim().toUpperCase());
+        } catch (IllegalArgumentException exception) {
+            throw new RatePlanQueryException("INVALID_STATUS", "판매 상태가 올바르지 않습니다.");
+        }
     }
 
 }
