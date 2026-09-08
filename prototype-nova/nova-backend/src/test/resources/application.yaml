@@ -12,6 +12,9 @@ spring:
       ddl-auto: create-drop
     open-in-view: false
 
+mybatis:
+  mapper-locations: classpath*:mapper/**/*.xml
+
 app:
   seed:
     enabled: false

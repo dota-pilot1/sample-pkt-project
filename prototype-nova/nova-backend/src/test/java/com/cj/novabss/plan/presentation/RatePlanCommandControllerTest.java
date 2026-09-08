@@ -1,5 +1,6 @@
 package com.cj.novabss.plan.presentation;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -77,6 +78,66 @@ class RatePlanCommandControllerTest {
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.code").value("DUPLICATE_RATE_PLAN_CODE"))
             .andExpect(jsonPath("$.fieldErrors").isEmpty());
+    }
+
+    @Test
+    void listsPlansWithStableDefaultSortAndPageMetadata() throws Exception {
+        mockMvc.perform(post("/api/plans")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validRequestBody("MOBILE-Z")))
+            .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/plans")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validRequestBody("MOBILE-A")))
+            .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/plans")
+                .param("page", "1")
+                .param("size", "1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.items.length()").value(1))
+            .andExpect(jsonPath("$.items[0].ratePlanCode").value("MOBILE-A"))
+            .andExpect(jsonPath("$.page").value(1))
+            .andExpect(jsonPath("$.size").value(1))
+            .andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.totalPages").value(2));
+
+        // MyBatis 동적 조건은 입력 대소문자를 정규화하고, 허용된 정렬 enum만 SQL에 반영한다.
+        mockMvc.perform(get("/api/plans")
+                .param("keyword", "요금제")
+                .param("categoryCode", "mobile")
+                .param("status", "draft")
+                .param("sort", "ratePlanCode")
+                .param("direction", "desc"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.items.length()").value(2))
+            .andExpect(jsonPath("$.items[0].ratePlanCode").value("MOBILE-Z"))
+            .andExpect(jsonPath("$.totalElements").value(2));
+    }
+
+    @Test
+    void returnsEmptyItemsWhenNoPlanMatches() throws Exception {
+        mockMvc.perform(get("/api/plans").param("keyword", "does-not-exist"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.items").isEmpty())
+            .andExpect(jsonPath("$.totalElements").value(0))
+            .andExpect(jsonPath("$.totalPages").value(0));
+    }
+
+    @Test
+    void rejectsInvalidListQuery() throws Exception {
+        mockMvc.perform(get("/api/plans").param("status", "UNKNOWN"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("INVALID_STATUS"));
+
+        mockMvc.perform(get("/api/plans").param("sort", "createdAt"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("INVALID_SORT"));
+
+        mockMvc.perform(get("/api/plans").param("size", "101"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
+            .andExpect(jsonPath("$.fieldErrors.size").exists());
     }
 
     private String validRequestBody(String code) {
