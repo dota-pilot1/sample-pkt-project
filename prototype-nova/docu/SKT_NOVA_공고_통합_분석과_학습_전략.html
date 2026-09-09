@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SKT NOVA 공고 통합 분석과 학습 전략</title>
+  <style>
+    :root { --ink:#182032; --muted:#5d687a; --line:#dce3ed; --paper:#fff; --ground:#f5f7fb; --blue:#1769db; --cyan:#087f96; --green:#087a59; --amber:#995b00; --violet:#6845d0; --red:#a5394c; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--ground); font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif; line-height:1.66; }
+    .wrap { width:min(1120px,calc(100% - 40px)); margin:0 auto; }
+    header { padding:60px 0 42px; color:#fff; background:radial-gradient(circle at 82% 14%,rgba(73,187,224,.35),transparent 30%),linear-gradient(135deg,#0b2446,#0a4c75); }
+    .eyebrow { margin:0 0 12px; color:#9fe6f5; font-weight:850; font-size:.85rem; letter-spacing:.07em; }
+    h1 { margin:0; font-size:clamp(2rem,5vw,3.45rem); line-height:1.18; letter-spacing:-.047em; }
+    .lead { max-width:830px; margin:18px 0 0; color:#e2f3fb; font-size:1.08rem; }
+    nav { display:flex; flex-wrap:wrap; gap:8px; margin-top:26px; }
+    nav a { padding:7px 12px; border:1px solid #649fc2; border-radius:999px; color:#fff; text-decoration:none; font-size:.89rem; }
+    main { padding:34px 0 70px; }
+    section { margin:32px 0; }
+    h2 { margin:0 0 14px; font-size:1.52rem; letter-spacing:-.03em; }
+    h3 { margin:0 0 7px; font-size:1.08rem; letter-spacing:-.018em; }
+    p { margin:8px 0; }
+    code { padding:2px 5px; border-radius:5px; color:#174a79; background:#edf2f7; }
+    .panel,.card { border:1px solid var(--line); border-radius:16px; background:var(--paper); box-shadow:0 5px 17px rgba(26,52,85,.045); }
+    .panel { padding:25px; }
+    .summary { border-left:5px solid var(--cyan); background:#effafd; }
+    .summary strong { color:#05667a; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; }
+    .grid.three { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .card { padding:20px; }
+    .card p { color:var(--muted); }
+    .tag { display:inline-block; margin:8px 5px 0 0; padding:3px 9px; border-radius:999px; font-size:.8rem; font-weight:780; }
+    .core { color:#135aad; background:#e8f2ff; } .next { color:#087058; background:#e6f7f1; } .later { color:#875200; background:#fff1d8; } .domain { color:#6340bd; background:#f0ebff; }
+    ul,ol { margin:8px 0; padding-left:21px; } li { margin:4px 0; }
+    table { width:100%; border-collapse:collapse; border-radius:12px; border-style:hidden; box-shadow:0 0 0 1px var(--line); }
+    th,td { padding:13px 14px; border:1px solid var(--line); text-align:left; vertical-align:top; font-size:.93rem; }
+    th { background:#eef3f8; }
+    .flow { display:flex; gap:8px; align-items:stretch; overflow-x:auto; padding-bottom:4px; }
+    .flow span { flex:0 0 auto; padding:11px 13px; border-radius:10px; color:#164b7e; background:#eaf3fb; font-size:.88rem; font-weight:780; }
+    .flow i { align-self:center; color:#8190a2; font-style:normal; }
+    .tree { padding:21px; border-radius:13px; color:#eaf4ff; background:#16385f; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.89rem; line-height:1.85; overflow:auto; }
+    .layers { display:grid; gap:10px; }
+    .layer { display:grid; grid-template-columns:166px 1fr; gap:18px; padding:15px 17px; border:1px solid var(--line); border-radius:12px; background:white; }
+    .layer b { color:var(--blue); }
+    .roadmap { counter-reset:week; display:grid; gap:11px; }
+    .week { counter-increment:week; display:grid; grid-template-columns:86px 1fr; gap:17px; padding:18px; border:1px solid var(--line); border-radius:13px; background:#fff; }
+    .week::before { content:"Step " counter(week); padding-top:2px; color:var(--blue); font-size:.84rem; font-weight:900; letter-spacing:.03em; }
+    .week p { color:var(--muted); }
+    .result { color:var(--green)!important; font-weight:780; }
+    .warn { padding:17px 20px; border-left:4px solid var(--amber); border-radius:10px; background:#fff8e9; }
+    .warn strong { color:var(--amber); }
+    .check { columns:2; column-gap:30px; } .check li { break-inside:avoid; margin:7px 0; }
+    .small { color:var(--muted); font-size:.9rem; }
+    footer { padding:0 0 46px; color:var(--muted); font-size:.89rem; }
+    @media(max-width:880px){.grid.three{grid-template-columns:1fr;}}
+    @media(max-width:690px){.wrap{width:min(100% - 28px,1120px)} header{padding:43px 0 32px}.panel{padding:19px}.grid{grid-template-columns:1fr}.layer,.week{grid-template-columns:1fr;gap:4px}.check{columns:1}table{display:block;overflow-x:auto}}
+    @media print{body{background:#fff}header{padding:24px 0}nav{display:none}.panel,.card{box-shadow:none}section{break-inside:avoid}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <p class="eyebrow">SKT · NOVA · BSS/OSS MODERNIZATION</p>
+      <h1>SKT NOVA 공고 통합 분석<br />그리고 학습 전략</h1>
+      <p class="lead">공고 11개 캡처를 역할별로 묶으면 중심은 명확하다. 통신 BSS/OSS의 복잡한 업무를 Java/Spring·React·Oracle 기반으로 현대화하고, 배치·관측·컨테이너 운영을 갖춘 뒤 AI/LLM을 업무 흐름에 안전하게 붙일 수 있는 개발자다.</p>
+      <nav>
+        <a href="#reading">공고 해석</a>
+        <a href="#domain">NOVA 도메인</a>
+        <a href="#skills">우선 학습</a>
+        <a href="#practice">실습 프로젝트</a>
+        <a href="#strategy">지원 전략</a>
+        <a href="#sources">캡처 목록</a>
+        <a href="../AI-Agent_지원_학습_로드맵.html">전체 공고 로드맵</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="panel summary">
+      <h2>이 공고들이 진짜로 찾는 사람</h2>
+      <p><strong>단순한 Java 코더도, LLM 데모 제작자도 아니다.</strong> 가입·상품·주문·개통·자원·과금·고객 업무를 이해하고, 레거시 C/WebSquare/Swing 환경을 Java/Spring·React로 옮기며, 운영 지표와 AI 기능까지 연결할 수 있는 업무 시스템 현대화 개발자다.</p>
+      <div class="flow">
+        <span>AS-IS 분석</span><i>→</i><span>업무·데이터 모델</span><i>→</i><span>Java/Spring API</span><i>→</i><span>React UI</span><i>→</i><span>Batch·Oracle</span><i>→</i><span>Monitoring</span><i>→</i><span>AI 업무 보조</span>
+      </div>
+    </section>
+
+    <section id="reading">
+      <h2>공고를 5개 역할로 읽기</h2>
+      <div class="grid three">
+        <article class="card">
+          <h3>1. NOVA 업무 현대화</h3>
+          <p>유·무선 가입, 상품, 재무, PRM, CRM, OSS, BSS 전반을 다룬다. Java, Spring Boot, React, Oracle과 AI/LLM 경험을 요구 또는 우대한다.</p>
+          <span class="tag core">Java</span><span class="tag core">Spring Boot</span><span class="tag core">React</span><span class="tag domain">BSS/OSS</span>
+        </article>
+        <article class="card">
+          <h3>2. 레거시 전환</h3>
+          <p>Biz는 C → Java, UI는 WebSquare → React 전환 인력을 별도로 찾는다. Billing·상품·오더·OSS·채널 업무와 통신사 운영 경험이 우대다.</p>
+          <span class="tag core">C to Java</span><span class="tag core">WebSquare to React</span><span class="tag domain">Order</span>
+        </article>
+        <article class="card">
+          <h3>3. NOVA 도메인 백엔드</h3>
+          <p>Java 중급 이상, 유선 통신과 Swing 경험을 우대하며 Billing, CRM, EPC, Offering, Partner, Order·Fulfillment를 명시한다.</p>
+          <span class="tag domain">Billing</span><span class="tag domain">CRM</span><span class="tag domain">Fulfillment</span>
+        </article>
+        <article class="card">
+          <h3>4. 과금 시스템 개선</h3>
+          <p>현 시스템·현업 요구 분석, 모니터링 요건 적용이 중심이다. Spring Batch, Oracle SQL, InfluxDB, Grafana, Prometheus, Docker, K8s가 함께 나온다.</p>
+          <span class="tag next">Spring Batch</span><span class="tag next">Prometheus</span><span class="tag next">K8s</span>
+        </article>
+        <article class="card">
+          <h3>5. Go 기반 연동·고성능</h3>
+          <p>C++ 기반 연동 솔루션 설계·개발, Go 외부 연계 API, 실시간 처리, Docker/Kubernetes/DevOps를 요구한다. NOVA 핵심과는 별개의 고성능·플랫폼 확장 트랙이다.</p>
+          <span class="tag later">Go</span><span class="tag later">TCP/UDP</span><span class="tag later">Microservice</span>
+        </article>
+        <article class="card">
+          <h3>6. 차세대 AI Agent 활용 개발</h3>
+          <p>Java 기반 프로그램 개발 위에 AI Agent를 활용한 요구사항 개발을 올린다. React, Spring Boot/Spring/Java, AI Agent 활용 경험을 요구하며 통신 업무 경험은 필수가 아니고 Agent 개인 프로젝트도 인정한다.</p>
+          <span class="tag core">Java·Spring</span><span class="tag core">React</span><span class="tag next">AI Agent</span>
+        </article>
+        <article class="card">
+          <h3>공통으로 반복되는 신호</h3>
+          <p>업무 분석·설계 능력, 실제 운영 경험, 통신 도메인, 안정적 배치/관측, 그리고 AS-IS를 TO-BE로 옮기는 문서화 역량이 반복된다.</p>
+          <span class="tag core">요구분석</span><span class="tag core">설계</span><span class="tag next">운영</span>
+        </article>
+      </div>
+      <div class="warn" style="margin-top:15px"><strong>핵심 해석:</strong> AI/LLM은 NOVA 공고에서 우대 또는 전환 방향으로 제시되지만, 가장 강한 기본 자격은 통신 업무 분석과 Java/Spring·React·Oracle로 업무 시스템을 구현·운영하는 힘이다. 다만 새 AI Agent 활용 공고는 통신 경력이 없어도 Java/Spring·React 기반의 Agent 프로젝트 경험이 있으면 진입할 수 있음을 보여준다. 그래도 도메인·API·권한·검증 없이 챗봇만 만드는 순서는 맞지 않는다.</div>
+    </section>
+
+    <section id="domain">
+      <h2>NOVA 통신 도메인 지도</h2>
+      <div class="panel">
+        <p>공고에 반복된 용어를 학습 구조로 바꾸면 아래처럼 연결된다. 한 용어씩 암기하기보다 고객 요청이 주문·자원·개통·청구까지 어떻게 흐르는지 이해하는 것이 목표다.</p>
+        <div class="tree">고객·파트너
+├── CRM              : 고객, 상담, 관계, 이력
+├── Partner / PRM    : 대리점·파트너와 판매 채널
+├── Product / Offering
+│   ├── 상품 정의, 요금제, 할인, 판매 조건
+│   └── Marketing & Offering
+├── Product Order    : 고객의 가입·변경·해지 주문
+├── Service Order    : 서비스 제공을 위한 작업 지시
+├── Resource Order   : 회선·장비·번호 등 자원 작업 지시
+├── Resource & Fulfillment
+│   └── 자원 할당, 개통, 제공 완료 확인
+├── Billing / Finance : 과금, 청구, 수납, 정산
+└── OSS / EPC        : 망·자원·운영·개통 연계</div>
+        <p class="small">EPC, OSS/BSS, Order 용어는 회사·프로젝트마다 세부 경계가 다를 수 있다. 면접과 실무에서는 공고 용어를 그대로 외우기보다, 해당 조직의 실제 주문·개통·청구 흐름을 확인하며 모델을 맞춘다.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>지원 우선순위</h2>
+      <div class="panel">
+        <table>
+          <thead><tr><th>순위</th><th>학습 분야</th><th>공고와의 연결</th><th>프로젝트로 증명할 것</th></tr></thead>
+          <tbody>
+            <tr><td><strong>P0</strong></td><td>Java, Spring Boot, Oracle SQL, 트랜잭션, REST</td><td>NOVA·과금·Biz 전환의 공통 기반</td><td>가입/상품/주문 API와 데이터 모델</td></tr>
+            <tr><td><strong>P0</strong></td><td>통신 BSS/OSS 업무 분석·설계</td><td>가입·상품·재무·CRM·Order·Fulfillment</td><td>AS-IS/TO-BE, ERD, 상태 전이, API 계약</td></tr>
+            <tr><td><strong>P1</strong></td><td>React, TypeScript, 업무 Table/Form</td><td>WebSquare → React, NOVA UI</td><td>주문 조회·변경·승인 화면과 오류 상태</td></tr>
+            <tr><td><strong>P1</strong></td><td>Spring Batch, 스케줄, 재시도, 멱등성</td><td>과금·정산·대량 업무 처리</td><td>월 과금 시뮬레이션과 재처리 기능</td></tr>
+            <tr><td><strong>P1</strong></td><td>Prometheus, Grafana, 로그·Trace</td><td>모니터링 시스템 요건 적용</td><td>배치·API 실패율, 지연시간, 처리량 대시보드</td></tr>
+            <tr><td><strong>P2</strong></td><td>Docker, Linux, GitLab CI/CD, Kubernetes 개념</td><td>운영 환경·CronJob/Job/Pod</td><td>컨테이너 실행, Health Check, 배치 Job 배포</td></tr>
+            <tr><td><strong>P2</strong></td><td>LLM, Structured Output, Tool Calling, RAG</td><td>AI/LLM 우대, AS-IS → TO-BE AI</td><td>요금제·정책 업무 보조 Agent와 승인 흐름</td></tr>
+            <tr><td><strong>P3</strong></td><td>Go, C++ 연동, TCP/UDP, 고성능</td><td>Go 기반 별도 연동·플랫폼 공고</td><td>Go API, 동시성·성능 측정, 컨테이너 배포</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="skills">
+      <h2>학습 주제: 어떤 깊이까지</h2>
+      <div class="layers">
+        <div class="layer"><b>업무 분석·설계</b><div>Use Case, 업무 규칙, 예외 흐름, 권한, 상태 머신, ERD, API 계약, Sequence Diagram, AS-IS/TO-BE. 공고가 직접 강조한 가장 중요한 역량이다.</div></div>
+        <div class="layer"><b>Java·Spring</b><div>계층형 설계, Validation, Transaction, JPA/MyBatis, 예외 처리, 외부 API 연동, Batch, 테스트, 성능·동시성 기본.</div></div>
+        <div class="layer"><b>Oracle·SQL</b><div>조인·집계·인덱스·실행계획 기초, 날짜·금액 정합성, 대량 처리, 데이터 수정의 안전성, 재처리 가능한 배치 설계.</div></div>
+        <div class="layer"><b>React 전환</b><div>WebSquare 화면을 단순 복사하지 않고 React component, TypeScript DTO, 서버 상태, Table/Form, 권한, Loading/Empty/Error로 재설계한다.</div></div>
+        <div class="layer"><b>운영·관측</b><div>Spring Actuator, 구조화 로그, Metrics, Prometheus, Grafana, InfluxDB 개념, SLI/SLO, 장애 전파와 알림, 배치 모니터링.</div></div>
+        <div class="layer"><b>컨테이너·배포</b><div>Dockerfile/Compose, 환경변수·Secret, CI/CD, Kubernetes의 Deployment·Service·CronJob·Job·Pod 책임. Kubernetes는 Docker 후에 학습한다.</div></div>
+        <div class="layer"><b>AI 업무 적용</b><div>자연어를 검색 조건·업무 DTO로 변환하고, 정책 문서를 RAG로 찾고, 허용된 API Tool만 호출하며, 변경은 사용자 승인·Audit Log 후 실행한다.</div></div>
+      </div>
+    </section>
+
+    <section id="practice">
+      <h2>SKT NOVA 지원용 통합 실습 프로젝트</h2>
+      <div class="grid">
+        <article class="card">
+          <span class="tag core">모듈 1</span>
+          <h3>상품·주문·개통 BSS Mini</h3>
+          <p>요금제, 고객, 상품 주문, 서비스 주문, 자원 할당 상태를 모델링한다.</p>
+          <ul><li>Product → Product Order → Service Order → Resource Order 흐름</li><li>주문 상태 전이와 취소·재처리</li><li>React 업무 Table·상세·변경 화면</li></ul>
+        </article>
+        <article class="card">
+          <span class="tag core">모듈 2</span>
+          <h3>과금 Batch·정산 시뮬레이터</h3>
+          <p>월 사용량을 기준으로 청구 금액을 계산하고 Batch 재실행·중복 방지·오류 재처리를 구현한다.</p>
+          <ul><li>Spring Batch Job/Step</li><li>Oracle 호환 SQL 또는 PostgreSQL로 설계</li><li>처리 건수·실패 건수·재처리 이력</li></ul>
+        </article>
+        <article class="card">
+          <span class="tag next">모듈 3</span>
+          <h3>운영 대시보드</h3>
+          <p>API, 주문, Batch, 외부 연동의 처리량·지연시간·오류율을 측정한다.</p>
+          <ul><li>Prometheus Metrics</li><li>Grafana Dashboard</li><li>장애 시 로그·Trace로 원인 찾기</li></ul>
+        </article>
+        <article class="card">
+          <span class="tag next">모듈 4</span>
+          <h3>레거시 전환 Adapter</h3>
+          <p>가상의 C·Swing·WebSquare 레거시 계약을 Java API와 React UI로 점진적으로 바꾸는 과정을 만든다.</p>
+          <ul><li>기존 데이터/응답 계약 문서화</li><li>Adapter·Strangler 방식 비교</li><li>신·구 화면 병행과 전환 체크리스트</li></ul>
+        </article>
+        <article class="card">
+          <span class="tag domain">모듈 5</span>
+          <h3>요금제 정책 AI 업무 보조</h3>
+          <p>요금제 정책 문서를 근거로 질문에 답하고, 자연어 검색 조건으로 상품 API를 호출한다.</p>
+          <ul><li>Structured Output → 검색 DTO</li><li>RAG 출처와 정책 버전</li><li>변경 작업은 승인·Audit Log</li></ul>
+        </article>
+        <article class="card">
+          <span class="tag later">선택 모듈</span>
+          <h3>Go 외부 연동 서비스</h3>
+          <p>Go로 외부 연동 API 또는 고동시성 조회 서비스를 만들고 Java 서비스와 역할을 비교한다.</p>
+          <ul><li>Context, Goroutine, Channel</li><li>Timeout·Retry·Circuit Breaker</li><li>Docker/Kubernetes 배포와 부하 측정</li></ul>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>AS-IS → TO-BE 포트폴리오 서사</h2>
+      <div class="panel">
+        <div class="flow"><span>수기·레거시 업무</span><i>→</i><span>요구사항·데이터 분석</span><i>→</i><span>Java/Spring API</span><i>→</i><span>React 업무 화면</span><i>→</i><span>Batch·모니터링</span><i>→</i><span>AI 보조·승인</span></div>
+        <ul>
+          <li><strong>AS-IS:</strong> 상품 변경과 개통 상태 확인이 여러 시스템과 수작업 조회에 흩어져 있고, 배치 실패 원인도 즉시 찾기 어렵다.</li>
+          <li><strong>TO-BE:</strong> 주문·자원 상태를 하나의 화면에서 추적하고, Batch 처리·실패·재처리 이력을 운영 대시보드에서 확인한다.</li>
+          <li><strong>AI 적용:</strong> 정책 문서와 상품 데이터를 근거로 자연어 검색·영향 분석 초안을 만들되, 실제 변경은 권한과 승인 후에만 실행한다.</li>
+          <li><strong>검증:</strong> 상태 전이 테스트, Batch 재실행 테스트, 모니터링 화면, AI 출처·Tool 호출·Audit Log를 함께 제시한다.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="strategy">
+      <h2>지원 전략</h2>
+      <div class="roadmap">
+        <article class="week"><div><h3>주력은 “NOVA Java·React + 통신 업무”로 잡는다</h3><p>현재 Java/Spring·React 기반이 있다면 가장 가까운 공고다. 상품·주문·과금·CRM 중 하나를 깊게 잡고 전체 흐름을 설명할 수 있게 만든다.</p><p class="result">이력서 키워드: Java, Spring Boot, React, Oracle SQL, BSS/OSS, Billing, Order, CRM</p></div></article>
+        <article class="week"><div><h3>AI는 기존 업무를 강화하는 증거로 붙인다</h3><p>챗봇 자체가 아니라 정책 검색, 요금제 조건 추출, 영향도 분석, 승인·감사 기록이라는 업무 흐름으로 보여준다.</p><p class="result">이력서 키워드: Structured Output, Tool Calling, RAG, Human-in-the-loop, Audit Log</p></div></article>
+        <article class="week"><div><h3>과금·운영 역량을 차별점으로 만든다</h3><p>Batch, SQL 정합성, 재처리, Prometheus/Grafana, Docker를 추가하면 단순 화면 개발보다 현업 투입 가능성이 높은 포트폴리오가 된다.</p><p class="result">이력서 키워드: Spring Batch, Oracle SQL, Monitoring, Docker, Kubernetes Job</p></div></article>
+        <article class="week"><div><h3>Go는 지원 공고가 명확할 때 별도 트랙으로 학습한다</h3><p>Go 공고는 C++ 연동·고성능·네트워크·컨테이너 요구가 강하다. NOVA Java 직무를 준비하며 동시에 깊게 파기보다, Java/React 핵심 포트폴리오 후 보조 확장으로 선택한다.</p><p class="result">이력서 키워드: Go, TCP/UDP, Microservice, Kubernetes, DevOps</p></div></article>
+        <article class="week"><div><h3>통신 경력이 부족하면 AI Agent 프로젝트로 입구를 만든다</h3><p>새 공고는 통신 업무 경력이 없어도 AI Agent 활용 프로젝트나 개인 활용 경험을 우대한다. 노트앱 RAG Assistant 또는 NOVA 요금제 업무 보조 Agent를 Java/Spring·React로 끝까지 구현해, Tool Calling·출처·승인·감사 기록을 보여준다.</p><p class="result">이력서 키워드: AI Agent, RAG, Tool Calling, Structured Output, React, Spring Boot</p></div></article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>면접 전 체크리스트</h2>
+      <ul class="check">
+        <li>가입 → 상품 주문 → 서비스 주문 → 자원 할당 → 개통 → 과금 흐름을 설명할 수 있다.</li>
+        <li>각 주문 상태와 취소·실패·재처리 규칙을 설계했다.</li>
+        <li>Java Transaction과 Oracle SQL 정합성을 설명할 수 있다.</li>
+        <li>Spring Batch의 Job/Step, 재시작, 중복 방지를 구현했다.</li>
+        <li>React에서 업무 Table, Form, 권한, 오류 상태를 구현했다.</li>
+        <li>WebSquare/Swing/C 레거시 전환 시 위험과 점진 전환 방법을 말할 수 있다.</li>
+        <li>Prometheus/Grafana에서 API와 Batch 상태를 확인할 수 있다.</li>
+        <li>Docker와 Kubernetes Job/CronJob의 역할을 구분한다.</li>
+        <li>AI가 SQL이나 변경 API를 직접 실행하지 않도록 설계했다.</li>
+        <li>RAG 출처, Tool 입력 검증, 승인, Audit Log를 보여줄 수 있다.</li>
+        <li>요구사항 → 설계 → 구현 → 테스트 → 운영 지표 순으로 프로젝트를 설명한다.</li>
+        <li>본인이 직접 구현한 부분과 학습·참고한 부분을 정직하게 구분한다.</li>
+      </ul>
+    </section>
+
+    <section id="sources">
+      <h2>보관한 SKT 공고 캡처</h2>
+      <div class="panel">
+        <ol>
+          <li><a href="01-NOVA-차세대-AI-LLM.png">SKT NOVA 차세대 — Java/React/Spring/Oracle, AI/LLM, BSS/OSS</a></li>
+          <li><a href="02-NOVA-도메인-백엔드.png">SKT NOVA 프로젝트 — Java·유선 통신 도메인</a></li>
+          <li><a href="03-NOVA-CtoJava-WebsquaretoReact.png">SKT 차세대(NOVA) 구축 — C→Java, WebSquare→React</a></li>
+          <li><a href="04-SKT-Go-마이크로서비스.png">SKT 프로젝트 — Go 연동·고성능·컨테이너</a></li>
+          <li><a href="05-NOVA-차세대-SI-중고급.png">SKT NOVA 차세대 SI — Java/React/AI·LLM</a></li>
+          <li><a href="06-NOVA-도메인-상세.png">SKT NOVA 진행 도메인 상세</a></li>
+          <li><a href="07-SKT-과금-시스템-개선.png">SKT 과금 시스템 개선 — Batch·관측·K8s</a></li>
+          <li><a href="08-SKT-차세대-AI-Agent-활용.png">SK텔레콤 차세대 AI Agent 활용 개발</a></li>
+          <li><a href="09-NOVA-도메인-이전캡처.png">이전 보관 NOVA 도메인 캡처</a></li>
+          <li><a href="10-과금-시스템-이전캡처.png">이전 보관 과금 시스템 개선 캡처</a></li>
+          <li><a href="11-SKT-차세대-AI-Agent-활용-개발.png">SK텔레콤 차세대프로젝트 AI Agent 활용 개발</a></li>
+        </ol>
+        <p class="small">동일 공고의 서로 다른 화면과 이전에 보관한 캡처는 요구사항 누락을 막기 위해 함께 보관했다. 실제 지원 전에는 원 공고의 최신 모집 상태와 상세 조건을 다시 확인한다.</p>
+      </div>
+    </section>
+  </main>
+  <footer class="wrap">SKT NOVA 준비의 순서: 통신 업무 흐름 → Java/Spring·Oracle 구현 → React 업무 UI → Batch·관측·운영 → AI/LLM 업무 보조 → 필요할 때 Go·고성능 플랫폼 확장.</footer>
+</body>
+</html>

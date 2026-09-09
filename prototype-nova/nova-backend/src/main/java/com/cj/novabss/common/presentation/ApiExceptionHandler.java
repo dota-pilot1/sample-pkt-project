@@ -2,6 +2,7 @@ package com.cj.novabss.common.presentation;
 
 import com.cj.novabss.plan.application.RatePlanCommandException;
 import com.cj.novabss.plan.application.RatePlanQueryException;
+import com.cj.novabss.user.application.LoginException;
 import com.cj.novabss.user.application.SignUpException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -53,6 +54,12 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(SignUpException.class)
     public ResponseEntity<ApiErrorResponse> handleSignUp(SignUpException exception) {
+        return ResponseEntity.status(exception.getStatus())
+            .body(new ApiErrorResponse(exception.getCode(), exception.getMessage(), Map.of()));
+    }
+
+    @ExceptionHandler(LoginException.class)
+    public ResponseEntity<ApiErrorResponse> handleLogin(LoginException exception) {
         return ResponseEntity.status(exception.getStatus())
             .body(new ApiErrorResponse(exception.getCode(), exception.getMessage(), Map.of()));
     }
