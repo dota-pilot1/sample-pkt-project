@@ -21,6 +21,7 @@ public class SignUpController {
     }
 
     @PostMapping("/signup")
+    // 형식 검증은 HTTP 경계에서 끝내고, 가입 규칙과 저장 순서는 Service에 위임한다.
     public ResponseEntity<SignUpResponse> signUp(@Valid @RequestBody SignUpRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(signUpService.signUp(request));
     }

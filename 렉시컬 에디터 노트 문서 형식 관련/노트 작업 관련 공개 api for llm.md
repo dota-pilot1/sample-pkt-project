@@ -100,6 +100,36 @@ Content-Type: application/json
 }
 ```
 
+## 2차 메뉴 이동
+
+2차 메뉴와 그 아래 모든 문서를 같은 플레이북의 다른 1차 메뉴로 이동한다. 먼저 `tree` 조회로 현재 `topicId`와 목적지 `categoryId`를 확인한다. 목적지에 같은 제목의 2차 메뉴가 있으면 이동하지 않는다.
+
+```http
+PATCH {baseUrl}/topics/{topicId}
+Content-Type: application/json
+```
+
+```json
+{
+  "categoryId": 160
+}
+```
+
+## 다른 2차 메뉴로 문서 이동
+
+문서와 그 하위 문서를 같은 1차 메뉴의 다른 2차 메뉴로 옮긴다. 이동한 문서는 대상 2차 메뉴의 루트 문서가 되며, 하위 문서는 함께 유지된다. 같은 2차 메뉴 안에서 부모 문서만 바꾸는 작업은 아래 API가 아니라 기존 `parentId` 본문 수정 API를 사용한다.
+
+```http
+PATCH {baseUrl}/documents/{documentId}
+Content-Type: application/json
+```
+
+```json
+{
+  "topicId": 2244
+}
+```
+
 ## 문서 삭제
 
 ```http

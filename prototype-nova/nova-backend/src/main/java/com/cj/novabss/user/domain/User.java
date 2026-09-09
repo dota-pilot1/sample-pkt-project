@@ -50,4 +50,10 @@ public class User {
         user.updatedAt = now;
         return user;
     }
+
+    /** 운영자 비활성화 등으로 로그인할 수 없는 계정 상태를 표현한다. */
+    public void deactivate(OffsetDateTime now) {
+        this.active = false;
+        this.updatedAt = now;
+    }
 }
