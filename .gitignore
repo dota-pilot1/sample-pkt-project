@@ -54,6 +54,7 @@ target/
 
 # Independently versioned application
 /pkt-study-fullstack/
+/tikitaka-note/
 **/.data/
 *.db
 *.db-shm
