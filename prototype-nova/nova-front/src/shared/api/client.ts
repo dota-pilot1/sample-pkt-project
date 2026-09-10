@@ -25,6 +25,7 @@ type JsonRequestOptions = Omit<AxiosRequestConfig, "data" | "headers" | "url"> &
 };
 
 function getApiBaseUrl() {
+  // 배포 환경별 공개 API 주소의 끝 슬래시를 제거해 요청 URL을 일관되게 만든다.
   return process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/+$/, "") ?? "";
 }
 
@@ -59,7 +60,10 @@ apiClient.interceptors.response.use(
 );
 
 /** JSON API 요청과 Spring Boot의 공통 오류 응답을 처리하는 Axios 경계다. */
-export async function apiRequest<T>(path: string, options: JsonRequestOptions = {}): Promise<T> {
+export async function apiRequest<T>(
+  path: string,
+  options: JsonRequestOptions = {},
+): Promise<T> {
   const { body, headers, ...requestOptions } = options;
   const response = await apiClient.request<T>({
     ...requestOptions,
