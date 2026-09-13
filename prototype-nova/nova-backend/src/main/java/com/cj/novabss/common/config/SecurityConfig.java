@@ -43,7 +43,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/signup", "/login", "/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/api/dashboard", "/api/plan-categories", "/api/plans").permitAll()
+                .requestMatchers("/api/dashboard", "/api/plan-categories", "/api/plans", "/api/permissions", "/api/permissions/**", "/api/roles", "/api/roles/**").permitAll()
                 .anyRequest().denyAll()
             );
         return http.build();

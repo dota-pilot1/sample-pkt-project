@@ -2,6 +2,9 @@ package com.cj.novabss.common.presentation;
 
 import com.cj.novabss.plan.application.RatePlanCommandException;
 import com.cj.novabss.plan.application.RatePlanQueryException;
+import com.cj.novabss.role.application.PermissionCommandException;
+import com.cj.novabss.role.application.RoleCommandException;
+import com.cj.novabss.role.application.RoleQueryException;
 import com.cj.novabss.user.application.LoginException;
 import com.cj.novabss.user.application.SignUpException;
 import java.util.LinkedHashMap;
@@ -60,6 +63,24 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(LoginException.class)
     public ResponseEntity<ApiErrorResponse> handleLogin(LoginException exception) {
+        return ResponseEntity.status(exception.getStatus())
+            .body(new ApiErrorResponse(exception.getCode(), exception.getMessage(), Map.of()));
+    }
+
+    @ExceptionHandler(PermissionCommandException.class)
+    public ResponseEntity<ApiErrorResponse> handlePermissionCommand(PermissionCommandException exception) {
+        return ResponseEntity.status(exception.getStatus())
+            .body(new ApiErrorResponse(exception.getCode(), exception.getMessage(), Map.of()));
+    }
+
+    @ExceptionHandler(RoleCommandException.class)
+    public ResponseEntity<ApiErrorResponse> handleRoleCommand(RoleCommandException exception) {
+        return ResponseEntity.status(exception.getStatus())
+            .body(new ApiErrorResponse(exception.getCode(), exception.getMessage(), Map.of()));
+    }
+
+    @ExceptionHandler(RoleQueryException.class)
+    public ResponseEntity<ApiErrorResponse> handleRoleQuery(RoleQueryException exception) {
         return ResponseEntity.status(exception.getStatus())
             .body(new ApiErrorResponse(exception.getCode(), exception.getMessage(), Map.of()));
     }

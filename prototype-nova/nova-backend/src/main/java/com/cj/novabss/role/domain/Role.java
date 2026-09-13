@@ -27,6 +27,9 @@ public class Role {
     @Column(nullable = false, length = 100)
     private String name;
 
+    @Column(nullable = false)
+    private boolean enabled;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
@@ -34,7 +37,21 @@ public class Role {
         Role role = new Role();
         role.roleCode = roleCode;
         role.name = name;
+        role.enabled = true;
         role.createdAt = now;
         return role;
+    }
+
+    /** 역할 코드는 이미 사용자·권한 연결의 기준이므로 바꾸지 않고 표시 이름만 수정한다. */
+    public void changeName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("name은(는) 필수입니다.");
+        }
+        this.name = name.trim();
+    }
+
+    /** 비활성 역할은 기존 연결 이력은 보존하되 새 역할 부여 대상에서는 제외한다. */
+    public void changeEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }

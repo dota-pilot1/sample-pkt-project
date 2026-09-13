@@ -30,6 +30,9 @@ public class Permission {
     @Column(nullable = false, length = 500)
     private String description;
 
+    @Column(nullable = false)
+    private boolean enabled;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
@@ -38,8 +41,18 @@ public class Permission {
         permission.permissionCode = requiredText(permissionCode, "permissionCode");
         permission.name = requiredText(name, "name");
         permission.description = requiredText(description, "description");
+        permission.enabled = true;
         permission.createdAt = now;
         return permission;
+    }
+
+    public void changeDetails(String name, String description) {
+        this.name = requiredText(name, "name");
+        this.description = requiredText(description, "description");
+    }
+
+    public void changeEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     private static String requiredText(String value, String fieldName) {
