@@ -8,6 +8,8 @@
 - Windows: `windows-latest` Actions 작업만 수동 실행하여 NSIS 설치 파일을 같은 Release에 추가합니다.
 - 태그 push만으로 macOS와 Windows를 자동 빌드하지 않습니다.
 
+이 앱은 개인 프로토타입이므로 커밋·푸시·릴리즈에 별도 승인 절차는 없습니다. 검증을 통과한 변경은 기본적으로 패치 버전을 하나 올려 릴리즈합니다. 다만 SQLite 시드 포함, 버전 일치, 서명과 공증 검증은 설치 가능한 앱을 만들기 위한 필수 기술 절차로 유지합니다.
+
 macOS GitHub 호스팅 러너가 Windows보다 비싸므로, Apple 인증서와 공증 정보를 보유한 개발 Mac에서 macOS 산출물을 만드는 것이 비용 면에서 유리합니다. Windows는 macOS에서 정식 NSIS 설치 파일을 만들기 어렵기 때문에 Windows 러너를 선택적으로 사용합니다.
 
 ## 대상
@@ -89,7 +91,7 @@ git diff --check
 
 `cargo check` 전에 sidecar를 생성하지 않으면 `binaries/node-<target>` 누락으로 실패한다. 정식 `npm run tauri -- build`는 `pretauri`에서 이 작업을 자동으로 실행한다.
 
-검증 후 변경을 커밋하고 `main`에 push한 다음 annotated tag를 push합니다.
+검증 후 변경을 커밋하고 `main`에 push한 다음, 올린 버전과 같은 annotated tag를 push합니다.
 
 ```bash
 git push origin main

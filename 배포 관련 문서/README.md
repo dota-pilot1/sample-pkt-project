@@ -14,6 +14,7 @@
 8. `08-PKT-Study-Fullstack-하이브리드-릴리즈.md` - 현행 앱의 로컬 macOS + Actions Windows 릴리즈
 9. `09-macOS-공증-중요-디버깅.md` - Apple 공증 401, 셸 변수 확장, staple/Gatekeeper 검증
 10. `10-Tauri-로컬-SQLite-포함-배포-안전-기준.md` - 온보딩 앱의 기준 DB 포함 조건, 무결성 검사, 설치·업데이트 검증
+11. `11-개인-프로토타입-릴리즈-원칙.md` - NOVA와 PKT Study Fullstack의 개인 프로젝트 커밋·푸시·릴리즈 기준
 
 ## 상태 보고를 재현하는 문서
 
