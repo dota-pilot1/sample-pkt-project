@@ -57,8 +57,8 @@ class SignUpControllerTest {
         assertThat(passwordEncoder.matches("Valid1!pw", user.getPasswordHash())).isTrue();
         // 이 테스트는 CUSTOMER 역할만 준비하므로 생성된 단일 UserRole은 기본 CUSTOMER 역할 관계다.
         // Lazy relation은 ID 기반 repository 검증으로 확인해 웹 요청 종료 뒤 프록시를 초기화하지 않는다.
-        assertThat(userRoleRepository.findByUserId(user.getId())).hasSize(1);
-        assertThat(userRoleRepository.findByRoleId(roleRepository.findByRoleCode("CUSTOMER").orElseThrow().getId())).hasSize(1);
+        assertThat(userRoleRepository.findAllByUserId(user.getId())).hasSize(1);
+        assertThat(userRoleRepository.findAllByRoleId(roleRepository.findByRoleCode("CUSTOMER").orElseThrow().getId())).hasSize(1);
     }
 
     @Test

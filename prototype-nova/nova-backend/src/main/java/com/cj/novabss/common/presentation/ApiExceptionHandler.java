@@ -5,6 +5,7 @@ import com.cj.novabss.plan.application.RatePlanQueryException;
 import com.cj.novabss.role.application.PermissionCommandException;
 import com.cj.novabss.role.application.RoleCommandException;
 import com.cj.novabss.role.application.RoleQueryException;
+import com.cj.novabss.role.application.RbacMappingException;
 import com.cj.novabss.user.application.LoginException;
 import com.cj.novabss.user.application.SignUpException;
 import java.util.LinkedHashMap;
@@ -81,6 +82,12 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(RoleQueryException.class)
     public ResponseEntity<ApiErrorResponse> handleRoleQuery(RoleQueryException exception) {
+        return ResponseEntity.status(exception.getStatus())
+            .body(new ApiErrorResponse(exception.getCode(), exception.getMessage(), Map.of()));
+    }
+
+    @ExceptionHandler(RbacMappingException.class)
+    public ResponseEntity<ApiErrorResponse> handleRbacMapping(RbacMappingException exception) {
         return ResponseEntity.status(exception.getStatus())
             .body(new ApiErrorResponse(exception.getCode(), exception.getMessage(), Map.of()));
     }

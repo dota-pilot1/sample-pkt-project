@@ -42,7 +42,7 @@ public class LoginService {
 
         // UserRoleRepository는 user_roles의 여러 역할 연결 행을 List<UserRole>로 조회한다.
         // 각 연결 행을 역할 코드로 바꾸고, 응답 순서를 고정한 뒤 List<String>으로 만든다.
-        List<String> roleCodes = userRoleRepository.findByUserId(user.getId()).stream()
+        List<String> roleCodes = userRoleRepository.findAllByUserId(user.getId()).stream()
             .map(userRole -> userRole.getRole().getRoleCode())
             .sorted(Comparator.naturalOrder())
             .toList();

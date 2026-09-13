@@ -524,4 +524,15 @@ button {
 .enabled-button { background: #d9f8e6; color: #087443; }
 .disabled-button { background: #eceff3; color: #596273; }
 .permission-error { color: #b42318; }
+.role-mapping { margin-top: 24px; border: 1px solid var(--border); border-radius: 16px; background: var(--card); padding: 24px; }
+.role-mapping h2, .role-mapping p { margin: 0; }
+.role-mapping p { margin-top: 8px; color: var(--muted-foreground); }
+.role-selector { display: grid; gap: 6px; max-width: 380px; margin-top: 18px; color: var(--muted-foreground); font-size: 14px; }
+.role-selector select { border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--background); color: var(--foreground); font: inherit; }
+.mapping-permissions { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 18px; }
+.mapping-permission { display: flex; align-items: flex-start; gap: 9px; border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: pointer; }
+.mapping-permission:has(input:checked) { border-color: var(--primary); background: var(--accent-soft); }
+.mapping-permission input { margin-top: 3px; }
+.mapping-permission strong, .mapping-permission code { display: block; }
+.mapping-permission code { margin-top: 3px; color: var(--muted-foreground); font-size: 11px; }
 @media (max-width: 760px) { .permission-grid { grid-template-columns: 1fr; } }
