@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { PackageOpen } from "lucide-react";
+import { PackageOpen, ShieldCheck } from "lucide-react";
 import {
   AppearanceMenu,
   type Language,
@@ -73,6 +73,10 @@ export default function NovaHomePage() {
           >
             <PackageOpen aria-hidden="true" size={18} />
             <span className="nav-label">{text.menu}</span>
+          </Link>
+          <Link aria-label="권한 관리" className="nav-item" href="/permissions">
+            <ShieldCheck aria-hidden="true" size={18} />
+            <span className="nav-label">권한 관리</span>
           </Link>
         </nav>
         <div className="sidebar-bottom">
