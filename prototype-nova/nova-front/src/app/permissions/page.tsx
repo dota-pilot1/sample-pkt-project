@@ -11,6 +11,7 @@ import {
 } from "@/features/permission/api";
 import { roleApi } from "@/features/role/api";
 import { ApiError } from "@/shared/api/client";
+import { AuthGate } from "@/features/auth/login/ui/auth-gate";
 
 const emptyForm: CreatePermissionRequest = {
   permissionCode: "",
@@ -84,6 +85,7 @@ export default function PermissionsPage() {
   }
 
   return (
+    <AuthGate>
     <main className="page-body permission-page">
       <Link className="back-link" href="/"><ArrowLeft size={16} /> 상품·요금제 관리로 돌아가기</Link>
       <div className="page-heading">
@@ -154,5 +156,6 @@ export default function PermissionsPage() {
         )}
       </section>
     </main>
+    </AuthGate>
   );
 }

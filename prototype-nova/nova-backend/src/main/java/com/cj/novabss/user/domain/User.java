@@ -21,8 +21,12 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "login_id", nullable = false, unique = true, length = 100)
-    private String loginId;
+    /**
+     * API와 도메인에서는 이메일을 계정 식별자로 사용한다. 기존 로컬 DB의 login_id
+     * 컬럼은 무중단 호환을 위해 유지하며, 물리 컬럼명 변경은 별도 DB 마이그레이션으로 수행한다.
+     */
+    @Column(name = "login_id", nullable = false, unique = true, length = 254)
+    private String email;
 
     @Column(name = "display_name", nullable = false, length = 100)
     private String displayName;
@@ -40,9 +44,9 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    public static User create(String loginId, String passwordHash, String displayName, OffsetDateTime now) {
+    public static User create(String email, String passwordHash, String displayName, OffsetDateTime now) {
         User user = new User();
-        user.loginId = loginId;
+        user.email = email;
         user.passwordHash = passwordHash;
         user.displayName = displayName;
         user.active = true;

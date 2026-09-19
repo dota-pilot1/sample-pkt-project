@@ -8,7 +8,7 @@
 
 ```json
 {
-  "loginId": "nova.user",
+  "email": "nova.user@company.com",
   "password": "Valid1!pw",
   "displayName": "노바 사용자"
 }
@@ -16,7 +16,7 @@
 
 | 필드 | 규칙 |
 | --- | --- |
-| `loginId` | 영문으로 시작하는 4~30자의 영문·숫자·`.`·`_`·`-`. 공백을 제거하고 소문자로 저장한다. |
+| `email` | 올바른 이메일 형식의 254자 이하 문자열. 앞뒤 공백을 제거하고 소문자로 저장한다. |
 | `password` | 공백 없는 8~72자. 영문·숫자·특수문자를 각각 하나 이상 포함한다. BCrypt 단방향 해시만 저장한다. |
 | `displayName` | 공백이 아닌 2~100자. 앞뒤 공백을 제거해 저장한다. |
 
@@ -25,7 +25,7 @@
 ```json
 {
   "id": 1,
-  "loginId": "nova.user",
+  "email": "nova.user@company.com",
   "displayName": "노바 사용자",
   "active": true,
   "roleCode": "CUSTOMER",
@@ -40,9 +40,9 @@
 | 상태 | 코드 | 경우 |
 | --- | --- | --- |
 | `400` | `INVALID_REQUEST` | 필수값 또는 형식 검증 실패. `fieldErrors`에 필드별 원인을 넣는다. |
-| `409` | `DUPLICATE_LOGIN_ID` | 정규화된 로그인 ID가 이미 존재한다. |
+| `409` | `DUPLICATE_EMAIL` | 정규화된 이메일이 이미 존재한다. |
 | `503` | `DEFAULT_ROLE_NOT_FOUND` | 기본 `CUSTOMER` 역할 기준정보가 없어 가입을 완료할 수 없다. |
 
 ## 검증 근거
 
-`SignUpControllerTest`는 정상 가입·활성 상태·기본 역할 연결·BCrypt 검증, 중복 로그인 ID, 입력 형식 오류, 기본 역할 누락 시 트랜잭션 결과를 검증한다. 최종 Gradle 실행 결과는 프로젝트 전체 할 일 문서에 기록한다.
+`SignUpControllerTest`는 정상 가입·활성 상태·기본 역할 연결·BCrypt 검증, 중복 이메일, 입력 형식 오류, 기본 역할 누락 시 트랜잭션 결과를 검증한다. 최종 Gradle 실행 결과는 프로젝트 전체 할 일 문서에 기록한다.

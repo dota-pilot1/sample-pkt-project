@@ -30,7 +30,8 @@ public class Permission {
     @Column(nullable = false, length = 500)
     private String description;
 
-    @Column(nullable = false)
+    // 기존 로컬 DB에 컬럼을 추가할 때도 기존 행이 유효하도록 기본값을 명시한다.
+    @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean enabled;
 
     @Column(name = "created_at", nullable = false, updatable = false)

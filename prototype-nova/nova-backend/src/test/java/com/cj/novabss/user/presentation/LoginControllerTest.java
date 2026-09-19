@@ -41,14 +41,14 @@ class LoginControllerTest {
     }
 
     @Test
-    void logsInActiveUserWithNormalizedLoginIdAndRoleCodes() throws Exception {
-        saveUser("nova.user", "Valid1!pw", true);
+    void logsInActiveUserWithNormalizedEmailAndRoleCodes() throws Exception {
+        saveUser("nova.user@company.com", "Valid1!pw", true);
 
         mockMvc.perform(post("/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"loginId\":\"Nova.User\",\"password\":\"Valid1!pw\"}"))
+                .content("{\"email\":\"Nova.User@Company.com\",\"password\":\"Valid1!pw\"}"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.loginId").value("nova.user"))
+            .andExpect(jsonPath("$.email").value("nova.user@company.com"))
             .andExpect(jsonPath("$.displayName").value("노바 사용자"))
             .andExpect(jsonPath("$.roleCodes[0]").value("CUSTOMER"))
             .andExpect(jsonPath("$.password").doesNotExist())
@@ -56,38 +56,38 @@ class LoginControllerTest {
     }
 
     @Test
-    void returnsSameUnauthorizedResponseForUnknownIdWrongPasswordAndInactiveUser() throws Exception {
-        saveUser("active.user", "Valid1!pw", true);
-        saveUser("inactive.user", "Valid1!pw", false);
+    void returnsSameUnauthorizedResponseForUnknownEmailWrongPasswordAndInactiveUser() throws Exception {
+        saveUser("active.user@company.com", "Valid1!pw", true);
+        saveUser("inactive.user@company.com", "Valid1!pw", false);
 
-        assertInvalidCredentials("unknown.user", "Valid1!pw");
-        assertInvalidCredentials("active.user", "Wrong1!pw");
-        assertInvalidCredentials("inactive.user", "Valid1!pw");
+        assertInvalidCredentials("unknown.user@company.com", "Valid1!pw");
+        assertInvalidCredentials("active.user@company.com", "Wrong1!pw");
+        assertInvalidCredentials("inactive.user@company.com", "Valid1!pw");
     }
 
     @Test
     void returnsFieldErrorsForInvalidRequest() throws Exception {
         mockMvc.perform(post("/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"loginId\":\"1\",\"password\":\"\"}"))
+                .content("{\"email\":\"not-an-email\",\"password\":\"\"}"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
-            .andExpect(jsonPath("$.fieldErrors.loginId").exists())
+            .andExpect(jsonPath("$.fieldErrors.email").exists())
             .andExpect(jsonPath("$.fieldErrors.password").exists());
     }
 
-    private void assertInvalidCredentials(String loginId, String password) throws Exception {
+    private void assertInvalidCredentials(String email, String password) throws Exception {
         mockMvc.perform(post("/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"loginId\":\"%s\",\"password\":\"%s\"}".formatted(loginId, password)))
+                .content("{\"email\":\"%s\",\"password\":\"%s\"}".formatted(email, password)))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"))
             .andExpect(jsonPath("$.fieldErrors").isEmpty());
     }
 
-    private void saveUser(String loginId, String password, boolean active) {
+    private void saveUser(String email, String password, boolean active) {
         OffsetDateTime now = OffsetDateTime.now();
-        User user = User.create(loginId, passwordEncoder.encode(password), "노바 사용자", now);
+        User user = User.create(email, passwordEncoder.encode(password), "노바 사용자", now);
         if (!active) user.deactivate(now);
         User savedUser = userRepository.saveAndFlush(user);
         userRoleRepository.save(UserRole.assign(savedUser, customerRole, now));

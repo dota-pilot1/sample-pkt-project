@@ -42,16 +42,16 @@ class SignUpControllerTest {
     void createsActiveUserAndCustomerRoleWithHashedPassword() throws Exception {
         mockMvc.perform(post("/signup")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(validRequest("nova.user")))
+                .content(validRequest("nova.user@company.com")))
             .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.loginId").value("nova.user"))
+            .andExpect(jsonPath("$.email").value("nova.user@company.com"))
             .andExpect(jsonPath("$.displayName").value("노바 사용자"))
             .andExpect(jsonPath("$.active").value(true))
             .andExpect(jsonPath("$.roleCode").value("CUSTOMER"))
             .andExpect(jsonPath("$.password").doesNotExist())
             .andExpect(jsonPath("$.passwordHash").doesNotExist());
 
-        User user = userRepository.findByLoginId("nova.user").orElseThrow();
+        User user = userRepository.findByEmail("nova.user@company.com").orElseThrow();
         assertThat(user.isActive()).isTrue();
         assertThat(user.getPasswordHash()).isNotEqualTo("Valid1!pw");
         assertThat(passwordEncoder.matches("Valid1!pw", user.getPasswordHash())).isTrue();
@@ -62,14 +62,14 @@ class SignUpControllerTest {
     }
 
     @Test
-    void normalizesLoginIdAndRejectsDuplicateWithoutCreatingAnotherUser() throws Exception {
-        mockMvc.perform(post("/signup").contentType(MediaType.APPLICATION_JSON).content(validRequest("Nova.User")))
+    void normalizesEmailAndRejectsDuplicateWithoutCreatingAnotherUser() throws Exception {
+        mockMvc.perform(post("/signup").contentType(MediaType.APPLICATION_JSON).content(validRequest("Nova.User@Company.com")))
             .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.loginId").value("nova.user"));
+            .andExpect(jsonPath("$.email").value("nova.user@company.com"));
 
-        mockMvc.perform(post("/signup").contentType(MediaType.APPLICATION_JSON).content(validRequest("nova.user")))
+        mockMvc.perform(post("/signup").contentType(MediaType.APPLICATION_JSON).content(validRequest("nova.user@company.com")))
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.code").value("DUPLICATE_LOGIN_ID"))
+            .andExpect(jsonPath("$.code").value("DUPLICATE_EMAIL"))
             .andExpect(jsonPath("$.fieldErrors").isEmpty());
 
         assertThat(userRepository.count()).isEqualTo(1);
@@ -79,13 +79,13 @@ class SignUpControllerTest {
     @Test
     void returnsFieldErrorsForInvalidRequiredOrFormattedValues() throws Exception {
         String invalidRequest = """
-            {"loginId":"1", "password":"short", "displayName":""}
+            {"email":"not-an-email", "password":"short", "displayName":""}
             """;
 
         mockMvc.perform(post("/signup").contentType(MediaType.APPLICATION_JSON).content(invalidRequest))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
-            .andExpect(jsonPath("$.fieldErrors.loginId").exists())
+            .andExpect(jsonPath("$.fieldErrors.email").exists())
             .andExpect(jsonPath("$.fieldErrors.password").exists())
             .andExpect(jsonPath("$.fieldErrors.displayName").exists());
     }
@@ -94,7 +94,7 @@ class SignUpControllerTest {
     void returnsServiceUnavailableWithoutCreatingUserWhenDefaultRoleIsMissing() throws Exception {
         roleRepository.deleteAll();
 
-        mockMvc.perform(post("/signup").contentType(MediaType.APPLICATION_JSON).content(validRequest("missing.role")))
+        mockMvc.perform(post("/signup").contentType(MediaType.APPLICATION_JSON).content(validRequest("missing.role@company.com")))
             .andExpect(status().isServiceUnavailable())
             .andExpect(jsonPath("$.code").value("DEFAULT_ROLE_NOT_FOUND"));
 
@@ -102,9 +102,9 @@ class SignUpControllerTest {
         assertThat(userRoleRepository.count()).isZero();
     }
 
-    private String validRequest(String loginId) {
+    private String validRequest(String email) {
         return """
-            {"loginId":"%s", "password":"Valid1!pw", "displayName":"노바 사용자"}
-            """.formatted(loginId);
+            {"email":"%s", "password":"Valid1!pw", "displayName":"노바 사용자"}
+            """.formatted(email);
     }
 }

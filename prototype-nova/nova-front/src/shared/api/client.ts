@@ -25,8 +25,12 @@ type JsonRequestOptions = Omit<AxiosRequestConfig, "data" | "headers" | "url"> &
 };
 
 function getApiBaseUrl() {
-  // 배포 환경별 공개 API 주소의 끝 슬래시를 제거해 요청 URL을 일관되게 만든다.
-  return process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/+$/, "") ?? "";
+  // 로컬 백엔드는 4401을 사용한다. 환경 변수가 없을 때 프론트 자신에게 POST하지 않도록
+  // 개발 기본 주소를 둔다. 배포 환경은 NEXT_PUBLIC_API_BASE_URL로 반드시 덮어쓴다.
+  return (
+    process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/+$/, "") ??
+    "http://localhost:4401"
+  );
 }
 
 function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
