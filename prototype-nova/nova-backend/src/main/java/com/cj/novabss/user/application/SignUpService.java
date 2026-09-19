@@ -35,19 +35,19 @@ public class SignUpService {
 
     @Transactional
     public SignUpResponse signUp(SignUpRequest request) {
-        // Nova.User와 nova.user를 같은 로그인 ID로 보도록 소문자로 맞춘다.
-        String loginId = request.loginId().trim().toLowerCase(Locale.ROOT);
+        // 대소문자가 다른 같은 이메일을 하나의 계정으로 보도록 소문자로 맞춘다.
+        String email = request.email().trim().toLowerCase(Locale.ROOT);
         // 가입시키기 전에 CUSTOMER 기본 역할이 준비되어 있는지 먼저 확인한다.
         Role defaultRole = roleRepository.findByRoleCode(DEFAULT_ROLE_CODE)
             .orElseThrow(() -> new SignUpException(HttpStatus.SERVICE_UNAVAILABLE, "DEFAULT_ROLE_NOT_FOUND", "회원 기본 역할이 준비되지 않았습니다."));
 
-        // 이미 같은 로그인 ID가 있으면 새 사용자를 만들지 않는다.
-        if (userRepository.existsByLoginId(loginId)) {
-            throw duplicateLoginId();
+        // 이미 같은 이메일이 있으면 새 사용자를 만들지 않는다.
+        if (userRepository.existsByEmail(email)) {
+            throw duplicateEmail();
         }
 
         // 입력한 비밀번호 대신 BCrypt로 바꾼 값만 User에 넣는다.
-        User user = User.create(loginId, passwordEncoder.encode(request.password()), request.displayName().trim(), OffsetDateTime.now());
+        User user = User.create(email, passwordEncoder.encode(request.password()), request.displayName().trim(), OffsetDateTime.now());
         try {
             // 1. 먼저 사용자를 저장하고, 같은 ID가 동시에 들어왔는지도 DB에서 바로 확인한다.
             User savedUser = userRepository.saveAndFlush(user);
@@ -56,11 +56,11 @@ public class SignUpService {
             return SignUpResponse.from(savedUser, defaultRole.getRoleCode());
         } catch (DataIntegrityViolationException exception) {
             // 사전 조회 사이에 같은 ID가 저장된 경우도 동일한 409 계약으로 반환한다.
-            throw duplicateLoginId();
+            throw duplicateEmail();
         }
     }
 
-    private SignUpException duplicateLoginId() {
-        return new SignUpException(HttpStatus.CONFLICT, "DUPLICATE_LOGIN_ID", "이미 사용 중인 로그인 ID입니다.");
+    private SignUpException duplicateEmail() {
+        return new SignUpException(HttpStatus.CONFLICT, "DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다.");
     }
 }

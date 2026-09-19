@@ -63,9 +63,9 @@ public class RbacSeedDataInitializer implements ApplicationRunner {
         Permission ratePlanCreate = findOrCreatePermission("RATE_PLAN_CREATE", "요금제 생성", "새 요금제를 생성합니다.", now);
         Permission ratePlanUpdate = findOrCreatePermission("RATE_PLAN_UPDATE", "요금제 수정", "기존 요금제 정보를 수정합니다.", now);
 
-        assignRoleIfAbsent(findOrCreateUser("admin", "NOVA 관리자", now), systemAdmin, now);
-        assignRoleIfAbsent(findOrCreateUser("operator", "NOVA 상품 운영자", now), productOperator, now);
-        assignRoleIfAbsent(findOrCreateUser("customer", "NOVA 고객", now), customer, now);
+        assignRoleIfAbsent(findOrCreateUser("admin@nova.local", "NOVA 관리자", now), systemAdmin, now);
+        assignRoleIfAbsent(findOrCreateUser("operator@nova.local", "NOVA 상품 운영자", now), productOperator, now);
+        assignRoleIfAbsent(findOrCreateUser("customer@nova.local", "NOVA 고객", now), customer, now);
 
         assignPermissionIfAbsent(systemAdmin, ratePlanRead, now);
         assignPermissionIfAbsent(systemAdmin, ratePlanCreate, now);
@@ -86,9 +86,9 @@ public class RbacSeedDataInitializer implements ApplicationRunner {
             .orElseGet(() -> permissionRepository.save(Permission.create(permissionCode, name, description, now)));
     }
 
-    private User findOrCreateUser(String loginId, String displayName, OffsetDateTime now) {
-        return userRepository.findByLoginId(loginId)
-            .orElseGet(() -> userRepository.save(User.create(loginId, passwordEncoder.encode(LOCAL_SEED_PASSWORD), displayName, now)));
+    private User findOrCreateUser(String email, String displayName, OffsetDateTime now) {
+        return userRepository.findByEmail(email)
+            .orElseGet(() -> userRepository.save(User.create(email, passwordEncoder.encode(LOCAL_SEED_PASSWORD), displayName, now)));
     }
 
     private void assignRoleIfAbsent(User user, Role role, OffsetDateTime now) {

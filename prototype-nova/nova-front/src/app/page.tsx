@@ -7,6 +7,8 @@ import {
   AppearanceMenu,
   type Language,
 } from "@/features/appearance-settings/ui/appearance-menu";
+import { AuthGate } from "@/features/auth/login/ui/auth-gate";
+import { UserMenu } from "@/features/auth/login/ui/user-menu";
 
 const copy = {
   ko: {
@@ -52,6 +54,7 @@ export default function NovaHomePage() {
   }, [language]);
 
   return (
+    <AuthGate>
     <div className="nova-shell">
       <a className="skip-link" href="#plan-management">
         {text.skipToContent}
@@ -90,6 +93,7 @@ export default function NovaHomePage() {
             <strong>{text.menu}</strong>
           </div>
           <div className="top-actions">
+            <UserMenu />
             <AppearanceMenu
               language={language}
               onLanguageChange={setLanguage}
@@ -133,5 +137,6 @@ export default function NovaHomePage() {
         </main>
       </div>
     </div>
+    </AuthGate>
   );
 }

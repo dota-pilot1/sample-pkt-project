@@ -7,6 +7,7 @@ import com.cj.novabss.role.application.RoleCommandException;
 import com.cj.novabss.role.application.RoleQueryException;
 import com.cj.novabss.role.application.RbacMappingException;
 import com.cj.novabss.user.application.LoginException;
+import com.cj.novabss.user.application.ProfileQueryException;
 import com.cj.novabss.user.application.SignUpException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -64,6 +65,12 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(LoginException.class)
     public ResponseEntity<ApiErrorResponse> handleLogin(LoginException exception) {
+        return ResponseEntity.status(exception.getStatus())
+            .body(new ApiErrorResponse(exception.getCode(), exception.getMessage(), Map.of()));
+    }
+
+    @ExceptionHandler(ProfileQueryException.class)
+    public ResponseEntity<ApiErrorResponse> handleProfileQuery(ProfileQueryException exception) {
         return ResponseEntity.status(exception.getStatus())
             .body(new ApiErrorResponse(exception.getCode(), exception.getMessage(), Map.of()));
     }

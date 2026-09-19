@@ -16,13 +16,11 @@ import { useSignUp } from "../model/use-sign-up";
 /** 클라이언트에서 즉시 확인할 회원 가입 입력 계약이다. */
 const signUpFormSchema = z
   .object({
-    loginId: z
+    email: z
       .string()
       .trim()
-      .regex(
-        /^[A-Za-z][A-Za-z0-9._-]{3,29}$/,
-        "영문으로 시작하는 4~30자의 영문·숫자·._-만 사용할 수 있습니다.",
-      ),
+      .email("올바른 이메일 주소를 입력해 주세요.")
+      .max(254, "이메일은 254자 이하여야 합니다."),
     displayName: z
       .string()
       .trim()
@@ -48,6 +46,7 @@ const fieldClassName = "grid gap-1.5 text-[13px] font-bold text-[var(--ink)]";
 const fieldErrorClassName =
   "text-xs font-medium leading-[1.45] text-[var(--accent-deep)]";
 
+
 export function SignUpForm() {
   const router = useRouter();
   const signUpMutation = useSignUp();
@@ -60,12 +59,13 @@ export function SignUpForm() {
     // Zod 검증 실패를 React Hook Form의 errors 상태로 연결한다.
     resolver: zodResolver(signUpFormSchema),
     defaultValues: {
-      loginId: "",
+      email: "",
       displayName: "",
       password: "",
       passwordConfirm: "",
     },
   });
+
   const [formError, setFormError] = useState("");
   const [completed, setCompleted] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -74,7 +74,7 @@ export function SignUpForm() {
     setFormError("");
     try {
       await signUpMutation.mutateAsync({
-        loginId: values.loginId.trim(),
+        email: values.email.trim(),
         displayName: values.displayName.trim(),
         password: values.password,
       });
@@ -84,7 +84,7 @@ export function SignUpForm() {
         // 서버 검증 오류는 해당 입력 필드에, 공통 오류 메시지는 폼 상단에 표시한다.
         for (const [field, message] of Object.entries(error.fieldErrors)) {
           if (
-            field === "loginId" ||
+            field === "email" ||
             field === "displayName" ||
             field === "password"
           ) {
@@ -150,19 +150,20 @@ export function SignUpForm() {
         onSubmit={handleSubmit(submit)}
         className="grid gap-[17px]"
       >
-        <Label htmlFor="loginId" className={fieldClassName}>
-          로그인 ID
+        <Label htmlFor="email" className={fieldClassName}>
+          사내 이메일
           <Input
-            id="loginId"
-            {...register("loginId")}
-            autoComplete="username"
-            aria-invalid={Boolean(errors.loginId)}
-            aria-describedby={errors.loginId ? "loginId-error" : undefined}
-            placeholder="예: nova.user"
+            id="email"
+            {...register("email")}
+            type="email"
+            autoComplete="email"
+            aria-invalid={Boolean(errors.email)}
+            aria-describedby={errors.email ? "email-error" : undefined}
+            placeholder="예: name@company.com"
           />
-          {errors.loginId && (
-            <span id="loginId-error" className={fieldErrorClassName}>
-              {errors.loginId.message}
+          {errors.email && (
+            <span id="email-error" className={fieldErrorClassName}>
+              {errors.email.message}
             </span>
           )}
         </Label>

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import {
   Check,
-  ChevronDown,
   Globe2,
   Moon,
   Minus,
@@ -77,11 +76,7 @@ export function AppearanceMenu({
       className="appearance"
       panelClassName="appearance-panel"
       trigger={
-        <>
-          <Palette size={17} />
-          <span>{text.appearance}</span>
-          <ChevronDown size={15} />
-        </>
+        <Palette size={18} />
       }
       triggerClassName="appearance-trigger"
       triggerLabel={text.appearance}

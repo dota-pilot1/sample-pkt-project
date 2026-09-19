@@ -6,7 +6,7 @@
 
 - [x] **API 설계** — `SignUpRequest`, `SignUpResponse`와 `signup-api-spec.md`에 요청·응답, `201/400/409/503`, 입력 검증 규칙을 기록했다.
 - [x] **도메인·영속성** — `User.passwordHash`를 `password_hash NOT NULL` 컬럼으로 추가하고, `login_id UNIQUE` 제약과 repository 중복 조회를 사용한다.
-- [x] **서비스** — `SignUpService`가 로그인 ID를 소문자로 정규화하고 BCrypt 해시를 만든 뒤 `CUSTOMER` 역할과 `UserRole`을 `@Transactional` 범위에서 생성한다.
+- [x] **서비스** — `SignUpService`가 이메일을 소문자로 정규화하고 BCrypt 해시를 만든 뒤 `CUSTOMER` 역할과 `UserRole`을 `@Transactional` 범위에서 생성한다.
 - [x] **컨트롤러** — `SignUpController`가 `POST /signup`을 제공한다. 응답 DTO에 `password`와 `passwordHash`는 없다. `ApiExceptionHandler`가 가입 업무 오류를 공통 오류 형식으로 변환한다.
 - [x] **통합 테스트** — `SignUpControllerTest`가 H2 DB에서 아래 성공·실패 흐름을 검증한다.
 
@@ -16,7 +16,7 @@
 | --- | --- | --- |
 | 유효 요청이 활성 사용자와 기본 역할 관계를 만든다 | 충족 | `createsActiveUserAndCustomerRoleWithHashedPassword`: `active=true`, `CUSTOMER` 기준 역할의 `UserRole` 한 건을 확인한다. |
 | 비밀번호가 단방향 해시로만 저장되고 응답에 없다 | 충족 | 같은 테스트에서 원문과 `passwordHash`가 다르고 `PasswordEncoder.matches`가 참임을 확인하며, JSON에 `password`, `passwordHash`가 없음을 확인한다. |
-| 중복 ID가 계정을 추가하지 않고 일관된 오류를 준다 | 충족 | `normalizesLoginIdAndRejectsDuplicateWithoutCreatingAnotherUser`: 대소문자 정규화 후 `409 DUPLICATE_LOGIN_ID`, User/UserRole 각각 한 건을 확인한다. |
+| 중복 이메일이 계정을 추가하지 않고 일관된 오류를 준다 | 충족 | `normalizesEmailAndRejectsDuplicateWithoutCreatingAnotherUser`: 대소문자 정규화 후 `409 DUPLICATE_EMAIL`, User/UserRole 각각 한 건을 확인한다. |
 | 필수값·형식 오류가 검증 오류를 준다 | 충족 | `returnsFieldErrorsForInvalidRequiredOrFormattedValues`: `400 INVALID_REQUEST`와 세 필드의 오류를 확인한다. |
 | 기본 역할 누락이 가입을 남기지 않는다 | 충족 | `returnsServiceUnavailableWithoutCreatingUserWhenDefaultRoleIsMissing`: `503 DEFAULT_ROLE_NOT_FOUND`와 User/UserRole 0건을 확인한다. |
 | 단위 또는 통합 테스트와 Gradle 테스트가 통과한다 | 충족 | 2026-09-08 실행: `./gradlew test` → `BUILD SUCCESSFUL` (약 4초). |
@@ -27,4 +27,4 @@
 
 ## 주요 코드 주석 기준
 
-`SignUpService` 주석은 가입 순서를 쉬운 말로 보여 준다. 먼저 로그인 ID를 소문자로 맞추고 CUSTOMER 역할이 있는지 확인한다. 같은 ID가 없으면 비밀번호를 BCrypt 값으로 바꿔 사용자를 저장하고, 마지막에 그 사용자에게 CUSTOMER 역할을 연결한다. 두 저장은 하나의 가입 작업이므로 역할 연결이 실패하면 사용자 저장도 취소된다.
+`SignUpService` 주석은 가입 순서를 쉬운 말로 보여 준다. 먼저 이메일을 소문자로 맞추고 CUSTOMER 역할이 있는지 확인한다. 같은 이메일이 없으면 비밀번호를 BCrypt 값으로 바꿔 사용자를 저장하고, 마지막에 그 사용자에게 CUSTOMER 역할을 연결한다. 두 저장은 하나의 가입 작업이므로 역할 연결이 실패하면 사용자 저장도 취소된다.

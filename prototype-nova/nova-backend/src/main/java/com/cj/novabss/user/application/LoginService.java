@@ -30,10 +30,10 @@ public class LoginService {
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
-        String loginId = request.loginId().trim().toLowerCase(Locale.ROOT);
+        String email = request.email().trim().toLowerCase(Locale.ROOT);
 
         // 사용자 조회
-        User user = userRepository.findByLoginId(loginId).orElseThrow(this::invalidCredentials);
+        User user = userRepository.findByEmail(email).orElseThrow(this::invalidCredentials);
 
         // 비활성 계정과 비밀번호 불일치는 같은 오류 계약으로 반환해 계정 상태를 노출하지 않는다.
         if (!user.isActive() || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
@@ -50,6 +50,6 @@ public class LoginService {
     }
 
     private LoginException invalidCredentials() {
-        return new LoginException(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS, "로그인 ID 또는 비밀번호가 올바르지 않습니다.");
+        return new LoginException(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS, "이메일 또는 비밀번호가 올바르지 않습니다.");
     }
 }
