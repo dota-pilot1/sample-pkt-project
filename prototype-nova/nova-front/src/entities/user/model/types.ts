@@ -24,4 +24,6 @@ export type LoggedInUser = {
   email: string;
   displayName: string;
   roleCodes: string[];
+  accessToken: string;
+  expiresAt: string;
 };

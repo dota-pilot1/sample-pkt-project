@@ -1,4 +1,5 @@
 import axios, { type AxiosRequestConfig } from "axios";
+import { expireStoredAuth, getStoredAccessToken } from "@/features/auth/login/model/auth-store";
 
 export type ApiErrorResponse = {
   code?: string;
@@ -43,6 +44,12 @@ const apiClient = axios.create({
   headers: { Accept: "application/json" },
 });
 
+apiClient.interceptors.request.use((config) => {
+  const accessToken = getStoredAccessToken();
+  if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
+  return config;
+});
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error: unknown) => {
@@ -51,6 +58,7 @@ apiClient.interceptors.response.use(
     }
 
     const { status, data } = error.response;
+    if (status === 401 && error.config?.url !== "/login") expireStoredAuth();
     const response = isApiErrorResponse(data) ? data : {};
     return Promise.reject(
       new ApiError(

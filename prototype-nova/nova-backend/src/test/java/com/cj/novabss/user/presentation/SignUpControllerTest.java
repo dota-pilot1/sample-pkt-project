@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.cj.novabss.role.domain.Role;
 import com.cj.novabss.role.infrastructure.RoleRepository;
+import com.cj.novabss.role.infrastructure.RolePermissionRepository;
 import com.cj.novabss.role.infrastructure.UserRoleRepository;
 import com.cj.novabss.user.domain.User;
 import com.cj.novabss.user.infrastructure.UserRepository;
@@ -28,10 +29,13 @@ class SignUpControllerTest {
     @Autowired private UserRepository userRepository;
     @Autowired private RoleRepository roleRepository;
     @Autowired private UserRoleRepository userRoleRepository;
+    @Autowired private RolePermissionRepository rolePermissionRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {
+        // 다른 통합 테스트가 만든 역할-권한 연결을 먼저 지워야 역할 기준 데이터를 안전하게 초기화할 수 있다.
+        rolePermissionRepository.deleteAll();
         userRoleRepository.deleteAll();
         userRepository.deleteAll();
         roleRepository.deleteAll();

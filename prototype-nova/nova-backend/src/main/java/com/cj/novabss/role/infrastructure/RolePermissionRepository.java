@@ -3,9 +3,12 @@ package com.cj.novabss.role.infrastructure;
 import com.cj.novabss.role.domain.RolePermission;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RolePermissionRepository extends JpaRepository<RolePermission, Long> {
+    /** 응답 DTO 변환이 트랜잭션 밖에서 일어나도 Permission 필드가 초기화되어 있도록 함께 조회한다. */
+    @EntityGraph(attributePaths = { "permission", "permission.category" })
     List<RolePermission> findAllByRoleId(Long roleId);
     List<RolePermission> findAllByPermissionId(Long permissionId);
     Optional<RolePermission> findByRoleIdAndPermissionId(Long roleId, Long permissionId);

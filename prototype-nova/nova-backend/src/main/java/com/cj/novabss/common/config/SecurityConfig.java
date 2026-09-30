@@ -1,7 +1,11 @@
 package com.cj.novabss.common.config;
 
+import com.cj.novabss.common.security.JwtAuthenticationFilter;
+import com.cj.novabss.common.security.JwtProperties;
+import com.cj.novabss.common.security.SecurityErrorResponseWriter;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -11,6 +15,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -24,6 +29,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfig {
     private final String allowedOrigin;
 
@@ -32,7 +38,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+        HttpSecurity http,
+        JwtAuthenticationFilter jwtAuthenticationFilter,
+        SecurityErrorResponseWriter errorResponseWriter
+    ) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
@@ -40,12 +50,22 @@ public class SecurityConfig {
             .formLogin(formLogin -> formLogin.disable())
             .httpBasic(httpBasic -> httpBasic.disable())
             .logout(logout -> logout.disable())
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint((request, response, exception) -> errorResponseWriter.writeUnauthorized(response))
+                .accessDeniedHandler((request, response, exception) -> errorResponseWriter.writeForbidden(response))
+            )
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/signup", "/login", "/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/api/dashboard", "/api/plan-categories", "/api/plans", "/api/permissions", "/api/permissions/**", "/api/roles", "/api/roles/**", "/api/users/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/plans", "/api/plan-categories").hasAuthority("RATE_PLAN_READ")
+                .requestMatchers(HttpMethod.POST, "/api/plans").hasAuthority("RATE_PLAN_CREATE")
+                .requestMatchers(HttpMethod.GET, "/api/users/me/profile").authenticated()
+                // 역할·권한 매핑은 역할 관리 화면의 표시·편집 데이터다. 특정 역할 번호나 관리자 토큰에
+                // 의존하지 않고 모든 역할의 조회·설정을 같은 공개 API 정책으로 처리한다.
+                .requestMatchers("/api/dashboard", "/api/permissions", "/api/permissions/**", "/api/permission-categories", "/api/permission-categories/**", "/api/roles", "/api/roles/**", "/api/users/**").permitAll()
                 .anyRequest().denyAll()
-            );
+            )
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

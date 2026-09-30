@@ -97,8 +97,7 @@ public class RoleController {
     }
 
     @DeleteMapping("/{roleId}")
-    public ResponseEntity<Void> delete(@PathVariable Long roleId) {
+    public void delete(@PathVariable Long roleId) {
         roleService.rejectDeletion();
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
     }
 }

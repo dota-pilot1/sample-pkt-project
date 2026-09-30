@@ -1,11 +1,13 @@
 package com.cj.novabss.role.infrastructure;
 
 import com.cj.novabss.role.domain.UserRole;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
     List<UserRole> findAllByUserId(Long userId);
+    List<UserRole> findAllByUserIdIn(Collection<Long> userIds);
     List<UserRole> findAllByRoleId(Long roleId);
     boolean existsByRoleId(Long roleId);
     boolean existsByUserIdAndRoleId(Long userId, Long roleId);

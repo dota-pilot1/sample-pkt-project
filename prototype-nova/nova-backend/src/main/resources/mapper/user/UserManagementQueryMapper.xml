@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cj.novabss.user.infrastructure.UserManagementQueryMapper">
+
+  <sql id="userColumns">
+    u.id,
+    u.login_id AS email,
+    u.display_name AS displayName,
+    u.active,
+    u.created_at AS createdAt,
+    u.updated_at AS updatedAt
+  </sql>
+
+  <sql id="userFilters">
+    <where>
+      <if test="condition.keyword != null and !condition.keyword.isBlank()">
+        AND (
+          LOWER(u.login_id) LIKE CONCAT('%', LOWER(TRIM(#{condition.keyword})), '%')
+          OR LOWER(u.display_name) LIKE CONCAT('%', LOWER(TRIM(#{condition.keyword})), '%')
+        )
+      </if>
+      <if test="condition.active != null">
+        AND u.active = #{condition.active}
+      </if>
+    </where>
+  </sql>
+
+  <select id="findUsers" resultType="com.cj.novabss.user.infrastructure.UserManagementListRow">
+    SELECT <include refid="userColumns" />
+    FROM users u
+    <include refid="userFilters" />
+    ORDER BY u.created_at DESC, u.id DESC
+    <!-- 이 LIMIT/OFFSET이 page와 size에 따라 이번 페이지의 사용자만 읽는 부분이다. -->
+    LIMIT #{condition.size} OFFSET #{condition.offset}
+  </select>
+
+  <select id="countUsers" resultType="long">
+    SELECT COUNT(*)
+    FROM users u
+    <include refid="userFilters" />
+  </select>
+</mapper>

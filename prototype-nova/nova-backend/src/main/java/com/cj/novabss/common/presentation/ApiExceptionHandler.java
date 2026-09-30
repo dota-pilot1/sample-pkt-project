@@ -9,6 +9,7 @@ import com.cj.novabss.role.application.RbacMappingException;
 import com.cj.novabss.user.application.LoginException;
 import com.cj.novabss.user.application.ProfileQueryException;
 import com.cj.novabss.user.application.SignUpException;
+import com.cj.novabss.user.application.UserManagementException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -71,6 +72,12 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(ProfileQueryException.class)
     public ResponseEntity<ApiErrorResponse> handleProfileQuery(ProfileQueryException exception) {
+        return ResponseEntity.status(exception.getStatus())
+            .body(new ApiErrorResponse(exception.getCode(), exception.getMessage(), Map.of()));
+    }
+
+    @ExceptionHandler(UserManagementException.class)
+    public ResponseEntity<ApiErrorResponse> handleUserManagement(UserManagementException exception) {
         return ResponseEntity.status(exception.getStatus())
             .body(new ApiErrorResponse(exception.getCode(), exception.getMessage(), Map.of()));
     }

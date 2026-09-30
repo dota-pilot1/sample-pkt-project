@@ -22,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -62,7 +63,7 @@ class ProfileControllerTest {
         rolePermissionRepository.save(RolePermission.assign(activeRole, activePermission, now));
         rolePermissionRepository.save(RolePermission.assign(activeRole, disabledPermission, now));
 
-        mockMvc.perform(get("/api/users/{userId}/profile", user.getId()))
+        mockMvc.perform(get("/api/users/me/profile").with(user(user.getId().toString())))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(user.getId()))
             .andExpect(jsonPath("$.email").value("profile@nova.com"))
@@ -76,7 +77,7 @@ class ProfileControllerTest {
 
     @Test
     void returnsNotFoundForUnknownUser() throws Exception {
-        mockMvc.perform(get("/api/users/{userId}/profile", 999999L))
+        mockMvc.perform(get("/api/users/me/profile").with(user("999999")))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.code").value("USER_NOT_FOUND"));
     }

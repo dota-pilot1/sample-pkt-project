@@ -9,6 +9,7 @@ public record PermissionResponse(
     String permissionCode,
     String name,
     String description,
+    PermissionCategoryResponse category,
     boolean enabled,
     OffsetDateTime createdAt
 ) {
@@ -18,6 +19,7 @@ public record PermissionResponse(
             permission.getPermissionCode(),
             permission.getName(),
             permission.getDescription(),
+            permission.getCategory() == null ? null : PermissionCategoryResponse.from(permission.getCategory()),
             permission.isEnabled(),
             permission.getCreatedAt()
         );

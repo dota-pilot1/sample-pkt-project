@@ -16,6 +16,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 
 // src/test/resources/application.yaml의 H2 인메모리 DB로 실행한다.
@@ -43,8 +45,10 @@ class RatePlanCommandControllerTest {
 
     // 정상 생성 요청: 201 Created, 반환 요금제 코드와 기본 판매 상태(DRAFT)를 검증한다.
     @Test
+    @WithMockUser(authorities = "RATE_PLAN_CREATE")
     void createsRatePlanWithValidRequest() throws Exception {
         mockMvc.perform(post("/api/plans")
+                .with(user("operator").authorities(() -> "RATE_PLAN_CREATE"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validRequestBody("MOBILE-START")))
             .andExpect(status().isCreated())
@@ -52,14 +56,24 @@ class RatePlanCommandControllerTest {
             .andExpect(jsonPath("$.salesStatus").value("DRAFT"));
     }
 
+    @Test
+    void rejectsCreateWithoutCreatePermission() throws Exception {
+        mockMvc.perform(post("/api/plans")
+                .with(user("customer").authorities(() -> "RATE_PLAN_READ"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validRequestBody("MOBILE-CUSTOMER")))
+            .andExpect(status().isForbidden());
+    }
+
     // 요청값 검증: 필수값 누락·금액 범위 오류를 400과 INVALID_REQUEST, 필드별 오류로 반환하는지 검증한다.
     @Test
+    @WithMockUser(authorities = "RATE_PLAN_CREATE")
     void returnsFieldErrorsForMissingOrInvalidValues() throws Exception {
         String invalidBody = """
             {"ratePlanCode":"", "name":"", "categoryCode":"", "monthlyFee":0, "saleStartAt":null}
             """;
 
-        mockMvc.perform(post("/api/plans").contentType(MediaType.APPLICATION_JSON).content(invalidBody))
+        mockMvc.perform(post("/api/plans").with(user("operator").authorities(() -> "RATE_PLAN_CREATE")).contentType(MediaType.APPLICATION_JSON).content(invalidBody))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
             .andExpect(jsonPath("$.fieldErrors.ratePlanCode").exists())
@@ -69,29 +83,34 @@ class RatePlanCommandControllerTest {
 
     // 업무 규칙 검증: 같은 요금제 코드를 두 번 생성하면 409와 중복 코드 오류 형식으로 반환하는지 검증한다.
     @Test
+    @WithMockUser(authorities = "RATE_PLAN_CREATE")
     void returnsConsistentConflictForDuplicateCode() throws Exception {
         String request = validRequestBody("MOBILE-DUPLICATE");
-        mockMvc.perform(post("/api/plans").contentType(MediaType.APPLICATION_JSON).content(request))
+        mockMvc.perform(post("/api/plans").with(user("operator").authorities(() -> "RATE_PLAN_CREATE")).contentType(MediaType.APPLICATION_JSON).content(request))
             .andExpect(status().isCreated());
 
-        mockMvc.perform(post("/api/plans").contentType(MediaType.APPLICATION_JSON).content(request))
+        mockMvc.perform(post("/api/plans").with(user("operator").authorities(() -> "RATE_PLAN_CREATE")).contentType(MediaType.APPLICATION_JSON).content(request))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.code").value("DUPLICATE_RATE_PLAN_CODE"))
             .andExpect(jsonPath("$.fieldErrors").isEmpty());
     }
 
     @Test
+    @WithMockUser(authorities = "RATE_PLAN_CREATE")
     void listsPlansWithStableDefaultSortAndPageMetadata() throws Exception {
         mockMvc.perform(post("/api/plans")
+                .with(user("operator").authorities(() -> "RATE_PLAN_CREATE"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validRequestBody("MOBILE-Z")))
             .andExpect(status().isCreated());
         mockMvc.perform(post("/api/plans")
+                .with(user("operator").authorities(() -> "RATE_PLAN_CREATE"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validRequestBody("MOBILE-A")))
             .andExpect(status().isCreated());
 
         mockMvc.perform(get("/api/plans")
+                .with(user("reader").authorities(() -> "RATE_PLAN_READ"))
                 .param("page", "1")
                 .param("size", "1"))
             .andExpect(status().isOk())
@@ -104,6 +123,7 @@ class RatePlanCommandControllerTest {
 
         // MyBatis 동적 조건은 입력 대소문자를 정규화하고, 허용된 정렬 enum만 SQL에 반영한다.
         mockMvc.perform(get("/api/plans")
+                .with(user("reader").authorities(() -> "RATE_PLAN_READ"))
                 .param("keyword", "요금제")
                 .param("categoryCode", "mobile")
                 .param("status", "draft")
@@ -117,7 +137,7 @@ class RatePlanCommandControllerTest {
 
     @Test
     void returnsEmptyItemsWhenNoPlanMatches() throws Exception {
-        mockMvc.perform(get("/api/plans").param("keyword", "does-not-exist"))
+        mockMvc.perform(get("/api/plans").with(user("reader").authorities(() -> "RATE_PLAN_READ")).param("keyword", "does-not-exist"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.items").isEmpty())
             .andExpect(jsonPath("$.totalElements").value(0))
@@ -126,15 +146,15 @@ class RatePlanCommandControllerTest {
 
     @Test
     void rejectsInvalidListQuery() throws Exception {
-        mockMvc.perform(get("/api/plans").param("status", "UNKNOWN"))
+        mockMvc.perform(get("/api/plans").with(user("reader").authorities(() -> "RATE_PLAN_READ")).param("status", "UNKNOWN"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("INVALID_STATUS"));
 
-        mockMvc.perform(get("/api/plans").param("sort", "createdAt"))
+        mockMvc.perform(get("/api/plans").with(user("reader").authorities(() -> "RATE_PLAN_READ")).param("sort", "createdAt"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("INVALID_SORT"));
 
-        mockMvc.perform(get("/api/plans").param("size", "101"))
+        mockMvc.perform(get("/api/plans").with(user("reader").authorities(() -> "RATE_PLAN_READ")).param("size", "101"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
             .andExpect(jsonPath("$.fieldErrors.size").exists());

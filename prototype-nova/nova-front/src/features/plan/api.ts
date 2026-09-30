@@ -45,3 +45,10 @@ export function buildRatePlanListQuery(query: RatePlanListQuery = {}) {
   if (query.direction) params.set("direction", query.direction);
   return params.toString();
 }
+
+import { apiRequest } from "@/shared/api/client";
+
+export const ratePlanApi = {
+  findPage: (query: RatePlanListQuery = {}) =>
+    apiRequest<RatePlanPage>(`/api/plans?${buildRatePlanListQuery(query)}`),
+};

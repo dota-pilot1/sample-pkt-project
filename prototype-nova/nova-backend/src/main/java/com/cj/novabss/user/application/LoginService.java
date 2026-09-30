@@ -1,5 +1,6 @@
 package com.cj.novabss.user.application;
 
+import com.cj.novabss.common.security.JwtTokenService;
 import com.cj.novabss.role.infrastructure.UserRoleRepository;
 import com.cj.novabss.user.domain.User;
 import com.cj.novabss.user.infrastructure.UserRepository;
@@ -21,11 +22,13 @@ public class LoginService {
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenService jwtTokenService;
 
-    public LoginService(UserRepository userRepository, UserRoleRepository userRoleRepository, PasswordEncoder passwordEncoder) {
+    public LoginService(UserRepository userRepository, UserRoleRepository userRoleRepository, PasswordEncoder passwordEncoder, JwtTokenService jwtTokenService) {
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtTokenService = jwtTokenService;
     }
 
     @Transactional(readOnly = true)
@@ -46,7 +49,7 @@ public class LoginService {
             .map(userRole -> userRole.getRole().getRoleCode())
             .sorted(Comparator.naturalOrder())
             .toList();
-        return LoginResponse.from(user, roleCodes);
+        return LoginResponse.from(user, roleCodes, jwtTokenService.issue(user.getId()));
     }
 
     private LoginException invalidCredentials() {

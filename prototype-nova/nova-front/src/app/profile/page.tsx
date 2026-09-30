@@ -2,42 +2,23 @@
 
 import Link from "next/link";
 import { PackageOpen, ShieldCheck, UserRound } from "lucide-react";
-import { AppearanceMenu, type Language } from "@/features/appearance-settings/ui/appearance-menu";
 import { AuthGate } from "@/features/auth/login/ui/auth-gate";
-import { UserMenu } from "@/features/auth/login/ui/user-menu";
 import { ProfileContent } from "@/features/profile/ui/profile-content";
 import { useProfile } from "@/features/profile/model/use-profile";
 import { useAuthStore } from "@/features/auth/login/model/auth-store";
-import { useEffect, useState } from "react";
+import { ConsoleHeaderActions } from "@/widgets/console-header/ui/console-header-actions";
 
 export default function ProfilePage() {
-  const [language, setLanguage] = useState<Language>("ko");
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem("nova-language");
-    if (stored === "ko" || stored === "en") setLanguage(stored);
-  }, []);
-  useEffect(() => {
-    document.documentElement.lang = language;
-    window.localStorage.setItem("nova-language", language);
-  }, [language]);
-
   return (
     <AuthGate>
-      <ProfilePageBody language={language} onLanguageChange={setLanguage} />
+      <ProfilePageBody />
     </AuthGate>
   );
 }
 
-function ProfilePageBody({
-  language,
-  onLanguageChange,
-}: {
-  language: Language;
-  onLanguageChange: (language: Language) => void;
-}) {
+function ProfilePageBody() {
   const user = useAuthStore((state) => state.user);
-  const profile = useProfile(user?.id);
+  const profile = useProfile();
 
   if (!user) return null;
 
@@ -54,7 +35,7 @@ function ProfilePageBody({
           <div className="sidebar-bottom"><p>Prototype v0.1</p></div>
         </aside>
         <div className="content">
-          <header className="topbar"><div className="header-title"><p>BSS CONSOLE</p><strong>내 프로필</strong></div><div className="top-actions"><UserMenu /><AppearanceMenu language={language} onLanguageChange={onLanguageChange} /></div></header>
+          <header className="topbar"><div className="header-title"><p>BSS CONSOLE</p><strong>내 프로필</strong></div><ConsoleHeaderActions /></header>
           <main className="page-body" id="profile-content" tabIndex={-1}>
             <div className="page-heading"><h1>내 프로필</h1><p>계정 정보와 현재 역할에 따라 적용되는 개인 권한을 확인합니다.</p></div>
             {profile.isPending ? (

@@ -26,12 +26,15 @@ const roleCountClassName = (active: boolean) =>
 export function ProfileContent({ profile }: { profile: Profile }) {
   const [selectedRoleCode, setSelectedRoleCode] = useState<RoleSelection>("all");
   const listId = useId();
+
   const selectedRole = useMemo(
     () => profile.roles.find((role) => role.code === selectedRoleCode),
     [profile.roles, selectedRoleCode],
   );
+
   // 백엔드 재시작 전의 이전 응답에는 역할별 permissions가 없을 수 있어 빈 목록으로 보정한다.
   const selectedRolePermissions = selectedRole?.permissions ?? [];
+
   // 전체는 여러 역할의 권한을 중복 제거한 서버 응답을 그대로 사용한다.
   const visiblePermissions = selectedRole ? selectedRolePermissions : profile.permissions;
   const permissionTitle = selectedRole ? `${selectedRole.name} 권한` : "전체 권한";

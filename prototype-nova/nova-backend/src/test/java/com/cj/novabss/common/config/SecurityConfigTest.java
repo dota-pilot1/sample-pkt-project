@@ -29,7 +29,7 @@ class SecurityConfigTest {
     @Test
     void deniesUnlistedApiWithoutAuthentication() throws Exception {
         mockMvc.perform(get("/api/internal-only"))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isUnauthorized());
     }
 
     @Test

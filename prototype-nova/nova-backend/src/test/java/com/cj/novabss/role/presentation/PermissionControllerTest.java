@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.cj.novabss.role.domain.Permission;
+import com.cj.novabss.role.domain.PermissionCategory;
+import com.cj.novabss.role.infrastructure.PermissionCategoryRepository;
 import com.cj.novabss.role.infrastructure.PermissionRepository;
 import com.cj.novabss.role.presentation.dto.CreatePermissionRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,12 +32,16 @@ class PermissionControllerTest {
     @Autowired
     private PermissionRepository permissionRepository;
 
+    @Autowired
+    private PermissionCategoryRepository permissionCategoryRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
         // 각 테스트가 기존 권한 데이터에 의존하지 않도록 H2 저장소를 초기화한다.
         permissionRepository.deleteAll();
+        permissionCategoryRepository.deleteAll();
     }
 
     @Test
@@ -69,10 +75,14 @@ class PermissionControllerTest {
     @DisplayName("단건 권한 생성 후 상세 조회 결과를 확인한다")
     void createsPermissionAndReadsDetail() throws Exception {
         // 리뷰 포인트 1: 요청 DTO를 ObjectMapper로 직렬화해 API 요청 계약을 검증한다.
+        PermissionCategory category = permissionCategoryRepository.save(PermissionCategory.create(
+            "RATE_PLAN", "요금제 관리", "요금제를 관리하는 권한입니다.", 10, OffsetDateTime.now()
+        ));
         CreatePermissionRequest createRequest = new CreatePermissionRequest(
             "PLAN_READ",
             "요금제 조회",
-            "요금제 목록을 조회합니다."
+            "요금제 목록을 조회합니다.",
+            category.getId()
         );
         // 생성 API로 상세 조회에 사용할 권한을 준비한다.
         mockMvc.perform(

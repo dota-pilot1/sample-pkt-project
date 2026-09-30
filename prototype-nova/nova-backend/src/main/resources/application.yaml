@@ -21,6 +21,14 @@ mybatis:
   mapper-locations: classpath*:mapper/**/*.xml
 
 app:
+
+  security:
+    jwt:
+      # 개발 기본값은 테스트 전용이다. 배포 환경에서는 충분히 긴 JWT_SECRET을 반드시 주입한다.
+      secret: ${JWT_SECRET:local-development-jwt-secret-must-be-at-least-32-bytes}
+      issuer: ${JWT_ISSUER:nova-bss}
+      audience: ${JWT_AUDIENCE:nova-bss-console}
+      access-token-ttl-seconds: ${JWT_ACCESS_TOKEN_TTL_SECONDS:1800}
   seed:
     # 로컬 .env에서 true로 설정한 경우에만 샘플 데이터를 넣는다.
     enabled: ${SEED_DATA_ENABLED:false}

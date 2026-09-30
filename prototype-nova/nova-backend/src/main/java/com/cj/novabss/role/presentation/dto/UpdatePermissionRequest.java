@@ -10,6 +10,8 @@ public record UpdatePermissionRequest(
     String name,
     @NotBlank(message = "권한 설명은 필수입니다.")
     @Size(max = 500, message = "권한 설명은 500자 이하여야 합니다.")
-    String description
+    String description,
+    @jakarta.validation.constraints.NotNull(message = "권한 분류는 필수입니다.")
+    Long categoryId
 ) {
 }

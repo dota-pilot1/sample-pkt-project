@@ -45,10 +45,10 @@ class RbacSeedDataInitializerTest {
 
     private void assertRbacBaseline() {
         assertThat(roleRepository.count()).isEqualTo(3);
-        assertThat(permissionRepository.count()).isEqualTo(3);
+        assertThat(permissionRepository.count()).isEqualTo(4);
         assertThat(userRepository.count()).isEqualTo(3);
         assertThat(userRoleRepository.count()).isEqualTo(3);
-        assertThat(rolePermissionRepository.count()).isEqualTo(7);
+        assertThat(rolePermissionRepository.count()).isEqualTo(9);
 
         Role systemAdmin = role("SYSTEM_ADMIN");
         Role productOperator = role("PRODUCT_OPERATOR");
@@ -56,16 +56,20 @@ class RbacSeedDataInitializerTest {
         Permission read = permission("RATE_PLAN_READ");
         Permission create = permission("RATE_PLAN_CREATE");
         Permission update = permission("RATE_PLAN_UPDATE");
+        Permission delete = permission("RATE_PLAN_DELETE");
 
         assertThat(rolePermissionRepository.existsByRoleIdAndPermissionId(systemAdmin.getId(), read.getId())).isTrue();
         assertThat(rolePermissionRepository.existsByRoleIdAndPermissionId(systemAdmin.getId(), create.getId())).isTrue();
         assertThat(rolePermissionRepository.existsByRoleIdAndPermissionId(systemAdmin.getId(), update.getId())).isTrue();
+        assertThat(rolePermissionRepository.existsByRoleIdAndPermissionId(systemAdmin.getId(), delete.getId())).isTrue();
         assertThat(rolePermissionRepository.existsByRoleIdAndPermissionId(productOperator.getId(), read.getId())).isTrue();
         assertThat(rolePermissionRepository.existsByRoleIdAndPermissionId(productOperator.getId(), create.getId())).isTrue();
         assertThat(rolePermissionRepository.existsByRoleIdAndPermissionId(productOperator.getId(), update.getId())).isTrue();
+        assertThat(rolePermissionRepository.existsByRoleIdAndPermissionId(productOperator.getId(), delete.getId())).isTrue();
         assertThat(rolePermissionRepository.existsByRoleIdAndPermissionId(customer.getId(), read.getId())).isTrue();
         assertThat(rolePermissionRepository.existsByRoleIdAndPermissionId(customer.getId(), create.getId())).isFalse();
         assertThat(rolePermissionRepository.existsByRoleIdAndPermissionId(customer.getId(), update.getId())).isFalse();
+        assertThat(rolePermissionRepository.existsByRoleIdAndPermissionId(customer.getId(), delete.getId())).isFalse();
     }
 
     private Role role(String roleCode) {

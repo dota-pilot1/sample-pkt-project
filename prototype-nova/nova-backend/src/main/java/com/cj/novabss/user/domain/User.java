@@ -57,7 +57,12 @@ public class User {
 
     /** 운영자 비활성화 등으로 로그인할 수 없는 계정 상태를 표현한다. */
     public void deactivate(OffsetDateTime now) {
-        this.active = false;
+        changeActive(false, now);
+    }
+
+    /** 사용자 관리 화면에서 계정의 로그인 가능 상태를 변경한다. */
+    public void changeActive(boolean active, OffsetDateTime now) {
+        this.active = active;
         this.updatedAt = now;
     }
 }

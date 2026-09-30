@@ -1,6 +1,8 @@
 package com.cj.novabss.role.application;
 
 import com.cj.novabss.role.domain.Permission;
+import com.cj.novabss.role.domain.PermissionCategory;
+import com.cj.novabss.role.infrastructure.PermissionCategoryRepository;
 import com.cj.novabss.role.infrastructure.PermissionRepository;
 import com.cj.novabss.role.infrastructure.RolePermissionRepository;
 import com.cj.novabss.role.presentation.dto.CreatePermissionRequest;
@@ -16,13 +18,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class PermissionService {
     private final PermissionRepository permissionRepository;
     private final RolePermissionRepository rolePermissionRepository;
+    private final PermissionCategoryRepository permissionCategoryRepository;
 
     public PermissionService(
         PermissionRepository permissionRepository,
-        RolePermissionRepository rolePermissionRepository
+        RolePermissionRepository rolePermissionRepository,
+        PermissionCategoryRepository permissionCategoryRepository
     ) {
         this.permissionRepository = permissionRepository;
         this.rolePermissionRepository = rolePermissionRepository;
+        this.permissionCategoryRepository = permissionCategoryRepository;
     }
 
     @Transactional(readOnly = true)
@@ -43,13 +48,15 @@ public class PermissionService {
         if (permissionRepository.existsByPermissionCode(permissionCode)) {
             throw new PermissionCommandException(HttpStatus.CONFLICT, "DUPLICATE_PERMISSION_CODE", "이미 존재하는 권한 코드입니다.");
         }
-        return permissionRepository.save(Permission.create(permissionCode, request.name(), request.description(), OffsetDateTime.now()));
+        PermissionCategory category = getCategory(request.categoryId());
+        return permissionRepository.save(Permission.create(permissionCode, request.name(), request.description(), category, OffsetDateTime.now()));
     }
 
     @Transactional
     public Permission update(Long id, UpdatePermissionRequest request) {
         Permission permission = getPermissionById(id);
         permission.changeDetails(request.name(), request.description());
+        permission.changeCategory(getCategory(request.categoryId()));
         return permission;
     }
 
@@ -76,5 +83,9 @@ public class PermissionService {
 
     private PermissionCommandException notFound(Long id) {
         return new PermissionCommandException(HttpStatus.NOT_FOUND, "PERMISSION_NOT_FOUND", "권한을 찾을 수 없습니다: " + id);
+    }
+
+    private PermissionCategory getCategory(Long id) {
+        return permissionCategoryRepository.findById(id).orElseThrow(() -> new PermissionCommandException(HttpStatus.NOT_FOUND, "PERMISSION_CATEGORY_NOT_FOUND", "권한 분류를 찾을 수 없습니다: " + id));
     }
 }
