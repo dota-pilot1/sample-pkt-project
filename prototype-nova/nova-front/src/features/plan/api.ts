@@ -48,7 +48,23 @@ export function buildRatePlanListQuery(query: RatePlanListQuery = {}) {
 
 import { apiRequest } from "@/shared/api/client";
 
+/** 기존 생성 API가 받는 초안 입력 계약이다. 날짜는 offset을 포함해 전송한다. */
+export type CreateRatePlanRequest = {
+  ratePlanCode: string;
+  name: string;
+  categoryCode: string;
+  monthlyFee: number;
+  saleStartAt: string;
+  description: string;
+};
+
+export type RatePlanCategory = { id: number; code: string; name: string; sortOrder: number };
+export type CreatedRatePlan = Omit<CreateRatePlanRequest, "description"> & { id: number; salesStatus: RatePlanSalesStatus };
+
 export const ratePlanApi = {
+  findCategories: () => apiRequest<RatePlanCategory[]>("/api/plan-categories"),
+  create: (body: CreateRatePlanRequest) =>
+    apiRequest<CreatedRatePlan>("/api/plans", { method: "POST", body }),
   findPage: (query: RatePlanListQuery = {}) =>
     apiRequest<RatePlanPage>(`/api/plans?${buildRatePlanListQuery(query)}`),
 };

@@ -959,3 +959,43 @@ button {
 .permission-header-actions { display: flex; flex-wrap: wrap; gap: 9px; }
 .permission-editor-actions { display: flex; justify-content: flex-end; gap: 9px; padding: 18px 24px; border-top: 1px solid var(--line); }.primary-action, .secondary-action { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 7px; border-radius: 9px; padding: 0 14px; font: inherit; font-size: calc(13px * var(--font-scale-factor)); font-weight: 900; }.primary-action { border: 1px solid var(--accent); background: var(--accent); color: white; }.primary-action:disabled { opacity: .55; }.secondary-action { border: 1px solid var(--line); background: var(--control-surface); color: var(--ink); }
 @media (max-width: 760px) { .permission-catalog-page { padding: 24px 16px; }.permission-catalog-header { align-items: flex-start; flex-direction: column; }.permission-catalog-heading, .permission-category-toggles, .permission-filters { padding-inline: 16px; }.permission-catalog-heading { flex-direction: column; }.permission-filters { align-items: stretch; flex-direction: column; }.permission-status-filter { justify-content: space-between; }.permission-table th, .permission-table td { padding-inline: 16px; } }
+
+/* 목록 안의 등록 패널: 정보 그룹과 공통 입력 컴포넌트를 사용한다. */
+.plan-list-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.plan-create { margin: 0 24px 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; box-shadow: 0 4px 18px rgba(16, 33, 63, .035); }
+.plan-create fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.plan-form-section { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 0; padding: 0; border-bottom: 1px solid var(--line); }
+.plan-form-section-heading { padding: 26px 24px; background: var(--soft); border-right: 1px solid var(--line); }
+.plan-section-number { color: var(--accent-deep); font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+.plan-form-section-heading h3 { margin: 7px 0; color: var(--ink); font-size: 14px; font-weight: 800; }
+.plan-form-section-heading p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; max-width: 170px; }
+.plan-form-section-heading > small { display: block; margin-top: 14px; color: var(--muted); font-size: 11px; }
+.plan-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 20px; padding: 26px 28px; }
+.plan-form-grid label { display: block; color: var(--ink); font-size: 12px; font-weight: 700; }
+.plan-form-grid label > [data-slot], .plan-form-grid label > span.relative, .plan-fee-input { margin-top: 9px; }
+.plan-form-grid label > input, .plan-form-grid label > textarea { display: block; }
+.plan-required { color: var(--accent-deep); margin-left: 3px; }
+.plan-optional { color: var(--muted); font-size: 11px; font-weight: 400; margin-left: 5px; }
+.plan-field-hint { display: block; margin-top: 7px; color: var(--muted); font-size: 11px; font-weight: 400; line-height: 1.5; }
+.plan-fee-input { display: block; position: relative; }
+.plan-fee-input input { padding-right: 86px; }
+.plan-fee-input > span { position: absolute; right: 28px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 11px; font-weight: 400; pointer-events: none; }
+.plan-form-description { grid-column: 1 / -1; }
+.plan-field-error { display: block; color: #b42318; font-size: 12px; margin-top: 7px; }
+.plan-form-footer { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 18px 28px; background: var(--surface-raised); }
+.plan-form-footer > p { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--muted); font-size: 12px; }
+.plan-form-footer > p svg { flex-shrink: 0; }
+.plan-form-actions { display: flex; justify-content: flex-end; gap: 10px; flex-shrink: 0; }
+.plan-form-message { margin: 16px 28px; font-size: 13px; }
+.plan-notice { margin: 0 24px 20px; color: var(--ink); font-size: 13px; }
+@media (max-width: 1000px) { .plan-form-section { grid-template-columns: 160px minmax(0, 1fr); } }
+@media (max-width: 760px) {
+  .plan-create { margin: 0 16px 16px; }
+  .plan-form-section { grid-template-columns: 1fr; padding: 0; gap: 0; }
+  .plan-form-section-heading { padding: 16px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .plan-form-grid { padding: 20px 16px; }
+  .plan-form-section-heading p { max-width: none; }
+  .plan-form-section-heading > small { margin-top: 6px; }
+  .plan-form-footer { align-items: stretch; flex-direction: column; padding: 16px; gap: 16px; }
+}
+@media (max-width: 520px) { .plan-form-grid { grid-template-columns: 1fr; } }

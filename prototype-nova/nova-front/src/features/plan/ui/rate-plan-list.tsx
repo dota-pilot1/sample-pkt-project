@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { PackageOpen } from "lucide-react";
 import { type RatePlanSalesStatus } from "@/features/plan/api";
 import { useRatePlanList } from "@/features/plan/model/use-rate-plan-list";
@@ -15,18 +16,23 @@ const formatFee = (value: number) => `${value.toLocaleString("ko-KR")}원`;
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium" }).format(new Date(value));
 
-export function RatePlanList() {
+export function RatePlanList({ actions, feedback, children, title = "요금제 목록", subtitle }: { actions?: ReactNode; feedback?: ReactNode; children?: ReactNode; title?: string; subtitle?: string }) {
   const plans = useRatePlanList({ page: 1, size: 20 });
 
   return (
     <section className="plan-list" aria-labelledby="plan-list-title">
       <div className="plan-list-header">
         <div>
-          <h2 id="plan-list-title">요금제 목록</h2>
-          <p>총 {plans.data?.totalElements ?? 0}건</p>
+          <h2 id="plan-list-title">{title}</h2>
+          <p>{subtitle ?? `총 ${plans.data?.totalElements ?? 0}건`}</p>
         </div>
-        <span className="preparation-badge">테스트 데이터</span>
+        <div className="plan-list-actions">
+          <span className="preparation-badge">테스트 데이터</span>
+          {actions}
+        </div>
       </div>
+      {feedback}
+      {children}
       {plans.isPending ? (
         <p className="plan-state">요금제 목록을 불러오는 중입니다.</p>
       ) : plans.isError ? (
