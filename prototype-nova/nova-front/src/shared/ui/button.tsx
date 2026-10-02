@@ -3,9 +3,9 @@ import { LoaderCircle } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
 const buttonVariants = {
-  default: "bg-[var(--accent)] text-white hover:bg-[var(--accent-deep)]",
-  outline: "border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--accent-soft)]",
-  ghost: "text-[var(--ink)] hover:bg-[var(--accent-soft)]",
+  default: "bg-[var(--action)] text-white hover:bg-[var(--action-hover)]",
+  outline: "border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--neutral-hover)]",
+  ghost: "text-[var(--ink)] hover:bg-[var(--neutral-hover)]",
 } as const;
 
 function Button({
@@ -32,7 +32,7 @@ function Button({
       data-slot="button"
       data-variant={variant}
       data-size={size}
-      className={cn("inline-flex shrink-0 items-center justify-center gap-2 rounded-[9px] text-sm font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 disabled:pointer-events-none disabled:opacity-50", buttonVariants[variant], sizeClassName, className)}
+      className={cn("inline-flex shrink-0 items-center justify-center gap-2 rounded-[9px] text-sm font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] disabled:pointer-events-none disabled:opacity-50", buttonVariants[variant], sizeClassName, className)}
       {...props}
     >
       {loading && <LoaderCircle aria-hidden="true" size={16} className="animate-spin motion-reduce:animate-none" />}
